@@ -14,14 +14,14 @@ for i = 1:length(imfiles)
     load(fullfile(gtdir, [imfiles(i).name(1:end-4) labelpostfix]));
     ShowGTPolyg(img, gtPolyg, 1);
     
-    col = 'rgbkm';
+    col = {'r','g','b','k','w'};
     for j = 1:length(gtPolyg)
         hold on;
         poly = gtPolyg{j};
         if(isempty(poly))
             continue;
         end
-        scatter(poly(:, 1), poly(:, 2), col(j), '*');
+        scatter(poly(:, 1), poly(:, 2), col{j}, '*');
         hold off;
     end
     
