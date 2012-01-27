@@ -156,7 +156,7 @@ cpt2 = [obj.bbs(1) + obj.bbs(3) / 2; obj.bbs(2) + obj.bbs(4) / 2];
 cray3 = (K * R) \ [cpt2; 1];
 % cpt3_1 = (K * R) \ [cpt2; 1];
 
-angle = get3DAngle(K, R, cpt2, obj.pose, -cam_height);
+angle = get3DAngle(K, R, obj.pose, -cam_height);
 if 1
 	cray3 = cray3 ./ cray3(2) * -(cam_height - model.height(1) / 2);
 	[cube1] = get3DObjectCube(R, cray3, ...

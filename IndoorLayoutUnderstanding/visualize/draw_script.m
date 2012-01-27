@@ -1,7 +1,7 @@
 clear
 close all;
 
-ind = 4;
+ind = 3;
 img_dir= '/home/wgchoi/Codes/eccv_indoor/Data_Collection/livingroom/';
 gt_dir = '/home/wgchoi/Codes/eccv_indoor/Annotation/livingroom/';
 datadir= '../UIUC_Varsha/SpatialLayout/tempworkspace/data/';
@@ -18,4 +18,4 @@ ShowGTPolyg(img, gtPolyg, 10);
 [K, R, F] = get3Dcube(img, vp, gtPolyg);
 
 objmodel = objmodels();
-drawCube(F, gtPolyg, K, R, objs, objmodel, 1);
+drawCube(F, gtPolyg, K, R, objs, objmodel,1);

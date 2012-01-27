@@ -1,10 +1,13 @@
-function angle3 = get3DAngle(K, R, ct, pose, ref)
+% function angle3 = get3DAngle(K, R, ct, pose, ref)
+function angle3 = get3DAngle(K, R, pose, ref)
 if nargin < 5
 	ref = -1;
 end
-
-pt1 = ct;
-pt2 = ct + [-sin(pi/4 * (pose - 1)); cos(pi/4 * (pose - 1))] * 10;
+% 
+% pt1 = ct;
+% pt2 = ct + [-sin(pi/4 * (pose - 1)); cos(pi/4 * (pose - 1))] * 10;
+pt1 = pose(1, :)';
+pt2 = pose(2, :)';
 
 ray1 = (K * R) \ [pt1; 1];
 ray2 = (K * R) \ [pt2; 1];
