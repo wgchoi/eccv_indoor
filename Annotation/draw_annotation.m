@@ -12,7 +12,9 @@ for id = 1:length(objs)
         rectangle('position', objs{id}(i).bbs, 'edgecolor', 'r', 'linewidth', 2);
         
         text(objs{id}(i).bbs(1), objs{id}(i).bbs(2), objtypes{id}, 'BackgroundColor', 'w', 'EdgeColor', 'k');
-        draw_pose(objs{id}(i).bbs, objs{id}(i).pose);
+%         draw_pose(objs{id}(i).bbs, objs{id}(i).pose);
+        plot([objs{id}(i).pose(1, 1) objs{id}(i).pose(2, 1)],...
+             [objs{id}(i).pose(1, 2) objs{id}(i).pose(2, 2)], 'linewidth', 2, 'color', 'g'); 
     end
 end
 hold off;

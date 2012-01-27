@@ -37,10 +37,16 @@ for i = 1:length(exts)
             end
             %%%%
             if(isfield(data, 'objs'))
-                continue; 
-                
                 for id = 1:length(objtypes)
                     if(id <= length(data.objs))
+                        removeidx = [];
+                        for k = 1:length(data.objs{id})
+                            if(size(data.objs{id}(k).pose, 1) ~= 2 ||size(data.objs{id}(k).pose, 2) ~= 2)
+                                removeidx(end+1) = k;
+                            end
+                        end
+                        data.objs{id}(removeidx) = [];
+                        
                         [objs{id}] = annotate_objects(imfile, id, objtypes{id}, data.objs{id});
                     else
                         [objs{id}] = annotate_objects(imfile, id, objtypes{id});
