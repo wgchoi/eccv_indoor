@@ -1,4 +1,8 @@
-function annotate_one_dir( image_dir, anno_dir, annotator)
+function [list_annotated, times] = annotate_one_dir( image_dir, anno_dir, annotator, ignorelist)
+
+if nargin < 4
+    ignorelist = {};
+end
 
 if ~exist(image_dir, 'dir')
     disp([image_dir ' does not exist!!!!']);
@@ -11,15 +15,25 @@ end
 
 exts = {'jpg' 'JPEG' 'png'};
 
-
 labelpostfix = '_labels.mat';
 objtypes = {'Sofa', 'Table', 'TV', 'Chair', 'Bed'};
 
 times = [];
+
+list_annotated = cell(0, 1);
+if(length(ignorelist) > 0)
+    list_annotated = ignorelist;
+end
+
 for i = 1:length(exts)
     imfiles = dir(fullfile(image_dir, ['*.' exts{i}]));
     
     for j = 1:length(imfiles)
+        if(in_list(ignorelist, imfiles(j).name))
+            disp([imfiles(j).name ' is ignored']);
+            continue;
+        end
+        
         tic;
         imfile = fullfile(image_dir, imfiles(j).name);
         annofile = fullfile(anno_dir, [imfiles(j).name(1:end-4) labelpostfix]);
@@ -64,9 +78,28 @@ for i = 1:length(exts)
             annotate_one_image( imfile, annofile, objtypes, annotator);
         end
         close;
-        times(end+1) = toc
+        times(end+1) = toc;
+        disp(['Took ' num2str(times(end), '%.02f') ' seconds for annotating ' imfiles(j).name]);
+        
+        list_annotated{end + 1} = imfiles(j).name;
+        
+        keyin = input('Do you want to stop? [y/n]', 's');
+        if(keyin == 'y')
+            return;
+        end
     end
 end
 
 end
 
+function bin = in_list(list, filename)
+
+bin = 0;
+for i = 1:length(list)
+    if(strcmp(list{i}, filename))
+        bin = 1;
+        return;
+    end
+end
+
+end

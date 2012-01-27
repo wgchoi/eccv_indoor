@@ -3,11 +3,14 @@ function [pixerr]=getPixerr(gtPolyg,Polyg)
 farea1=zeros(1,5);
 farea2=zeros(1,5);
 for i=1:numel(gtPolyg)
+    
     if size(gtPolyg{i},1)>0
         farea1(i)=polyarea([gtPolyg{i}(:,1);gtPolyg{i}(1,1)],[gtPolyg{i}(:,2);gtPolyg{i}(1,2)]);
     end
+    
     if size(Polyg{i},1)>0
         farea2(i)=polyarea([Polyg{i}(:,1);Polyg{i}(1,1)],[Polyg{i}(:,2);Polyg{i}(1,2)]);
+        
     end
 end
 
@@ -15,6 +18,7 @@ cnt=0;
 err=[];
 % Find intersection area of fields
 for i=1:5
+    
     if farea1(i)== 0 & farea2(i)==0
         %if both the fields are invisible dont count
         continue;
@@ -47,10 +51,12 @@ for i=1:5
         end
         if numel(X0)>0
             nInter=polyarea([X0; X0(1)],[Y0;Y0(1)]);
+            
         else
             nInter=0;
         end
     end
+    
     
     %     nInter;
     Fdiff(cnt)=1-nInter/(farea1(i)+farea2(i)-nInter);

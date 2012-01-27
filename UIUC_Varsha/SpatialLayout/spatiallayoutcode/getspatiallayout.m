@@ -1,4 +1,4 @@
-function [ boxlayout,surface_labels ] = getspatiallayout(imdir,imagename,workspcdir)
+function [ boxlayout, surface_labels, resizefactor] = getspatiallayout(imdir,imagename,workspcdir,DISPIMAGES)
 % GETSPATIALLAYOUT Given an image, estimate its spatial layout, consisting
 %   of a boxlayout and pixel labels of different surfaces. Please refer to
 %   the readme file provided with this software for detailed meaning of
@@ -41,7 +41,10 @@ function [ boxlayout,surface_labels ] = getspatiallayout(imdir,imagename,workspc
 % to abide by the restrictions set forth in the file Readme.txt
 
 
-
+tempimgdir = [workspcdir 'tImages/'];
+if ~exist(tempimgdir,'dir')
+    mkdir(tempimgdir);
+end
 outimgdir = [workspcdir 'Images/'];
 if ~exist(outimgdir,'dir')
     mkdir(outimgdir);
@@ -56,9 +59,22 @@ end
 boxlayout=[];
 surface_labels=[];
 
-[vp p All_lines]=getVP(imdir,imagename,0,workspcdir);
-
 img=imread([imdir imagename]);
+resizefactor = 1;
+if(size(img, 2) > 640)
+	resizefactor = 640 / size(img, 2);
+end
+img = imresize(img, resizefactor);
+
+imagename = [imagename(1:end-4) '.jpg'];
+imdir = tempimgdir;
+
+imwrite(img, fullfile(imdir, imagename), 'JPEG');
+
+tic; fprintf('vanishing points estimation!');
+[vp p All_lines]=getVP(img, 0, workspcdir, imagename);
+toc;
+
 [h w kk]=size(img);
 VP=vp;
 if numel(VP)<6
@@ -88,12 +104,12 @@ segext='pnm';
 nsegments=[5 15 25 35 40 60 80 100];
 fn=['../Imsegs/' imagename(1:end-4) '.' segext];
 % preprocess superpixel segmentations
-if(~exist(fn))
+if (1) % (~exist(fn))
     sigma = num2str(0.8);
     k1 = num2str(100);
     min1 = num2str(100);
     
-    im = imread([imdir imagename]);
+    im = img; %imread([imdir imagename]);
     inputim=[workspcdir imagename(1:end-4) '.ppm'];
     imwrite(im, inputim, 'PPM');
     outputim = fn; % ['../Imsegs/' imagename(1:end-4) '.pnm'];
@@ -101,11 +117,11 @@ if(~exist(fn))
     delete(inputim);
 end
 imseg = processSuperpixelImage(fn);
+imseg.imname = imagename;
 
-tic
+tic; fprintf('mcmcComputeImageData: ');
 imdata = mcmcComputeImageData(im2double(img), imseg);% made changes here
 toc
-
 
 load(fullfile('../LabelClassifier/', 'Classifiers_gc.mat'));
 
@@ -137,14 +153,8 @@ pg = msTest(imseg, segfeatures, smaps, ...
     labelclassifier, segclassifier,normalize);
 
 filename=fullfile(workspcdir, [imagename(1:end-4) '_lc_gc.mat' ]);
-save(filename,'pg');
-
+save(filename,'pg', 'resizefactor');
 %visualize
-
-
-
-
-
 %Compute intergral images for features
 tic
 [integData]=getIntegralimages([imagename],vpdata,imseg,500,workspcdir,imdir);
@@ -205,36 +215,35 @@ boxlayout.reestimated=[vv ii];
 
 
 lay_scores=[vv ii];
-save([workspcdir imagename(1:end-4) '_layres.mat'],'polyg','lay_scores');%,'avg_pg');
+save([workspcdir imagename(1:end-4) '_layres.mat'],'polyg','lay_scores', 'resizefactor');%,'avg_pg');
 
+if DISPIMAGES
+    figure(101);
+    drawnow;
+    for lay=1:25
+        layoutid=ii(lay);
+        Polyg=[];
+        for fie=1:5
+            Polyg{fie}=[];
+            if size(polyg{layoutid,fie})>0
+                Polyg{fie}=polyg{layoutid,fie};
+            end
+        end
+        tempimg=displayout(Polyg,w,h,img);
+        subplot(5,5,lay);imagesc(uint8(tempimg));title(num2str(vv(lay)));
+    end
+    saveas(101,[outimgdir imagename(1:end-4) '_boxlayouts.png']);
 
-figure(101);
-drawnow;
-for lay=1:25
-    layoutid=ii(lay);
     Polyg=[];
     for fie=1:5
         Polyg{fie}=[];
-        if size(polyg{layoutid,fie})>0
-            Polyg{fie}=polyg{layoutid,fie};
+        if size(polyg{ii(1),fie})>0
+            Polyg{fie}=polyg{ii(1),fie};
         end
     end
-    
-    tempimg=displayout(Polyg,w,h,img);
-    subplot(5,5,lay);imshow(uint8(tempimg),[]);title(num2str(vv(lay)));
+    ShowGTPolyg(img,Polyg,103);
+    saveas(103,[outimgdir imagename(1:end-4) '_boxlayout.png']);
 end
-saveas(101,[outimgdir imagename(1:end-4) '_boxlayouts.png']);
-
-Polyg=[];
-for fie=1:5
-    Polyg{fie}=[];
-    if size(polyg{ii(1),fie})>0
-        Polyg{fie}=polyg{ii(1),fie};
-    end
-end
-ShowGTPolyg(img,Polyg,103);
-saveas(103,[outimgdir imagename(1:end-4) '_boxlayout.png']);
-
 
 %Re-Compute Surface labels (GC+box layout features)
 load(['../LabelClassifier/' 'Classifiers_stage2.mat']);
@@ -339,7 +348,7 @@ end
 toc
 
 filename=fullfile(workspcdir,[imagename(1:end-4) '_lc_st2.mat' ]);
-save(filename,'avg_pg');
+save(filename,'avg_pg','resizefactor');
 
 surface_labels.restimated={avg_pg};
 surface_labels.init=pg;
@@ -354,24 +363,25 @@ bl1=[139 112 255  255 255 0 0 133 255 0];
 cimages = msPg2confidenceImages(imseg,{avg_pg});
 [aa indd]=max(cimages{1}(:,:,1:6),[],3);
 
-figure(102);
-clear mask_color;
-mask_r = rl(indd);
-mask_g = gl(indd);
-mask_b = bl(indd);
-mask_color(:,:,1) = mask_r;
-mask_color(:,:,2) = mask_g;
-mask_color(:,:,3) = mask_b;
+if DISPIMAGES
+    figure(102);
+    clear mask_color;
+    mask_r = rl(indd);
+    mask_g = gl(indd);
+    mask_b = bl(indd);
+    mask_color(:,:,1) = mask_r;
+    mask_color(:,:,2) = mask_g;
+    mask_color(:,:,3) = mask_b;
 
-hsvmask=rgb2hsv(mask_color);
-hsvmask(:,:,3)=aa*255;
-%     hsvmask(:,:,2)=aa;
-mask_color=hsv2rgb(hsvmask);
+    hsvmask=rgb2hsv(mask_color);
+    hsvmask(:,:,3)=aa*255;
+    %     hsvmask(:,:,2)=aa;
+    mask_color=hsv2rgb(hsvmask);
 
-tempimg = double(img)*0.5 + mask_color*0.5;
+    tempimg = double(img)*0.5 + mask_color*0.5;
 %         tempimg =  mask_color;
-imshow(uint8(tempimg));
-saveas(102,[outimgdir imagename(1:end-4) '_surfacelabels.png']);
-
+    imagesc(uint8(tempimg));
+    saveas(102,[outimgdir imagename(1:end-4) '_surfacelabels.png']);
+end
 end
 

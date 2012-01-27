@@ -17,7 +17,7 @@ function lines = APPgetLargeConnectedEdges(grayIm, minLen)
 %
 % Copyright(C) Derek Hoiem, Carnegie Mellon University, 2007
 
-[dX, dY] = gradient(conv2(grayIm, fspecial('gaussian', 7, 1.5), 'same'));
+[dX, dY] = gradient(conv2(double(grayIm), fspecial('gaussian', 7, 1.5), 'same'));
 
 im_canny = edge(grayIm, 'canny');
 % remove border edges
