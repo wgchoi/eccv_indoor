@@ -113,7 +113,7 @@ end
 
 % visualize camera
 p1 = [0; 0; 0];
-p2 = R' * [0; 0; -.3 * cam_height];
+p2 = R' * [0; 0; .3 * cam_height];
 arrow3d(p1', p2', 15, 'cylinder', [0.7,0.3]);
 hold off;
 %
@@ -129,10 +129,12 @@ for i = 1:length(objs)
     
     % each type of objects
     for j = 1:length(objs{i})
-        draw_object(K, R, objs{i}(j), objmodel(i), figid);
+        cube = draw_object(K, R, objs{i}(j), objmodel(i), cam_height, figid);
+        poly = get2DCubeProjection(K, R, cube);
+        draw2DCube(poly, 10);
     end
 end
-
+figure(figid);
 %
 view([170 -60]); grid on;
 xlabel('x'); ylabel('y'); zlabel('z');
@@ -148,15 +150,23 @@ axis equal
 
 end
 
-function cube = draw_object(K, R, obj, model, figid)
+function cube = draw_object(K, R, obj, model, cam_height, figid)
 % 
 cpt2 = [obj.bbs(1) + obj.bbs(3) / 2; obj.bbs(2) + obj.bbs(4) / 2];
 cray3 = (K * R) \ [cpt2; 1];
 % cpt3_1 = (K * R) \ [cpt2; 1];
 
-[cube1] = get3DObjectCube(R, cray3 * -3, ...
-                            model.width(1), model.height(1), model.depth(1), ...
-                            obj.pose);
+angle = get3DAngle(K, R, cpt2, obj.pose, -cam_height);
+if 1
+	cray3 = cray3 ./ cray3(2) * -(cam_height - model.height(1) / 2);
+	[cube1] = get3DObjectCube(R, cray3, ...
+								model.width(1), model.height(1), model.depth(1), ...
+								angle);
+else
+	[cube1] = get3DObjectCube(R, cray3 * 5, ...
+								model.width(1), model.height(1), model.depth(1), ...
+								angle);
+end
 % [cube2] = get3Dcube(R, (K * R) \ [cpt2; 2], model.width(1), model.height(1), model.depth(1), obj.pose);
 % fit the cube
 % option 1 : find the best fit given bb

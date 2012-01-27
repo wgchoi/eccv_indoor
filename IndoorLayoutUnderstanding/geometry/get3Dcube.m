@@ -12,7 +12,7 @@ F = nan(5, 4);
 for i = 1:size(F, 1)
     if(visplanes(i))
         F(i, 1:3) = SurfaceNormals(i, :) ./ norm(SurfaceNormals(i, :));
-        F(i, 4) = DistfromSurface(i);
+        F(i, 4) = -DistfromSurface(i);
     end
 end
 

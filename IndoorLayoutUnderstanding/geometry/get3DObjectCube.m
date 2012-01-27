@@ -1,5 +1,5 @@
 % return 8 vertices that specifies a cube in 3D
-function [cube] = get3DObjectCube(R, ct3, w, h, d, pose)
+function [cube] = get3DObjectCube(R, ct3, w, h, d, angle)
 % at pose 1
 % x : width
 % y : hiehgt
@@ -21,9 +21,9 @@ dv(:, 6) = [0.5 * w; -0.5 * h; -0.5 * d];
 dv(:, 7) = [-0.5 * w; 0.5 * h; -0.5 * d];
 dv(:, 8) = [0.5 * w; 0.5 * h; -0.5 * d];
 
-angle = pi/4 * (pose - 1);
+% angle = pi/4 * (pose - 1);
 % to world coordinate
-R2 = eye(3); % angle2dcm(0, angle, 0, 'XYZ');
+R2 = angle2dcm(0, angle, 0, 'XYZ');
 cube = repmat(ct3, 1, 8) + R2 * dv;
 
 end
