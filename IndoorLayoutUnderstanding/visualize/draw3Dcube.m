@@ -29,7 +29,8 @@ figure(figid);
 hold on;
 for i=1:6
     h=patch(X(:, i), Y(:, i), Z(:, i), 'm');
-    set(h,'edgecolor','k');
+    set(h,'edgecolor','k', 'linewidth',2);
+    plot3(cube(1,1), cube(1,2), cube(1, 3) , 'k.', 'MarkerSize', 20);
 end
 hold off;
 
