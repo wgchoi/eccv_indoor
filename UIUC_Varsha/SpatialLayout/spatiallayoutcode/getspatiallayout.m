@@ -40,11 +40,10 @@ function [ boxlayout, surface_labels, resizefactor] = getspatiallayout(imdir,ima
 % To use this code or any part of the package, for any purpose, you agree
 % to abide by the restrictions set forth in the file Readme.txt
 
-
-tempimgdir = [workspcdir 'tImages/'];
-if ~exist(tempimgdir,'dir')
-    mkdir(tempimgdir);
-end
+% tempimgdir = [workspcdir 'tImages/'];
+% if ~exist(tempimgdir,'dir')
+%     mkdir(tempimgdir);
+% end
 outimgdir = [workspcdir 'Images/'];
 if ~exist(outimgdir,'dir')
     mkdir(outimgdir);
@@ -60,17 +59,17 @@ boxlayout=[];
 surface_labels=[];
 
 img=imread([imdir imagename]);
+assert(size(img, 2) <= 640);
 resizefactor = 1;
-if(size(img, 2) > 640)
-	resizefactor = 640 / size(img, 2);
-end
-img = imresize(img, resizefactor);
-
-imagename = [imagename(1:end-4) '.jpg'];
-imdir = tempimgdir;
-
-imwrite(img, fullfile(imdir, imagename), 'JPEG');
-
+% if(size(img, 2) > 640)
+% 	resizefactor = 640 / size(img, 2);
+% end
+% img = imresize(img, resizefactor);
+% idx = find(imagename == '.', 1, 'last');
+% imagename = [imagename(1:idx-1) '.jpg'];
+% imdir = tempimgdir;
+% imwrite(img, fullfile(imdir, imagename), 'JPEG');
+disp(['=============== Process ' imagename '!! ======================']);
 tic; fprintf('vanishing points estimation!');
 [vp p All_lines]=getVP(img, 0, workspcdir, imagename);
 toc;

@@ -1,5 +1,5 @@
 %Copyright (c) October,15 2008 by Varsha Hedau, UIUC.  All rights reserved.
-function [vp p All_lines]=getVP(imdir,imagename,DO_DISPLAY,savedir)
+function [vp p All_lines]=getVP(img, DO_DISPLAY,savedir, imagename)
 % getVP Get a triplet of orthogonal vanishing points for an image.
 %For details see [1] Varsha Hedau, Derek Hoiem, David Forsyth, Recovering the Spatial 
 %     Layout of Cluttered Rooms, in the Twelfth IEEE International Conference 
@@ -14,7 +14,7 @@ function [vp p All_lines]=getVP(imdir,imagename,DO_DISPLAY,savedir)
 % All_lines - detected line segments in the image [x1 x2 y1 y2 theta r]
 
 vp=[];p=[];lines=[];
-img=imread([imdir imagename]);
+% img=imread([imdir imagename]);
 %img=imresize(img,500/size(img,1));
 [h w k]=size(img);
 grayIm=rgb2gray(img);
@@ -127,6 +127,6 @@ if size(totVote,1) > 0
         
     end
     filename=fullfile(savedir,[imagename(1:end-4) '_vp.mat']);
-    save(filename,'vp','p','VoteArrTemp','All_lines');
+    save(filename,'vp','p','VoteArrTemp','All_lines', 'imsize');
 end
 return

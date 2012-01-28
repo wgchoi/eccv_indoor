@@ -1,57 +1,61 @@
 clear;
 % Add local code directories to Matlab path
 addpaths;
-% imdir='../Images_resized/'; % directory with original images
-% imdir = '../../../UIUC_data/Images/';
-imdir = '~/eccv_layout/wongun_layout/Data_Collection/livingroom/';
-
-workspcdir='~/eccv_layout/wongun_layout/Results/temp/layout/'; % '../tempworkspace/'; % directory to save intermediate results
+%% prep directories
+orgdir = '~/eccv_layout/new_version/eccv_indoor/Data_Collection/livingroom/';
+imdir = '~/eccv_layout/new_version/eccv_indoor/Results/temp/resized/';
+if ~exist(imdir,'dir')
+    mkdir(imdir);
+end
+workspcdir='~/eccv_layout/new_version/eccv_indoor/Results/temp/layout/'; % '../tempworkspace/'; % directory to save intermediate results
 if ~exist(workspcdir,'dir')
     mkdir(workspcdir);
 end
-
-resdir = '~/eccv_layout/wongun_layout/Results/layout/livingroom/'; % '../tempworkspace/'; % directory to save intermediate results
+resdir = '~/eccv_layout/new_version/eccv_indoor/Results/layout/livingroom/'; % '../tempworkspace/'; % directory to save intermediate results
 if ~exist(resdir,'dir')
     mkdir(resdir);
 end
-% You can run it on a single image as follows
-% imagename='indoor_0268.jpg';
-% imagename='1-deer-valley-living-room6.jpg';
-% [ boxlayout,surface_labels ] = getspatiallayout(imdir,imagename,workspcdir);
-% files = {'0000000041.jpg'}; % '2335_0.jpg' '487368900_e0b90a72fa_m.jpg' 'IMG_2339.jpg' 'IMG_4087.jpg' 'IMG_7743.jpg' 'IMG_9548.jpg'};
-
-matlabpool open 8
-%%
-files = dir([imdir '*.jpg']);
-
-fcnt = length(files);
-boxlayout = cell(fcnt, 1);
-surface_labels = cell(fcnt, 1);
-resizefactor = cell(fcnt, 1);
-fnames = cell(fcnt, 1);
-
-parfor i = 1:length(files)
-    [ boxlayout{i}, surface_labels{i}, resizefactor{i}] = getspatiallayout(imdir, files(i).name, workspcdir, 0);
-    fnames{i} = fullfile(imdir, files(i).name);
-%   close all;
-% 	save(fullfile(resdir, files(i).name(1:end-4)), 'boxlayout', 'surface_labels', 'resizefactor');
+%% extensions
+exts = {'jpg' 'JPEG'};
+%% image resize all
+for e = 1:length(exts)
+    files = dir(fullfile(orgdir, ['*.' exts{e}]));
+    for i = 1:length(files)
+        idx = find(files(i).name == '.', 1, 'last');
+        destfile = fullfile(imdir, [files(i).name(1:idx-1) '.jpg']);
+        
+        if(exist(destfile, 'file'))
+            continue;
+        end
+        
+        img = imread(fullfile(orgdir, files(i).name));
+        if(size(img, 2) > 640)
+            resizefactor = 640 / size(img, 2);
+            img = imresize(img, resizefactor);
+        end
+        imwrite(img, destfile, 'JPEG');
+    end
 end
-save(fullfile(resdir, 'res_set1.mat'), 'boxlayout', 'surface_labels', 'resizefactor', 'fnames');
-%%
-files = dir([imdir '*.JPEG']);
-
-fcnt = length(files);
-boxlayout = cell(fcnt, 1);
-surface_labels = cell(fcnt, 1);
-resizefactor = cell(fcnt, 1);
-fnames = cell(fcnt, 1);
-
-parfor i = 1:length(files)
-    [ boxlayout{i}, surface_labels{i}, resizefactor{i}] = getspatiallayout(imdir, files(i).name, workspcdir, 0);
-    fnames{i} = fullfile(imdir, files(i).name);
-%     close all;
-% 	save(fullfile(resdir, files(i).name(1:end-5)), 'boxlayout', 'surface_labels', 'resizefactor');
+%% process all images!
+try
+    matlabpool open 8
+catch ee
+    ee
 end
-save(fullfile(resdir, 'res_set2.mat'), 'boxlayout', 'surface_labels', 'resizefactor', 'fnames');
 
+for e = 1:length(exts)
+    files = dir(fullfile(imdir, ['*.' exts{e}]));
+
+    fcnt = length(files);
+    boxlayout = cell(fcnt, 1);
+    surface_labels = cell(fcnt, 1);
+    resizefactor = cell(fcnt, 1);
+    fnames = cell(fcnt, 1);
+
+    parfor i = 1:length(files)
+        [ boxlayout{i}, surface_labels{i}, resizefactor{i}] = getspatiallayout(imdir, files(i).name, workspcdir, 0);
+        fnames{i} = fullfile(imdir, files(i).name);
+    end
+    save(fullfile(resdir, ['res_set_' exts{e} '.mat']), 'boxlayout', 'surface_labels', 'resizefactor', 'fnames');
+end
 matlabpool close
