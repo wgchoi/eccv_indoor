@@ -1,9 +1,9 @@
 function [K, R, F] = get3Dcube(img, vp, polyg)
 % addpath('3DReasoning');
-[K, R]=calibrate_cam(reshape(vp, 2, 3)', size(img, 1), size(img, 2));
+[K, R]=calibrate_cam(vp, size(img, 1), size(img, 2));
 
 [room_ht room_wt SurfaceNormals DistfromSurface DistOn visplanes corners3D K R] = ...
-    getWallCorners(polyg, reshape(vp, 2, 3)', size(img, 1), size(img, 2), K, R);
+    getWallCorners(polyg, vp, size(img, 1), size(img, 2), K, R);
 
 % F(1, :) => floor : ax + by + cz + d = 0
 % floor, center, right, left, ceiling

@@ -1,7 +1,7 @@
 function ShowGTPolyg(img,gtPolyg,fignum)
-%pfc={'r','g','b','k','w'};
- pfc={'r','r','r','r','r'};
- figure(fignum);
+pfc={'r','g','b','k','w'};
+%  pfc={'r','r','r','r','r'};
+figure(fignum);
 % imshow(img,[]);hold on;
 imagesc(img);hold on;
 for f=1: numel(gtPolyg)
