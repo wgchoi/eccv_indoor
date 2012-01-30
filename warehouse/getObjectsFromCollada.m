@@ -1,6 +1,6 @@
 function obj = getObjectsFromCollada(filename)
 
-global Collada Geometries LibNodes Positions Triangles;
+global Collada Geometries LibNodes Positions Triangles Offset;
 
 Collada = xml2struct(filename);
 
@@ -36,9 +36,9 @@ if ModelFound == 1
 else
     error('no 3D model in the scene');
 end
-while length(Model.children) == 3
-    Model = Model.children(1);
-end
+% while length(Model.children) == 3
+%     Model = Model.children(1);
+% end
 
 for i = 2:2:length(Model.children)-1
     Positions = [];
@@ -149,16 +149,17 @@ end
 
 function InstNode = getInstanceGeometry(InNode)
 
-global LibNodes Geometries Positions Triangles;
+global LibNodes Geometries Positions Offset;
 for i = 2:2:length(InNode.children)-1
     if strcmpi(InNode.children(i).name, 'instance_node')
         SearchString = findAttributeValue(InNode.children(i), 'url');
         TempNode = findNodeById(LibNodes, SearchString);
+        change = size(Positions, 2) + 1;
         InstNode = getInstanceGeometry(TempNode);
         MatNode = findNodeByName(InNode, 'matrix');
         Matrix = str2num(MatNode.children.data);
         if ~isempty(Matrix)
-            Positions = Matrix*Positions;
+            Positions(:, change:end) = Matrix*Positions(:, change:end);
         end
     elseif strcmpi(InNode.children(i).name, 'instance_geometry')
         SearchString = findAttributeValue(InNode.children(i), 'url');
@@ -171,7 +172,7 @@ end
 
 function appendPositions(Node)
 
-global Positions Triangles;
+global Positions Triangles Offset;
 Mesh = findNodeByName(Node, 'mesh');
 Input = findNodeByName(findNodeByName(Mesh, 'vertices'), 'input');
 SearchString = findAttributeValue(Input, 'source');
