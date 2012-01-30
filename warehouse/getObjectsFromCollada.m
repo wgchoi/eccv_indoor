@@ -1,6 +1,6 @@
 function obj = getObjectsFromCollada(filename)
 
-global Collada Geometries LibNodes Positions Triangles Offset;
+global Collada Geometries LibNodes Positions Triangles;
 
 Collada = xml2struct(filename);
 
@@ -44,8 +44,11 @@ for i = 2:2:length(Model.children)-1
     Positions = [];
     Triangles = [];
     Object = Model.children(i);
-    InstNode = getInstanceGeometry(Object);
-    obj(round(i/2)).id = Object.id;
+    [Structure] = getInstanceGeometry(Object);
+    obj(round(i/2)).struct.name = Object.id;
+    obj(round(i/2)).struct.start = 1;
+    obj(round(i/2)).struct.end = size(Positions, 2);
+    obj(round(i/2)).struct.struct = Structure;
     obj(round(i/2)).pos = Positions;
     obj(round(i/2)).tri = Triangles';
 end
@@ -147,32 +150,54 @@ else
     OutNode = InNode.children(i);
 end
 
-function InstNode = getInstanceGeometry(InNode)
+function [Structure] = getInstanceGeometry(InNode)
 
-global LibNodes Geometries Positions Offset;
+global LibNodes Geometries Positions;
 for i = 2:2:length(InNode.children)-1
     if strcmpi(InNode.children(i).name, 'instance_node')
+        
         SearchString = findAttributeValue(InNode.children(i), 'url');
         TempNode = findNodeById(LibNodes, SearchString);
-        change = size(Positions, 2) + 1;
-        InstNode = getInstanceGeometry(TempNode);
+        Offset = size(Positions, 2) + 1;
+        
+        Structure.struct(i).start = Offset;
+        [Struct] = getInstanceGeometry(TempNode);
+        Structure.struct(i).name = InNode.name;
+        Structure.struct(i).end = size(Positions, 2);
+        Structure.struct(i).struct = Struct;
+        
         MatNode = findNodeByName(InNode, 'matrix');
         Matrix = str2num(MatNode.children.data);
+        
         if ~isempty(Matrix)
-            Positions(:, change:end) = Matrix*Positions(:, change:end);
+            Positions(:, Offset:end) = Matrix*Positions(:, Offset:end);
         end
+        
     elseif strcmpi(InNode.children(i).name, 'instance_geometry')
+        
         SearchString = findAttributeValue(InNode.children(i), 'url');
         InstNode = findNodeById(Geometries, SearchString);
+        
+        Structure.struct(i).start = size(Positions, 2) + 1;
         appendPositions(InstNode);
+        Structure.struct(i).name = InNode.name;
+        Structure.struct(i).end = size(Positions, 2);
+        Structure.struct(i).struct = [];
+        
     elseif strcmpi(InNode.children(i).name, 'node')
-        InstNode = getInstanceGeometry(InNode.children(i));
+        
+        Structure.struct(i).start = size(Positions, 2) + 1;
+        [Struct] = getInstanceGeometry(InNode.children(i));
+        Structure.struct(i).name = InNode.name;
+        Structure.struct(i).end = size(Positions, 2);
+        Structure.struct(i).struct = Struct;
+        
     end
 end
 
 function appendPositions(Node)
 
-global Positions Triangles Offset;
+global Positions Triangles;
 Mesh = findNodeByName(Node, 'mesh');
 Input = findNodeByName(findNodeByName(Mesh, 'vertices'), 'input');
 SearchString = findAttributeValue(Input, 'source');
