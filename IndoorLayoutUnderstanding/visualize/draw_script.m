@@ -17,8 +17,8 @@ for i = 1:48
     img = imread(fullfile(img_dir, imfiles(i).name));
     load(fullfile(gt_dir, [imfiles(i).name(1:end-4) '_labels.mat']));
     
-    showOneExample(img, gtPolyg, objs, fullfile(outdir, imfiles(i).name(1:end-4)));
-    pause(1);
+    showOneExample(img, gtPolyg, objs, objtypes); % , fullfile(outdir, imfiles(i).name(1:end-4)));
+    pause;
     close all;
 end
 

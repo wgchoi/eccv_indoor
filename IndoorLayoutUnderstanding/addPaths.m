@@ -1,3 +1,4 @@
+addpath('common');
 addpath('geometry');
 addpath('objmodel');
 addpath('visualize');
