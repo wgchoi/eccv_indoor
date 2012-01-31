@@ -22,7 +22,7 @@ function varargout = showObjects(varargin)
 
 % Edit the above text to modify the response to help showObjects
 
-% Last Modified by GUIDE v2.5 30-Jan-2012 08:49:25
+% Last Modified by GUIDE v2.5 31-Jan-2012 10:54:07
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -43,7 +43,6 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-global filename Objects;
 
 % --- Executes just before showObjects is made visible.
 function showObjects_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -59,24 +58,13 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
-global filename Objects;
-
-set(handles.popupmenu1,'Visible','off');
-set(handles.popupmenu2,'Visible','off');
-set(handles.popupmenu3,'Visible','off');
-set(handles.popupmenu4,'Visible','off');
-set(handles.popupmenu5,'Visible','off');
-set(handles.popupmenu6,'Visible','off');
-set(handles.popupmenu7,'Visible','off');
-set(handles.popupmenu8,'Visible','off');
-set(handles.popupmenu9,'Visible','off');
-set(handles.popupmenu10,'Visible','off');
-set(handles.popupmenu11,'Visible','off');
-set(handles.popupmenu12,'Visible','off');
-set(handles.popupmenu13,'Visible','off');
-set(handles.popupmenu14,'Visible','off');
-set(handles.popupmenu15,'Visible','off');
-set(handles.popupmenu16,'Visible','off');
+global File Objects PartSequence SaveStruct NumStructs;
+PartSequence = zeros(1, 16);
+SaveStruct = struct('name', {}, 'type', {}, 'orientation', {}, 'location', {}, 'triangles', {});
+NumStructs = 0;
+axes(handles.axes1);
+cla;
+managePopupmenus(0)
 
 % UIWAIT makes showObjects wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
@@ -101,21 +89,29 @@ function popupmenu1_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu1 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu1
-global Objects;
+global Objects PartSequence;
 PartNo = get(hObject,'Value');
 PartName = get(hObject,'String');
+PartSequence(1) = PartNo;
+PartSequence(2:end) = 0;
+CurrStruct = getCurrentObject();
 axes(handles.axes1);
 cla;
 set(handles.axes1,'Visible','on');
-pos = Objects(PartNo).positions;
-tri = Objects(PartNo).triangles;
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
 trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
-for i = 1:length(Objects(PartNo).struct)
-    len = length(Objects(PartNo).struct.name);
-    StringArr(i, 1:len) = Objects(PartNo).struct.name;
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
 end
 set(handles.popupmenu2,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(2)
 
 
 % --- Executes during object creation, after setting all properties.
@@ -139,7 +135,29 @@ function popupmenu2_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu2 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu2
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(2) = PartNo;
+PartSequence(3:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu3,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(3)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu2_CreateFcn(hObject, eventdata, handles)
@@ -162,7 +180,29 @@ function popupmenu3_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu3 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu3
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(3) = PartNo;
+PartSequence(4:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu4,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(4)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu3_CreateFcn(hObject, eventdata, handles)
@@ -185,7 +225,29 @@ function popupmenu4_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu4 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu4
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(4) = PartNo;
+PartSequence(5:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu5,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(5)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu4_CreateFcn(hObject, eventdata, handles)
@@ -208,7 +270,29 @@ function popupmenu5_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu5 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu5
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(5) = PartNo;
+PartSequence(6:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu6,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(6)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu5_CreateFcn(hObject, eventdata, handles)
@@ -231,7 +315,29 @@ function popupmenu6_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu6 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu6
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(6) = PartNo;
+PartSequence(7:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu7,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(7)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu6_CreateFcn(hObject, eventdata, handles)
@@ -254,7 +360,29 @@ function popupmenu7_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu7 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu7
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(7) = PartNo;
+PartSequence(8:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu8,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(8)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu7_CreateFcn(hObject, eventdata, handles)
@@ -277,7 +405,29 @@ function popupmenu8_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu8 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu8
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(8) = PartNo;
+PartSequence(9:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu9,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(9)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu8_CreateFcn(hObject, eventdata, handles)
@@ -300,7 +450,29 @@ function popupmenu9_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu9 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu9
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(9) = PartNo;
+PartSequence(10:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu10,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(10)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu9_CreateFcn(hObject, eventdata, handles)
@@ -323,7 +495,29 @@ function popupmenu10_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu10 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu10
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(10) = PartNo;
+PartSequence(11:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu11,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(11)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu10_CreateFcn(hObject, eventdata, handles)
@@ -346,7 +540,29 @@ function popupmenu11_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu11 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu11
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(11) = PartNo;
+PartSequence(12:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu12,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(12)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu11_CreateFcn(hObject, eventdata, handles)
@@ -369,7 +585,29 @@ function popupmenu12_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu12 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu12
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(12) = PartNo;
+PartSequence(13:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu13,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(13)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu12_CreateFcn(hObject, eventdata, handles)
@@ -392,7 +630,29 @@ function popupmenu13_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu13 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu13
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(13) = PartNo;
+PartSequence(14:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu14,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(14)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu13_CreateFcn(hObject, eventdata, handles)
@@ -415,7 +675,29 @@ function popupmenu14_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu14 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu14
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(14) = PartNo;
+PartSequence(15:end) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu15,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(15)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu14_CreateFcn(hObject, eventdata, handles)
@@ -438,7 +720,29 @@ function popupmenu15_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu15 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu15
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(15) = PartNo;
+PartSequence(16) = 0;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+if ~isempty(CurrStruct.struct)
+    for i = 1:length(CurrStruct.struct)
+        len = length(CurrStruct.struct(i).name);
+        StringArr(i, 1:len) = CurrStruct.struct(i).name;
+    end
+else
+    StringArr = 'No More Parts';
+end
+set(handles.popupmenu16,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(16)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu15_CreateFcn(hObject, eventdata, handles)
@@ -461,7 +765,28 @@ function popupmenu16_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu16 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu16
+global Objects PartSequence;
+PartNo = get(hObject,'Value');
+PartName = get(hObject,'String');
+PartSequence(16) = PartNo;
+CurrStruct = getCurrentObject();
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
 
+% if ~isempty(CurrStruct.struct)
+%     for i = 1:length(CurrStruct.struct)
+%         len = length(CurrStruct.struct(i).name);
+%         StringArr(i, 1:len) = CurrStruct.struct(i).name;
+%     end
+% else
+%     StringArr = 'No More Parts';
+% end
+% set(handles.popupmenu2,'String',StringArr,'Value',1,'Visible','on');
+% managePopupmenus(2)
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu16_CreateFcn(hObject, eventdata, handles)
@@ -482,12 +807,37 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% % % % % % plotH = handles.axes1;
+% % % % % % orignalAxes = gca;
+% % % % % % uicontrol('parent',gcf)
+% % % % % 
+% % % % % % %Create a ne figure
+% % % % % % newFig = figure(1);
+% % % % % % %Create a copy of the axes
+% % % % % % newA = copyobj(orignalAxes,newFig);
+% % % % % % %copy the plot across
+% % % % % % % newPlotH = copyobj(plotH,newA);
+
+CurrStruct = getCurrentObject();
+pos = CurrStruct.positions;
+tri = CurrStruct.triangles;
+figure(1);
+trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
+
 
 % --- Executes on button press in pushbutton2.
 function pushbutton2_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+global SaveStruct NumStructs;
+CurrStruct = getCurrentObject();
+NumStructs = NumStructs + 1;
+SaveStruct(NumStructs).name = CurrStruct.name;
+SaveStruct(NumStructs).location = CurrStruct.positions;
+SaveStruct(NumStructs).triangles = CurrStruct.triangles;
+SaveStruct(NumStructs).type = str2double(get(handles.edit1, 'String'));
+SaveStruct(NumStructs).orientation = str2double(get(handles.edit3, 'String'));
 
 
 
@@ -562,16 +912,88 @@ end
 % --- Executes on button press in pushbutton3.
 function pushbutton3_Callback(hObject, eventdata, handles)
 
-global filename Objects;
+global File Objects;
 
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [File Path filterinex] = uigetfile('E:\directed study\warehouse\*.dae');
+File(1:end-4)
 filename = strcat(Path, File);
 Objects = getObjectsFromCollada(filename);
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
 for i = 1:length(Objects)
     len = length(Objects(i).name);
     StringArr(i, 1:len) = Objects(i).name;
+    pos = Objects(i).positions;
+    tri = Objects(i).triangles;
+    trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
+    hold on
 end
+hold off;
 set(handles.popupmenu1,'String',StringArr,'Value',1,'Visible','on');
+managePopupmenus(1)
+
+% --- Executes on button press in pushbutton5.
+function pushbutton5_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Objects PartSequence;
+
+axes(handles.axes1);
+cla;
+set(handles.axes1,'Visible','on');
+for i = 1:length(Objects)
+    pos = Objects(i).positions;
+    tri = Objects(i).triangles;
+    trimesh(tri', pos(1, :), pos(2, :), pos(3, :));
+    hold on
+end
+hold off;
+
+function managePopupmenus(index)
+
+MaxPopupmenus = 16;
+handles = guihandles;
+PopupmenuHandles = [handles.popupmenu1;
+                  handles.popupmenu2;
+                  handles.popupmenu3;
+                  handles.popupmenu4;
+                  handles.popupmenu5;
+                  handles.popupmenu6;
+                  handles.popupmenu7;
+                  handles.popupmenu8;
+                  handles.popupmenu9;
+                  handles.popupmenu10;
+                  handles.popupmenu11;
+                  handles.popupmenu12;
+                  handles.popupmenu13;
+                  handles.popupmenu14;
+                  handles.popupmenu15;
+                  handles.popupmenu16];
+              
+for i = index + 1:MaxPopupmenus
+    set(PopupmenuHandles(i), 'Visible', 'off');
+end
+
+function OutStruct = getCurrentObject()
+global Objects PartSequence;
+OutStruct = Objects(PartSequence(1));
+i = 2;
+while PartSequence(i) ~= 0
+    OutStruct = OutStruct.struct(PartSequence(i));
+    i = i + 1;
+end
+
+
+% --- Executes on button press in pushbutton6.
+function pushbutton6_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global SaveStruct File;
+File(1:end-4)
+save(File(1:end-4), 'SaveStruct');

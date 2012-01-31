@@ -2,8 +2,8 @@ clear
 close all;
 
 % error 5,6,7,8,11
-img_dir= '/home/wgchoi/Codes/eccv_indoor/Data_Collection/livingroom/';
-gt_dir = '/home/wgchoi/Codes/eccv_indoor/Annotation/livingroom/';
+img_dir= '../Data_Collection/livingroom/';
+gt_dir = '../Annotation/livingroom/';
 datadir= '../UIUC_Varsha/SpatialLayout/tempworkspace/data/';
 outdir = './examples';
 
