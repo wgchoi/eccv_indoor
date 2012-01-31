@@ -11,7 +11,7 @@ if(~exist(outdir, 'dir'))
     mkdir(outdir);
 end
 
-for i = 1:13
+for i = 1:48
     imfiles = dir(fullfile(img_dir, '*.jpg'));
     
     img = imread(fullfile(img_dir, imfiles(i).name));
