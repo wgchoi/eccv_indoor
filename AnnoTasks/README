@@ -1,0 +1,19 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% Annotation tool for the layout estimation project (ECCV 2012)
+%%%%%% Author : Wongun Choi, The University of Michigan
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The annotation task is composed of two process. 
+1. Annotate room faces
+2. Annotate objects (encolosing polygon + pose)
+
+In each task the task definition will appear on top!!!
+
+You can annotate one directory by following : 
+example: REPLACE "Your name!" to your name
+    [list_annotated, times] = annotate_one_dir( './livingroom/set1', 'annotation/livingroom/set1', 'Your name!', ignorelist);
+
+Visualize the annotation : 
+example:
+    draw_annotation('exdata/images/0000000004.jpg', 'exdata/annotation/0000000004_labels.mat', 'temp.jpg');
+
+Pose definition examples are included in object_pose_definition/

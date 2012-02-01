@@ -21,7 +21,6 @@ for i = 1:length(exts)
     imfiles = dir(fullfile(image_dir, ['*.' exts{i}]));
     for j = 1:length(imfiles)
         if(in_list(ignorelist, imfiles(j).name))
-            disp([imfiles(j).name ' is ignored']);
             continue;
         end
         if(length(sets{curset}) > total / numset)
@@ -32,7 +31,7 @@ for i = 1:length(exts)
 end
 
 for i = 1:numset
-    dest_dir = [dest '_' num2str(i)];
+    dest_dir = fullfile(dest, ['set' num2str(i)]);
     
     if exist(dest_dir, 'dir')
         key = input('dir exist. remove? [y/n]', 's');
@@ -41,7 +40,6 @@ for i = 1:numset
         end
     end
     mkdir(dest_dir);
-    
     for j = 1:length(sets{i})
         name = sets{i}{j};
         copyfile(fullfile(image_dir, name), fullfile(dest_dir, name));
