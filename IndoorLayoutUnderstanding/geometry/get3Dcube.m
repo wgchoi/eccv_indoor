@@ -1,3 +1,5 @@
+%%% get camera parameters and the major visible faces
+%%% get 3D (ROOM) Cube
 function [K, R, F] = get3Dcube(img, vp, polyg)
 % addpath('3DReasoning');
 [K, R]=calibrate_cam(vp, size(img, 1), size(img, 2));

@@ -121,21 +121,6 @@ view([170 -60]); grid on;
 xlabel('x'); ylabel('y'); zlabel('z');
 axis equal
 
-% drawObjects
-for i = 1:length(objs)
-    if(i > length(objmodel)) 
-        continue;
-    end
-    
-    % each type of objects
-    for j = 1:length(objs{i})
-        cube = infer3DObjCube(K, R, objs{i}(j), objmodel(i), cam_height); 
-        draw3Dcube(cube, figid);
-%         cube = draw_object(K, R, objs{i}(j), objmodel(i), cam_height, figid);
-        [poly, bbox] = get2DCubeProjection(K, R, cube);
-        draw2DCube(poly, bbox, 10);
-    end
-end
 figure(figid);
 %
 view([170 -60]); grid on;
@@ -151,34 +136,6 @@ axis equal
 % xlabel('x'); ylabel('y'); zlabel('z')
 
 end
-% 
-% function cube = draw_object(K, R, obj, model, cam_height, figid)
-% % 
-% cpt2 = [obj.bbs(1) + obj.bbs(3) / 2; obj.bbs(2) + obj.bbs(4) / 2];
-% cray3 = (K * R) \ [cpt2; 1];
-% % cpt3_1 = (K * R) \ [cpt2; 1];
-% 
-% angle = get3DAngle(K, R, obj.pose, -cam_height);
-% if 1
-% 	cray3 = cray3 ./ cray3(2) * -(cam_height - model.height(1) / 2);
-% 	[cube1] = get3DObjectCube(R, cray3, ...
-% 								model.width(1), model.height(1), model.depth(1), ...
-% 								angle);
-% else
-% 	[cube1] = get3DObjectCube(R, cray3 * 5, ...
-% 								model.width(1), model.height(1), model.depth(1), ...
-% 								angle);
-% end
-% % [cube2] = get3Dcube(R, (K * R) \ [cpt2; 2], model.width(1), model.height(1), model.depth(1), obj.pose);
-% % fit the cube
-% % option 1 : find the best fit given bb
-% % option 2 : find the best fit given poly
-% % option 3 : find the best fit given ground
-% cube = cube1;
-% % find the best fitting 3D model
-% draw3Dcube(cube, figid);
-% % keyboard
-% end
 
 % get the sign of direction vector dl that points p0 direction
 function sign = get_vector_direction(dl, pl, p0)

@@ -11,14 +11,12 @@ if(~exist(outdir, 'dir'))
     mkdir(outdir);
 end
 
+imfiles = dir(fullfile(img_dir, '*.jpg'));
 for i = 1:48
-    imfiles = dir(fullfile(img_dir, '*.jpg'));
-    
     img = imread(fullfile(img_dir, imfiles(i).name));
     load(fullfile(gt_dir, [imfiles(i).name(1:end-4) '_labels.mat']));
-    
-    showOneExample(img, gtPolyg, objs, objtypes); % , fullfile(outdir, imfiles(i).name(1:end-4)));
-    pause;
+    showOneExample(img, gtPolyg, objs, objtypes, fullfile(outdir, imfiles(i).name(1:end-4)));
+%     pause
     close all;
 end
 
