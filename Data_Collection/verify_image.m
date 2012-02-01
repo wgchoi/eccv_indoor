@@ -13,7 +13,12 @@ for i = 1:length(images)
         continue;
     end
     
-    imshow(imfile);
+    im = imread(imfile);
+    if(size(im, 1) < 300 || size(im, 2) < 400)
+        disp(['image ' imfile ' is too small ' num2str(size(im, 2)) ' by ' num2str(size(im, 1)) '. Skipping...']);
+    end
+    
+    imshow(im);
     r = input('store image? (y/n)', 's');
     if(lower(r) == 'y')
         copyfile(imfile, dest);
