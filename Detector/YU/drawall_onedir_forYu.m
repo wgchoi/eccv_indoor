@@ -11,7 +11,7 @@ end
 
 load(fullfile(resdir, 'filenames.mat'));
 for i = 1:length(names)
-    [ dets{i} ] = readYuDeteion(['./results/YuMethod/livingroom/' names{i} '.pre'], length(filenames));
+    [ dets{i} ] = readYuDeteion(fullfile(resdir, [names{i} '.pre']), length(filenames));
 end
 
 for i = 1:length(filenames)
