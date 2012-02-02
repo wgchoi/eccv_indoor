@@ -24,9 +24,9 @@ end
 objmodel = objmodels();
 
 drawnow;
-[camh, cubes] = jointInfer3DObjCubes(K, R, objs, objmodel);
+[camh, objs] = jointInfer3DObjCubes(K, R, objs, objmodel);
 drawCube(F, gtPolyg, K, R, objs, objmodel, camh);
-drawObjects(K, R, cubes, 20, 10);
+drawObjects(K, R, objs, objmodel, 20, 10);
 
 if (nargin >= 5)
     drawnow;
