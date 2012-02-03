@@ -1,4 +1,4 @@
-function [bbox, top, dets, boxes, resizefactor] = detect_objs(imfile, models, threshold, maxwidth, resfile)
+function [bbox, top, dets, boxes, resizefactor] = detect_objs(imfile, models, names, threshold, maxwidth, resfile)
 if nargin < 3
     threshold = -0.3;
     resfile = [];
@@ -38,5 +38,5 @@ for i = 1:length(models)
 end
 
 if(~isempty(resfile))
-    save(resfile, 'dets', 'boxes', 'top', 'bbox', 'resizefactor');
+    save(resfile, 'names', 'dets', 'boxes', 'top', 'bbox', 'resizefactor');
 end

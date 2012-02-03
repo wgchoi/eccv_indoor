@@ -1,4 +1,4 @@
-function [camh, cubes] = jointInfer3DObjCubes(K, R, objs, models)
+function [camh, objs] = jointInfer3DObjCubes(K, R, objs, models)
 %%% get max overlapping hypotehsis
 hs = 0.1:0.2:3.0;
 for i = 1:length(hs)
@@ -13,7 +13,6 @@ camh = hs(idx);
 if(nargout >= 2)
     % temp!!!1
     mid = 1;
-    
     cubes = cell(length(objs), 1);
     for i = 1:length(objs)
         if(length(models) < i)
@@ -24,11 +23,12 @@ if(nargout >= 2)
         end
         for j = 1:length(objs{i})
             obj = objs{i}(j);
-            
-            [fval, loc] = optimizeOneObject(camh, K, R, obj, models(i), mid);
-            angle = get3DAngle(K, R, obj.pose, loc(2));
-            
-            cubes{i}{j} = get3DObjectCube(loc, models(i).width(mid), models(i).height(mid), models(i).depth(mid), angle);
+            % [fval, loc] = optimizeOneObject(camh, K, R, obj, models(i), mid);
+			[fval, loc, mid] = optimizeOneObjectMModel(camh, K, R, obj, models(i));
+            angle = get3DAngle(K, R, obj.pose, loc(2));            
+
+            objs{i}(j).cube = get3DObjectCube(loc, models(i).width(mid), models(i).height(mid), models(i).depth(mid), angle);
+			objs{i}(j).mid = mid;
         end
     end
 end
@@ -48,7 +48,8 @@ for i = 1:length(objs)
     for j = 1:length(objs{i})
         obj = objs{i}(j);
         if(1)
-            [fval, loc] = optimizeOneObject(camh, K, R, obj, models(i), 1);
+			[fval, loc, minid] = optimizeOneObjectMModel(camh, K, R, obj, models(i));
+            % [fval, loc] = optimizeOneObject(camh, K, R, obj, models(i), 1);
         else
             %%% find the best fitting object hypothesis given a camera height
             iloc = getInitialGuess(obj, models(i), 1, K, R, camh);
@@ -64,6 +65,24 @@ for i = 1:length(objs)
         end
         ret = ret + fval;
     end
+end
+
+end
+
+function [minf, minloc, minid] = optimizeOneObjectMModel(camh, K, R, obj, model)
+n = length(model.type);
+
+minf = 1e100;
+minid = -1;
+minloc = [];
+
+for mid = 1:n
+	[fval, loc] = optimizeOneObject(camh, K, R, obj, model, mid);
+	if(minf > fval)
+		minf = fval;
+		minid = mid;
+		minloc = loc;
+	end
 end
 
 end

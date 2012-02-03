@@ -1,4 +1,4 @@
-function process_onedir(imdir, resdir, models, exts)
+function process_onedir(imdir, resdir, models, names, exts)
 if ~exist(imdir, 'dir')
     return;
 end
@@ -17,7 +17,7 @@ for i = 1:length(exts)
         
         idx = find(files(j).name == '.', 1, 'last');
         
-        detect_objs(imfile, models, threshold, 640, fullfile(resdir, files(j).name(1:idx-1)));
+        detect_objs(imfile, models, names, threshold, 640, fullfile(resdir, files(j).name(1:idx-1)));
     end
 end
 matlabpool close;

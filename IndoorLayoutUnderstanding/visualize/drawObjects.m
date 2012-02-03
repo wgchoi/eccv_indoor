@@ -1,4 +1,4 @@
-function drawObjects(K, R, cubes, fig3d, fig2d)
+function drawObjects(K, R, objs, models, fig3d, fig2d)
 
 if nargin < 4
     fig3d = -1;
@@ -8,10 +8,13 @@ elseif nargin < 5
 end
 
 % drawObjects
-for i = 1:length(cubes)
+for i = 1:length(objs)
     % each type of objects
-    for j = 1:length(cubes{i})
-        cube = cubes{i}{j};
+    for j = 1:length(objs{i})
+		if(~isfield(objs{i}(j), 'cube'))
+			continue;
+		end
+        cube = objs{i}(j).cube;
         if(isempty(cube))
             continue;
         end
@@ -23,6 +26,9 @@ for i = 1:length(cubes)
         if( fig2d >  0)
             [poly, bbox] = get2DCubeProjection(K, R, cube);
             draw2DCube(poly, bbox, fig2d);
+
+			mid = objs{i}(j).mid;
+			text(bbox(1) + 5, bbox(2) + 10, [models(i).name ':' models(i).type{mid}], 'backgroundcolor', 'w')
         end
     end
 end
