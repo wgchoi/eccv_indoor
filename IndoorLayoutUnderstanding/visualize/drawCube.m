@@ -1,8 +1,9 @@
-function drawCube(Faces, poly, K, R, objs, objmodel, cam_height)
+function drawCube(room, poly, figid) %(Faces, poly, K, R, cam_height)
 
-if nargin < 7
-    cam_height = 1;
-end
+Faces = room.F;
+K = room.K;
+R = room.R;
+cam_height = room.h;
 
 % wall1, wall2, bound1, bound2
 linePairs = [1, 2, 3, 4; ...
@@ -16,7 +17,7 @@ linePairs = [1, 2, 3, 4; ...
        
         
         
-figid = 20;        
+% figid = 20;        
 figure(figid);
 
 hold on;

@@ -1,4 +1,7 @@
 function showOneExample(img, gtPolyg, objs, objtypes, imgout)
+%%%%%%%%%%%%% obsolete
+%%%%%%%%%%%%% use jointInfer3D and visualize separately
+assert(0);
 
 vp = getVPfromGT(img, gtPolyg);
 vp = order_vp(vp); % v, h, m
@@ -25,7 +28,7 @@ objmodel = objmodels();
 
 drawnow;
 [camh, objs] = jointInfer3DObjCubes(K, R, objs, objmodel);
-drawCube(F, gtPolyg, K, R, objs, objmodel, camh);
+drawCube(F, gtPolyg, K, R, camh);
 drawObjects(K, R, objs, objmodel, 20, 10);
 
 if (nargin >= 5)

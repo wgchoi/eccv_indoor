@@ -1,4 +1,7 @@
-function drawObjects(K, R, objs, models, fig3d, fig2d)
+function drawObjects(room, objs, models, fig3d, fig2d)
+
+K = room.K;
+R = room.R;
 
 if nargin < 4
     fig3d = -1;

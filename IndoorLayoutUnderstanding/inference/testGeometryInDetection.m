@@ -19,8 +19,6 @@ for i = 1:length(dets)
     
     nanlist(i) = (sum(sum(isnan(obj.cube))) > 0 || loc(3) > 0);
 end
-
-objs(nanlist) = [];
-
+% objs(nanlist) = [];
 end
 
