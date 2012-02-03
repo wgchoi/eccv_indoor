@@ -1,4 +1,5 @@
-clear; clc;
+clear; 
+clc;
 %%
 model = 3;
 %%

@@ -1,5 +1,5 @@
 function vp = getVPfromGT(img, polyg)
-DO_DISPLAY = 1;
+DO_DISPLAY = 0;
 vp=[]; p=[];
 [h w k]=size(img);
 if(~isempty(polyg))

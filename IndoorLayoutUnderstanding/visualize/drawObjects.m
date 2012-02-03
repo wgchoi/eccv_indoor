@@ -24,11 +24,12 @@ for i = 1:length(objs)
         end
         
         if( fig2d >  0)
-            [poly, bbox] = get2DCubeProjection(K, R, cube);
-            draw2DCube(poly, bbox, fig2d);
-
+            [poly, rt] = get2DCubeProjection(K, R, cube);
+            draw2DCube(poly, rt, fig2d);
+            rectangle('position', objs{i}(j).bbs, 'edgecolor', 'b');
+            
 			mid = objs{i}(j).mid;
-			text(bbox(1) + 5, bbox(2) + 10, [models(i).name ':' models(i).type{mid}], 'backgroundcolor', 'w')
+			text(rt(1) + 5, rt(2) + 10, [models(i).name ':' models(i).type{mid}], 'backgroundcolor', 'w')
         end
     end
 end

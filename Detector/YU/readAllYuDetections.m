@@ -1,4 +1,4 @@
-function detout = readAllYuDetections(imresized, resdir, names)
+function detout = readAllYuDetections(resizeddir, resdir, names)
 detout = cell(1000, 1);
 if ~exist(resdir, 'dir')
     return;
@@ -9,7 +9,7 @@ load(fullfile(resdir, 'filenames.mat'));
 for i = 1:length(names)
     [ dets{i} ] = readYuDeteion(fullfile(resdir, [names{i} '.pre']), length(filenames));
 end
-factor = load(fullfile(imresized, 'resize_factors.mat'));
+factor = load(fullfile(resizeddir, 'resize_factors.mat'));
 
 for i = 1:length(filenames)
 %     idx = find(filenames{i} == '.', 1, 'last');

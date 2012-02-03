@@ -1,4 +1,7 @@
 function drawall_onedir(imdir, resdir, outdir, exts, th, names, poses, cols)
+
+% cols = 'rrggbbmmcckkyy';
+
 if ~exist(imdir, 'dir')
     return;
 end
@@ -15,11 +18,12 @@ for i = 1:length(exts)
 		im = imread(fullfile(imdir, files(j).name));
 
         idx = find(files(j).name == '.', 1, 'last');
-		res = load(fullfile(resdir, files(j).name(1:idx-1)), 'top', 'dets');
+		res = load(fullfile(resdir, files(j).name(1:idx-1)), 'top', 'dets', 'resizefactor');
 
-		draw_detections(im, res.dets, res.top, th, names, poses, 'rrggbbmmcckkyy');
+        im = imresize(im, res.resizefactor);        
+		draw_detections(im, res.dets, res.top, th, names, poses, cols);
 		drawnow;
-
+        pause
 		print('-djpeg', fullfile(outdir, [files(j).name(1:idx-1) '.jpg']));
 	end
 end

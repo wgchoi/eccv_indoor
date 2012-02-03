@@ -47,59 +47,23 @@ for i = 1:length(objs)
     
     for j = 1:length(objs{i})
         obj = objs{i}(j);
-        if(1)
-			[fval, loc, minid] = optimizeOneObjectMModel(camh, K, R, obj, models(i));
-            % [fval, loc] = optimizeOneObject(camh, K, R, obj, models(i), 1);
-        else
-            %%% find the best fitting object hypothesis given a camera height
-            iloc = getInitialGuess(obj, models(i), 1, K, R, camh);
-            %%% avoid unnecessary computation.
-            [pbbox] = loc2bbox(iloc, obj.pose, K, R, models(i), 1);
-            if(boxoverlap(pbbox, obj.bbs) < 0.1)
-                ret = ret + 1e10;
-                continue;
-            end
-            xz = iloc([1 3]);
-            %%% optimize over x-z dimension given camera height
-            [dummy, fval] = fminsearch(@(x)objFitnessCost(x, camh, K, R, obj, models(i), 1), xz);
-        end
+%         if(1)
+		[fval, loc, minid] = optimizeOneObjectMModel(camh, K, R, obj, models(i));
+%         else
+%             %%% find the best fitting object hypothesis given a camera height
+%             iloc = getInitialGuess(obj, models(i), 1, K, R, camh);
+%             %%% avoid unnecessary computation.
+%             [pbbox] = loc2bbox(iloc, obj.pose, K, R, models(i), 1);
+%             if(boxoverlap(pbbox, obj.bbox) < 0.1)
+%                 ret = ret + 1e10;
+%                 continue;
+%             end
+%             xz = iloc([1 3]);
+%             %%% optimize over x-z dimension given camera height
+%             [dummy, fval] = fminsearch(@(x)objFitnessCost(x, camh, K, R, obj, models(i), 1), xz);
+%         end
         ret = ret + fval;
     end
 end
-
-end
-
-function [minf, minloc, minid] = optimizeOneObjectMModel(camh, K, R, obj, model)
-n = length(model.type);
-
-minf = 1e100;
-minid = -1;
-minloc = [];
-
-for mid = 1:n
-	[fval, loc] = optimizeOneObject(camh, K, R, obj, model, mid);
-	if(minf > fval)
-		minf = fval;
-		minid = mid;
-		minloc = loc;
-	end
-end
-
-end
-
-function [fval, loc] = optimizeOneObject(camh, K, R, obj, model, mid)
-%%% find the best fitting object hypothesis given a camera height
-iloc = getInitialGuess(obj, model, mid, K, R, camh);
-%%% avoid unnecessary computation.
-[pbbox] = loc2bbox(iloc, obj.pose, K, R, model, mid);
-if(boxoverlap(pbbox, obj.bbs) < 0.1)
-    loc = nan(3, 1);
-    fval = 1e10;
-    return;
-end
-xz = iloc([1 3]);
-%%% optimize over x-z dimension given camera height
-[xz, fval] = fminsearch(@(x)objFitnessCost(x, camh, K, R, obj, model, mid), xz);
-loc = [xz(1); -(camh - model.height(mid) / 2); xz(2)];
 
 end
