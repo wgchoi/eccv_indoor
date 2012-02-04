@@ -15,65 +15,60 @@ img = img2;
 imshow(img);
 set(gcf, 'position', [1 1 800 600]);
 
+hobjs = {};
 if nargin < 4
     objs = struct('id', cell(1, 0), 'pose', cell(1, 0), 'poly', cell(1, 0), 'bbs', cell(1, 0));
 else
-    hold on;
     for i = 1:length(objs)
         objs(i).poly = objs(i).poly + margin;
         objs(i).bbs(1:2) = objs(i).bbs(1:2) + margin;
         objs(i).pose = objs(i).pose + margin;
         
-        poly = objs(i).poly;
-        plot([poly(:,1); poly(1,1)],[poly(:,2); poly(1,2)], 'linewidth', 4, 'Color', 'w');
-        rectangle('position', objs(i).bbs, 'edgecolor', 'r', 'linewidth', 2);
-        if 1
-            plot([objs(i).pose(1, 1) objs(i).pose(2, 1)], [objs(i).pose(1, 2) objs(i).pose(2, 2)], 'linewidth', 2, 'color', 'g'); 
-        else
-            draw_pose(objs(i).bbs, objs(i).pose);
-        end
+        poly = objs(i).poly;        
+        hobj = showObj(gca, objs(i));
+        hobjs{i} = showPose(gca, hobj, objs(i));
     end
-    hold off;
 end
 
 cnt = length(objs);
 while(1)
-    title(['Please annotate ' name 's, if done please press esc']);
+    title(['Please annotate ' name 's, if done please press esc']);    
+    assert(cnt == length(objs));
+    
     poly = getclosedpoly;
     if(isempty(poly))
         break;
-    end
-    bbox = [min(poly(:, 1)), min(poly(:, 2)), ...
-                max(poly(:, 1)) - min(poly(:, 1)) + 1, ...
-                max(poly(:, 2)) - min(poly(:, 2)) + 1];
+    end 
     
-    if(bbox(3) < 8 || bbox(4) < 8)
+    [undo] = undoCode(poly);
+    if(undo)
+        if('y' == input('Undo last annotation? [y/n]', 's'))
+            if(cnt > 0)
+                hideObj(hobjs{cnt});
+                objs(cnt) = [];
+                cnt = cnt - 1;
+            end
+        else
+            disp('WARNING: Annotation smaller than 10 pixle is not allowed (dedicated for undo code). Press ESC if you want to finish!');
+        end
         continue;
     end
     
-    hold on;
-    plot([poly(:,1); poly(1,1)],[poly(:,2); poly(1,2)], 'linewidth', 4, 'Color', 'w');
-    hold off;
-    
+    bbox = [min(poly(:, 1)), min(poly(:, 2)), ...
+                max(poly(:, 1)) - min(poly(:, 1)) + 1, ...
+                max(poly(:, 2)) - min(poly(:, 2)) + 1];
+
     cnt = cnt + 1;
     
     objs(cnt).id = id;
     objs(cnt).poly = poly;
     objs(cnt).bbs = bbox;
                 
-    rectangle('position', objs(cnt).bbs, 'edgecolor', 'r', 'linewidth', 2);
-    if(1)
-        cpt = [objs(cnt).bbs(1) + objs(cnt).bbs(3) / 2, objs(cnt).bbs(2) + objs(cnt).bbs(4) / 2];
-        objs(cnt).pose = getPoseDirection(cpt);
-        hold on;
-        plot([objs(cnt).pose(1, 1) objs(cnt).pose(2, 1)], [objs(cnt).pose(1, 2) objs(cnt).pose(2, 2)], 'linewidth', 2, 'color', 'g'); 
-        hold off;
-    else
-        objs(cnt).pose = input('Input pose (1 ~ 8)');
-        hold on;
-        draw_pose(objs(cnt).bbs, objs(cnt).pose);
-        hold off;
-    end
+    hobj = showObj(gca, objs(cnt));
+    cpt = [objs(cnt).bbs(1) + objs(cnt).bbs(3) / 2, objs(cnt).bbs(2) + objs(cnt).bbs(4) / 2];
+    
+    objs(cnt).pose = getPoseDirection(cpt);
+    hobjs{cnt} = showPose(gca, hobj, objs(cnt));
 end
 
 for i = 1:length(objs)
@@ -81,21 +76,52 @@ for i = 1:length(objs)
     objs(i).bbs(1:2) = objs(i).bbs(1:2) - margin;
     objs(i).pose = objs(i).pose - margin;
 end
+clf;
 
 end
-% end
-% 
-% function draw_pose(bb, pose)
-% 
-% pt1(1) = bb(1) + bb(3) / 2;
-% pt1(2) = bb(2) + bb(4) / 2;
-% 
-% len = bb(4) * 0.2;
-% 
-% angle = pi / 4 * (pose - 1);
-% pt2(1) = pt1(1) - len * sin(angle);
-% pt2(2) = pt1(2) + len * cos(angle);
-% 
-% scatter(pt1(1), pt1(2), 'go')
-% plot([pt1(1) pt2(1)], [pt1(2) pt2(2)], 'linewidth', 2, 'color', 'g'); 
-% end
+
+function hobj = showObj(p, obj)
+bbs = obj.bbs;
+poly = obj.poly;
+% pose = obj.pose;
+xdata = [bbs(1); bbs(1) + bbs(3) - 1; bbs(1) + bbs(3) - 1; bbs(1); bbs(1)];
+ydata = [bbs(2); bbs(2); bbs(2) + bbs(4) - 1; bbs(2) + bbs(4) - 1; bbs(2)];
+hobj.bbs = line('Parent', p, ...
+          'XData', xdata, ...
+          'YData', ydata, ...
+          'Visible', 'on', ...
+          'Clipping', 'off', ...
+          'Color', 'r', ...
+          'LineStyle', '--', ...
+          'LineWidth', 2);
+      
+xdata = [poly(:,1);poly(1,1)];
+ydata = [poly(:,2);poly(1,2)];
+hobj.poly = line('Parent', p, ...
+          'XData', xdata, ...
+          'YData', ydata, ...
+          'Visible', 'on', ...
+          'Clipping', 'off', ...
+          'Color', 'w', ...
+          'LineStyle', '-', ...
+          'LineWidth', 4);
+end
+
+function hobj = showPose(p, hobj, obj)
+xdata = obj.pose(:,1);
+ydata = obj.pose(:,2);
+hobj.pose = line('Parent', p, ...
+          'XData', xdata, ...
+          'YData', ydata, ...
+          'Visible', 'on', ...
+          'Clipping', 'off', ...
+          'Color', 'g', ...
+          'LineStyle', '-', ...
+          'LineWidth', 2);
+end
+
+function hobj = hideObj(hobj)
+set(hobj.bbs, 'Visible', 'off');
+set(hobj.poly, 'Visible', 'off');
+set(hobj.pose, 'Visible', 'off');
+end
