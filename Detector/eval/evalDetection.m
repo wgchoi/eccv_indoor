@@ -1,4 +1,7 @@
-function [recall, fppi, pr] = evalDetection(gtboxes, dets, gtid, detid, thlist)
+function [recall, fppi, pr] = evalDetection(gtboxes, dets, gtid, detid, thlist, maxperim)
+if(nargin < 6)
+	maxperim = 10000;
+end
 
 recall = nan(1, length(thlist));
 fppi = nan(1, length(thlist));
@@ -18,10 +21,15 @@ for t = 1:length(thlist)
         det = dets{idx}.dets{detid}(dets{idx}.tops{detid}, :);
         
         det = det(det(:, end) > th, :);
-        
         rescale = dets{idx}.resizefactor;
         det(:, 1:4) = det(:, 1:4) ./ rescale;
         
+		%%%
+		[dummy, idx] = sort(det(:, 6), 'descend');
+		if(length(idx) > maxperim)
+			det(idx(maxperim+1:end), :) = [];
+		end
+		%%%%%%%
         [TP(i), R(i), FP(i), NP(i)] = oneimageeval(gtbbs, det);
     end
     
