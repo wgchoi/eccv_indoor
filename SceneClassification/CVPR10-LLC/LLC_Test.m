@@ -35,7 +35,7 @@ fea_dir = 'features/Caltech101';    % directory for saving final image features
 % -------------------------------------------------------------------------
 % extract SIFT descriptors, we use Prof. Lazebnik's matlab codes in this package
 % change the parameters for SIFT extraction inside function 'extr_sift'
-% extr_sift(img_dir, data_dir);
+extr_sift(img_dir, data_dir);
 
 % -------------------------------------------------------------------------
 % retrieve the directory of the database and load the codebook
