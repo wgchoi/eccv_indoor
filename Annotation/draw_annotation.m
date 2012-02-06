@@ -1,4 +1,4 @@
-function draw_annotation(imfile, annofile)
+function draw_annotation(imfile, annofile, outfile)
 img = imread(imfile);
 
 load(annofile);
@@ -19,6 +19,9 @@ for id = 1:length(objs)
 end
 hold off;
 
+if nargin >= 3
+    print('-djpeg', outfile);
+end
 end
 
 
