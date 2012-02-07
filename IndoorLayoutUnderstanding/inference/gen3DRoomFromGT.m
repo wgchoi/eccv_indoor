@@ -1,7 +1,11 @@
 function [r, objs] = gen3DRoomFromGT(img, gtPolyg, objs)
 %% find camera position and room layout (up to scale)
 vp = getVPfromGT(img, gtPolyg);
-vp = order_vp(vp); % v, h, m
+if 1
+    vp = ordervp(vp, size(img, 1), size(img, 2));
+else
+    vp = order_vp(vp); % v, h, m
+end
 [K, R, F] = get3Dcube(img, vp, gtPolyg);
 
 %% find object location and room scale
@@ -14,4 +18,7 @@ r.K = K;
 r.R = R; 
 r.F = F;
 r.h = camh;
+
+r.sz = [size(img, 1), size(img, 2)];
+r.vp = vp;
 end

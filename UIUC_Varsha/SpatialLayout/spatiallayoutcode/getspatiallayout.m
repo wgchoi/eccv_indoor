@@ -1,4 +1,4 @@
-function [ boxlayout, surface_labels, resizefactor] = getspatiallayout(imdir,imagename,workspcdir,DISPIMAGES)
+function [ boxlayout, surface_labels, resizefactor, vpdata] = getspatiallayout(imdir,imagename,workspcdir,DISPIMAGES)
 % GETSPATIALLAYOUT Given an image, estimate its spatial layout, consisting
 %   of a boxlayout and pixel labels of different surfaces. Please refer to
 %   the readme file provided with this software for detailed meaning of

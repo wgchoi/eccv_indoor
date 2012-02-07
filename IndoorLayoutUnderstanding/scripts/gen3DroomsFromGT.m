@@ -13,6 +13,7 @@ if(~exist(outdir, 'dir'))
     mkdir(outdir);
 end
 
+%% i = 8 error!!!
 exts = {'jpg' 'JPEG'};
 for e = 1:length(exts)
 	imfiles = dir(fullfile(img_dir, ['*.' exts{e}]));
@@ -23,6 +24,8 @@ for e = 1:length(exts)
 			load(fullfile(gt_dir, [fname '_labels.mat']));
 			[room, objs] = gen3DRoomFromGT(img, gtPolyg, objs);
 			save(fullfile(outdir, fname), 'room', 'objs', 'gtPolyg');
+%             drawAll(img, gtPolyg, room, objs(1), objmodels(), 1, 2);
+%             pause;
 		catch
 		end
 	end
