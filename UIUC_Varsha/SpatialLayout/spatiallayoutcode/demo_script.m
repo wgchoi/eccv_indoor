@@ -1,17 +1,20 @@
 clear;
 % Add local code directories to Matlab path
 addpaths;
+
+dataset = 'livingroom';
+
 %% prep directories
-orgdir = '~/eccv_layout/new_version/eccv_indoor/Data_Collection/livingroom/';
-imdir = '~/eccv_layout/new_version/eccv_indoor/Results/temp/resized/';
+orgdir = ['../../../Data_Collection/' dataset '/'];
+imdir = ['../../../Results/temp/' dataset '/resized/'];
 if ~exist(imdir,'dir')
     mkdir(imdir);
 end
-workspcdir='~/eccv_layout/new_version/eccv_indoor/Results/temp/layout/'; % '../tempworkspace/'; % directory to save intermediate results
+workspcdir=['../../../Results/temp/' dataset '/layout/']; % '../tempworkspace/'; % directory to save intermediate results
 if ~exist(workspcdir,'dir')
     mkdir(workspcdir);
 end
-resdir = '~/eccv_layout/new_version/eccv_indoor/Results/layout/livingroom/'; % '../tempworkspace/'; % directory to save intermediate results
+resdir = ['../../../Results/layout/' dataset '/']; % '../tempworkspace/'; % directory to save intermediate results
 if ~exist(resdir,'dir')
     mkdir(resdir);
 end
@@ -53,9 +56,12 @@ for e = 1:length(exts)
     fnames = cell(fcnt, 1);
 
     parfor i = 1:length(files)
-        [ boxlayout{i}, surface_labels{i}, resizefactor{i}] = getspatiallayout(imdir, files(i).name, workspcdir, 0);
-        fnames{i} = fullfile(imdir, files(i).name);
+		try
+			[ boxlayout{i}, surface_labels{i}, resizefactor{i}, vpdata{i}] = getspatiallayout(imdir, files(i).name, workspcdir, 0);
+			fnames{i} = fullfile(imdir, files(i).name);
+		catch ee
+		end
     end
-    save(fullfile(resdir, ['res_set_' exts{e} '.mat']), 'boxlayout', 'surface_labels', 'resizefactor', 'fnames');
+    save(fullfile(resdir, ['res_set_' exts{e} '.mat']), 'boxlayout', 'surface_labels', 'resizefactor', 'vpdata', 'fnames');
 end
 matlabpool close
