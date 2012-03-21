@@ -1,7 +1,7 @@
 clear; 
 clc;
 %%
-model = 3;
+model = 2;
 %%
 if model == 1
     dname = 'DPM';
@@ -52,9 +52,17 @@ if ~exist(evaldir, 'dir')
     mkdir(evaldir);
 end
 evalfile = fullfile(evaldir, 'detection.mat');
+% evalfile = fullfile(evaldir, 'detection_nonms.mat');
 %%
 [recall, fppi, pr] = evalOneDetector(imdir, resdir, annodir, thlist, gtids, detids, dname, names);
 save(evalfile, 'recall', 'fppi', 'pr', 'names', 'dname', 'expname');
+
+plot(pr', recall', '.-', 'linewidth', 2)
+grid on
+xlabel('precision');
+ylabel('recall');
+legend(names)
+axis([0 1 0 1])
 
 return;
 %%

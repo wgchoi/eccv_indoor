@@ -18,7 +18,10 @@ for t = 1:length(thlist)
         gtbbs = gtboxes{i}.dets{gtid};
 
         idx = find_det(dets, gtboxes{i}.name);
+        assert(length(idx) == 1);
+        
         det = dets{idx}.dets{detid}(dets{idx}.tops{detid}, :);
+%         det = dets{idx}.dets{detid};
         
         det = det(det(:, end) > th, :);
         rescale = dets{idx}.resizefactor;
