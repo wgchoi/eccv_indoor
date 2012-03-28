@@ -320,7 +320,8 @@ for i = 1:batchsize:numpos
   thisbatchsize = batchsize - max(0, (i+batchsize-1) - numpos);
   % data for batch
   data = {};
-  parfor k = 1:thisbatchsize
+  % parfor k = 1:thisbatchsize
+  for k = 1:thisbatchsize
     j = i+k-1;
     fprintf('%s %s: iter %d/%d: latent positive: %d/%d', procid(), name, t, iter, j, numpos);
     bbox = [pos(j).x1 pos(j).y1 pos(j).x2 pos(j).y2];
@@ -333,15 +334,31 @@ for i = 1:batchsize:numpos
     % get example
     im = color(imreadx(pos(j)));
     [im, bbox] = croppos(im, bbox);
+    %%% wongun added
+    if(isfield(pos(j), 'mirrored') && pos(j).mirrored)
+      im = flipimage(im);
+      x1 = size(im, 2) - bbox(3);
+      x2 = size(im, 2) - bbox(1);
+      bbox(1) = x1;
+      bbox(3) = x2;
+    end
+    %%% wongun added
     pyra = featpyramid(im, model);
-    [det, bs, info] = gdetect(pyra, model, 0, bbox, overlap);
-    data{k}.bs = bs;
-    data{k}.pyra = pyra;
-    data{k}.info = info;
-    if ~isempty(bs)
-      fprintf(' (comp %d  score %.3f)\n', bs(1,end-1), bs(1,end));
-    else
-      fprintf(' (no overlap)\n');
+    try
+        [det, bs, info] = gdetect(pyra, model, 0, bbox, overlap);
+        data{k}.bs = bs;
+        data{k}.pyra = pyra;
+        data{k}.info = info;
+        if ~isempty(bs)
+          fprintf(' (comp %d  score %.3f)\n', bs(1,end-1), bs(1,end));
+        else
+          fprintf(' (no overlap)\n');
+        end
+    catch ee
+        % ee
+        data{k} = [];
+        disp(bbox);
+        fprintf('error in gdetect\n');
     end
   end
   % write feature vectors sequentially 
@@ -375,7 +392,9 @@ for i = 1:batchsize:numneg
   % do batches of detections in parallel
   thisbatchsize = batchsize - max(0, (i+batchsize-1) - numneg);
   data = {};
-  parfor k = 1:thisbatchsize
+  % parfor k = 1:thisbatchsize
+  % slower.. don't use this
+  for k = 1:thisbatchsize
     j = inds(i+k-1);
     fprintf('%s %s: iter %d/%d: hard negatives: %d/%d (%d)\n', procid(), name, t, negiter, i+k-1, numneg, j);
     im = color(imreadx(neg(j)));

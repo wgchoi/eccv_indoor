@@ -1,7 +1,7 @@
 clear; 
 clc;
 %%
-model = 2;
+model = 4;
 %%
 if model == 1
     dname = 'DPM';
@@ -46,13 +46,29 @@ elseif model == 3
     gtids = [1 2 4 5];
     detids = [1 2 3 4];
     names = {'sofa' 'table' 'chair' 'bed'};
+elseif model == 4
+    dname = 'DPM';
+    thlist = -2:0.1:2;
+    expname = 'DPM My Model';
+    imdir = '../Data_Collection/livingroom/';
+    resdir = './results/DPM_MINE/livingroom/sofa/';
+    annodir = '../Annotation/livingroom/'; 
+    evaldir = 'results/DPM_MINE/eval';
+    gtids = 1;
+    detids = 1;
+    
+    temp = load('../Annotation/livingroom/0000000004_labels.mat');
+    objtypes = temp.objtypes;
+    for i = 1:length(gtids)
+        names{i} = objtypes{gtids(i)};
+    end
 end
 %% 
 if ~exist(evaldir, 'dir')
     mkdir(evaldir);
 end
-evalfile = fullfile(evaldir, 'detection.mat');
-% evalfile = fullfile(evaldir, 'detection_nonms.mat');
+% evalfile = fullfile(evaldir, 'detection.mat');
+evalfile = fullfile(evaldir, 'detection_nms2.mat');
 %%
 [recall, fppi, pr] = evalOneDetector(imdir, resdir, annodir, thlist, gtids, detids, dname, names);
 save(evalfile, 'recall', 'fppi', 'pr', 'names', 'dname', 'expname');
