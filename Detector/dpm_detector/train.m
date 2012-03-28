@@ -288,6 +288,10 @@ for i = 1:numpos
   end    
   % get example
   im = warped{i};
+  %%% wongun added
+  if(isfield(pos(i), 'mirrored') && pos(i).mirrored)
+      im = flipimage(im);
+  end
   feat = features(im, model.sbin);
   % + 3 for the 2 blocklabels + 1-dim offset
   dim = numel(feat) + 3;
