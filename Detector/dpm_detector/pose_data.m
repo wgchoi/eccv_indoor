@@ -57,8 +57,8 @@ end
 function pos = read_positive(cls, index_train)
 
 N = numel(index_train);
-path_image = sprintf('~/codes/yuxiang_codes/Images/%s', cls);
-path_anno = sprintf('~/codes/yuxiang_codes/Annotations/%s', cls);
+path_image = sprintf('../../Data_Collection/yuxiangdata/Images/%s', cls);
+path_anno = sprintf('../../Data_Collection/yuxiangdata/Annotations/%s', cls);
 
 count = 0;
 for i = 1:N
@@ -113,8 +113,8 @@ end
 function pos = read_positive2(cls, index_train)
 
 N = numel(index_train);
-path_image = sprintf('../../Data_Collection/image_crawler/%s', cls);
-path_anno = sprintf('../../Data_Collection/objects/%s', cls);
+path_image = sprintf('../../Data_Collection/objdata/images/%s', cls);
+path_anno = sprintf('../../Data_Collection/objdata/annotation/%s', cls);
 
 count = 0;
 for i = 1:N

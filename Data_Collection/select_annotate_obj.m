@@ -1,21 +1,29 @@
-function select_annotate_obj(imgdir, objid, objname, outdir)
+% run download_houzz.sh to collect images before running this, see image_crawler
+% call select_annotate_obj('./image_crawler/table', 2, 'objects')
+% after finishing all annotation run form_object_dataset
+%       form_object_dataset('bed', 'objects/', 'objdata')
+% upload data after adding the new directory
+% objid => 1: sofa, 2: table, 3: tv, 4: chair, 5 : bed
+function select_annotate_obj(imgdir, objid, outbase)
 addpath('../Annotation');
 addpath('../IndoorLayoutUnderstanding/objmodel/');
 imfiles = dir(fullfile(imgdir, '*.jpg'));
 
+models = objmodels();
+angles = cell(length(models(objid).type), 1);
+
+objname = lower(models(objid).name);
+outdir = fullfile(outbase, objname);
 if(~exist(outdir, 'dir'))
     mkdir(outdir);
 end
-
-models = objmodels();
-angles = cell(length(models(objid).type));
 
 count = 0;
 usedlist = {};
 try
     % count the data from YuXiang's training set.
-    basedir = ['~/codes/yuxiang_codes/Annotations/' objname];
-    imbasedir = ['~/codes/yuxiang_codes/Images/' objname];
+    basedir = ['yuxiangdata/Annotations/' objname];
+    imbasedir = ['yuxiangdata/Images/' objname];
     
     afiles = dir([basedir '/*.mat']);
     assert(~isempty(afiles));
