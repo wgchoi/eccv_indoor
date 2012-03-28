@@ -40,12 +40,16 @@ end
 %     Model = Model.children(1);
 % end
 
-for i = 2:2:length(Model.children)-1
-    Objects(round(i/2)).struct = getInstanceGeometry(Model.children(i));
-    Objects(round(i/2)).name = Model.children(i).id;
-    [Objects(round(i/2)).positions Objects(round(i/2)).triangles] = getPositionsFromChildren(Objects(round(i/2)));
-end
+Objects = getInstanceGeometry(Model);
 
+% for i = 2:2:length(Model.children)-1
+%     Objects(round(i/2)).struct = getInstanceGeometry(Model.children(i));
+%     Objects(round(i/2)).name = Model.children(i).id;
+%     [Objects(round(i/2)).positions Objects(round(i/2)).triangles] = getPositionsFromChildren(Objects(round(i/2)));
+%     Objects(round(i/2)).matrix = eye(4);
+% %     Objects(round(i/2)) = findStructureTransform(Objects(round(i/2)));
+% end
+clear Geometries LibNodes;
         
                 
 
@@ -147,7 +151,7 @@ end
 function structure = getInstanceGeometry(InNode)
 
 global LibNodes Geometries;
-structure = struct('name', {}, 'positions', {}, 'triangles', {}, 'struct', {});
+structure = struct('name', {}, 'positions', {}, 'triangles', {}, 'struct', {}, 'matrix', {});
 NumStructs = 0;
 
 for i = 2:2:length(InNode.children)-1
@@ -164,11 +168,15 @@ for i = 2:2:length(InNode.children)-1
         end
         [structure(NumStructs).positions structure(NumStructs).triangles] = getPositionsFromChildren(structure(NumStructs));
         
+        structure(NumStructs).matrix = eye(4);
         MatNode = findNodeByName(InNode, 'matrix');
-        Matrix = str2num(MatNode.children.data);
-        
-        if ~isempty(Matrix)
+        if ~isempty(MatNode)
+            Matrix = str2num(MatNode.children.data);
+            if size(Matrix, 1) == 1
+                Matrix = reshape(Matrix, [4 4])';
+            end
             structure(NumStructs).positions = Matrix*structure(NumStructs).positions;
+            structure(NumStructs).matrix = Matrix;
         end
         
     elseif strcmpi(InNode.children(i).name, 'instance_geometry')
@@ -184,7 +192,19 @@ for i = 2:2:length(InNode.children)-1
         end
         [structure(NumStructs).positions structure(NumStructs).triangles] = getPositions(InstNode);
         
+        structure(NumStructs).matrix = eye(4);
+        MatNode = findNodeByName(InNode, 'matrix');
+        if ~isempty(MatNode)
+            Matrix = str2num(MatNode.children.data);
+            if size(Matrix, 1) == 1
+                Matrix = reshape(Matrix, [4 4])';
+            end
+            structure(NumStructs).positions = Matrix*structure(NumStructs).positions;
+            structure(NumStructs).matrix = Matrix;
+        end
+        
     elseif strcmpi(InNode.children(i).name, 'node')
+        
         NumStructs = NumStructs + 1;
         structure(NumStructs).struct = getInstanceGeometry(InNode.children(i));
         if ~isempty(InNode.children(i).id)
@@ -193,6 +213,17 @@ for i = 2:2:length(InNode.children)-1
             structure(NumStructs).name = strcat('part', num2str(NumStructs));
         end
         [structure(NumStructs).positions structure(NumStructs).triangles] = getPositionsFromChildren(structure(NumStructs));
+        
+        structure(NumStructs).matrix = eye(4);
+        MatNode = findNodeByName(InNode, 'matrix');
+        if ~isempty(MatNode)
+            Matrix = str2num(MatNode.children.data);
+            if size(Matrix, 1) == 1
+                Matrix = reshape(Matrix, [4 4])';
+            end
+            structure(NumStructs).positions = Matrix*structure(NumStructs).positions;
+            structure(NumStructs).matrix = Matrix;
+        end
         
     end
 end
@@ -212,9 +243,15 @@ Positions(1:3, :) = reshape(Vector, 3, length(Vector)/3);
 % Positions = [Positions Array];
 for i = 2:2:length(Mesh.children)
     if strcmpi(Mesh.children(i).name, 'triangles')
+        stride = 0;
+        for j = 2:2:length(Mesh.children(i).children)
+            if strcmpi(Mesh.children(i).children(j).name, 'input')
+                stride = stride + 1;
+            end
+        end
         Assign = findNodeByName(Mesh.children(i), 'p');
         AssignVect = str2num(Assign.children.data);
-        TriVect = AssignVect(1:3:end) + 1;
+        TriVect = AssignVect(1:stride:end) + 1;
         TriArray = reshape(TriVect, 3, length(TriVect)/3); 
 %         TriArray = TriArray + Offset;
         Triangles = [Triangles TriArray];   % Otherwise it reads only the last triangle
@@ -232,3 +269,17 @@ for i = 1:length(InStruct.struct)
     tri = Offset + InStruct.struct(i).triangles;
     Triangles = [Triangles tri];
 end
+
+% function OutStruct = findStructureTransform(InStruct)
+% Positions = [];
+% for i = 1:length(InStruct.struct)
+%     OutStruct = InStruct;
+%     OutStruct.struct(i).matrix = OutStruct.matrix*OutStruct.struct(i).matrix;
+%     if isempty(OutStruct.struct(i).struct) %don't stop until instance geometry node
+%         OutStruct.struct(i) = findStructureTransform(OutStruct.struct(i));
+%     else
+%         OutStruct.struct(i).positions = OutStruct.struct(i).matrix*OutStruct.struct(i).positions;
+%     end
+%     Positions = [Positions OutStruct.struct(i).positions];
+% end
+% OutStruct.positions = Positions;
