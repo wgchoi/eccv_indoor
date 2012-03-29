@@ -89,7 +89,6 @@ end
 end
 
 function draw_all(imdir, imfile, models, obj_annos)
-
 %%% draw all
 figure(1);
 imshow(fullfile(imdir, imfile));
