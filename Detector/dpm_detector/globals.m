@@ -36,3 +36,15 @@ cleantmpdir = true;
 
 % directory with PASCAL VOC development kit and dataset
 VOCdevkit = '../VOCdevkit/';
+if(~exist(VOCdevkit, 'dir'))
+    key = input('VOC is not installed. Do you want to install??', 's');
+    if(key == 'y')
+        tmp = pwd; 
+        cd ..;
+        unix('wget http://pascallin.ecs.soton.ac.uk/challenges/VOC/voc2011/VOCdevkit_25-May-2011.tar');
+        unix('tar xvf VOCdevkit_25-May-2011.tar; rm VOCdevkit_25-May-2011.tar');
+        cd(tmp);
+    else
+        error('no voc installed');
+    end
+end
