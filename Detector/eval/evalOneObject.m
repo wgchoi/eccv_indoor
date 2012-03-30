@@ -1,7 +1,7 @@
 clear; 
 clc;
 %%
-model = 4;
+model = 5;
 %%
 if model == 1
     dname = 'DPM';
@@ -54,6 +54,22 @@ elseif model == 4
     resdir = './results/DPM_MINE/livingroom/sofa/';
     annodir = '../Annotation/livingroom/'; 
     evaldir = 'results/DPM_MINE/eval';
+    gtids = 1;
+    detids = 1;
+    
+    temp = load('../Annotation/livingroom/0000000004_labels.mat');
+    objtypes = temp.objtypes;
+    for i = 1:length(gtids)
+        names{i} = objtypes{gtids(i)};
+    end
+elseif model == 5
+    dname = 'DPM';
+    thlist = -2:0.1:2;
+    expname = 'DPM My Model Augmented';
+    imdir = '../Data_Collection/livingroom/';
+    resdir = './results/DPM_MINE_AUG/livingroom/sofa/';
+    annodir = '../Annotation/livingroom/'; 
+    evaldir = 'results/DPM_MINE_AUG/eval';
     gtids = 1;
     detids = 1;
     
