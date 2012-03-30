@@ -1,4 +1,4 @@
-function cluster_data(imgbase, annobase, dname, models)
+function ret = cluster_data(imgbase, annobase, dname, models)
 
 imdir = fullfile(imgbase, dname);
 annodir = fullfile(annobase, dname);
@@ -16,10 +16,13 @@ end
 for i = 1:length(imfiles)
 	annofile = [imfiles(i).name(1:find(imfiles(i).name == '.', 1, 'last') - 1) '_labels.mat'];
 	load(fullfile(annodir, annofile));
-	draw_all(imdir, imfiles(i).name, models, obj_annos);
+	draw_all(imdir, imfiles(i).name, models, obj_annos, 600);
 	figure(2);
 	imshow(clusterimage);
-	key = input('Which cluster does it belongs? (0:N/A, 1~9)', 's');
+	key = input('Which cluster does it belongs? (x : exit, 0:N/A, 1~9)', 's');
+    
+    if(key == 'x'), break; end
+    
 	key = parse_key(key);
 	if(key > 0)
 		clusters{key}{end+1} = imfiles(i).name;
@@ -41,6 +44,9 @@ for i = 1:length(imfiles)
 	end
 end
 
+ret.clusterimage = clusterimage;
+ret.clusters = clusters;
+
 end
 
 function cluster = parse_key(key)
@@ -53,16 +59,24 @@ if(key >= '1' && key <= '9')
 end
 end
 
-function draw_all(imdir, imfile, models, obj_annos)
+function draw_all(imdir, imfile, models, obj_annos, maxwidth)
 %%% draw all
 figure(1);
-imshow(fullfile(imdir, imfile));
+im = imread(fullfile(imdir, imfile));
+ratio = 1;
+if (size(im, 2) > maxwidth)
+    ratio = maxwidth / size(im, 2); 
+    im = imresize(im, ratio);
+end
+imshow(im);
+
 for i = 1:length(obj_annos)
-    rectangle('position', [obj_annos(i).x1, obj_annos(i).y1, obj_annos(i).x2 - obj_annos(i).x1, obj_annos(i).y2 - obj_annos(i).y1], 'linewidth', 2, 'edgecolor', get_obj_color(obj_annos(i).objtype));
+    bbs = [obj_annos(i).x1, obj_annos(i).y1, obj_annos(i).x2 - obj_annos(i).x1, obj_annos(i).y2 - obj_annos(i).y1] * ratio;
+    rectangle('position', bbs, 'linewidth', 2, 'edgecolor', get_obj_color(obj_annos(i).objtype));
     if(obj_annos(i).objtype > 0)
-        text(obj_annos(i).x1, obj_annos(i).y1, models(obj_annos(i).objtype).name, 'BackgroundColor', get_obj_color(obj_annos(i).objtype));
+        text(bbs(1), bbs(2), models(obj_annos(i).objtype).name, 'BackgroundColor', get_obj_color(obj_annos(i).objtype));
     else
-        text(obj_annos(i).x1, obj_annos(i).y1, 'N/A', 'BackgroundColor', get_obj_color(0));
+        text(bbs(1), bbs(2), 'N/A', 'BackgroundColor', get_obj_color(0));
     end
 end
 end
