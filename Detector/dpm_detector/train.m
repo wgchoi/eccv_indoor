@@ -320,8 +320,8 @@ for i = 1:batchsize:numpos
   thisbatchsize = batchsize - max(0, (i+batchsize-1) - numpos);
   % data for batch
   data = {};
-  % parfor k = 1:thisbatchsize
-  for k = 1:thisbatchsize
+  parfor k = 1:thisbatchsize
+  % for k = 1:thisbatchsize
     j = i+k-1;
     fprintf('%s %s: iter %d/%d: latent positive: %d/%d', procid(), name, t, iter, j, numpos);
     bbox = [pos(j).x1 pos(j).y1 pos(j).x2 pos(j).y2];
@@ -392,14 +392,21 @@ for i = 1:batchsize:numneg
   % do batches of detections in parallel
   thisbatchsize = batchsize - max(0, (i+batchsize-1) - numneg);
   data = {};
-  % parfor k = 1:thisbatchsize
+  parfor k = 1:thisbatchsize
   % slower.. don't use this
-  for k = 1:thisbatchsize
+  % for k = 1:thisbatchsize
     j = inds(i+k-1);
     fprintf('%s %s: iter %d/%d: hard negatives: %d/%d (%d)\n', procid(), name, t, negiter, i+k-1, numneg, j);
     im = color(imreadx(neg(j)));
     pyra = featpyramid(im, model);
     [dets, bs, info] = gdetect(pyra, model, -1.002);
+    %%% wongun added, limit max number of hard negatives per image
+    %%% otherwise it will have 10000+ per image - which is useless
+    if(size(bs, 1) > 100)
+        bs = bs(1:100, :);
+        info = info(:, :, 1:100);
+    end
+    %%% wongun added, done    
     data{k}.bs = bs;
     data{k}.pyra = pyra;
     data{k}.info = info;

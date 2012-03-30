@@ -9,7 +9,7 @@ end
 
 threshold = -2;
 
-matlabpool open 8
+matlabpool open 4
 for i = 1:length(exts)
     files = dir(fullfile(imdir, ['*.' exts{i}]));
     parfor j = 1:length(files)
