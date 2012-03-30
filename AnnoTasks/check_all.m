@@ -2,10 +2,11 @@ clear
 
 corrector = 'wongun';
 
-imbase = 'livingroom/set7/';
+setname = 'set10';
 
-annobase = 'annotation/temp/set7/';
-verifiedbase = 'annotation/livingroom/set7/';
+imbase = ['livingroom/' setname '/'];
+annobase = ['annotation/livingroom_temp/' setname '/'];
+verifiedbase = ['annotation/livingroom/' setname '/'];
 
 imfiles = dir(fullfile(imbase, '*.JPEG'));
 
@@ -20,6 +21,11 @@ for i = 1:length(imfiles)
     annofile = [imfiles(i).name(1:idx-1) '_labels.mat'];
     
     orgfile = fullfile(annobase, [imfiles(i).name(1:end-4) '_labels.mat']);
+    if ~exist(orgfile, 'file')
+        disp(['missing ' orgfile]);
+        continue;
+    end
+    
     destfile = fullfile(verifiedbase, annofile);
     if exist(destfile, 'file')
         orgfile = destfile;
