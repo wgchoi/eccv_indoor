@@ -57,6 +57,4 @@ patch('Parent', gca, ...
       'FaceColor', 'm', ...
       'LineStyle', '-');
   
-keyboard;
-
 end
