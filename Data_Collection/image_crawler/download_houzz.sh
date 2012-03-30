@@ -1,6 +1,17 @@
-for c in 'sofa' 'living-room' 'dining-room' 'bedroom' 'media-room' 'home-office' 'kitchen' 'laundry-room'; 
-do mkdir $c; 
-for i in `python crawl_houzz_images.py $c`; 
-do wget -P $c $i; 
-done; 
+# for c in 'sofa' 'living-room' 'dining-room' 'bedroom' 'media-room' 'home-office' 'kitchen' 'laundry-room' 
+for c in 'table' 
+do 
+	mkdir $c 
+	idx=0
+	echo $c
+	echo $idx
+	while [ $idx -le 4000 ]
+	do
+		echo python crawl_houzz_images.py $c $idx
+		for i in `python crawl_houzz_images.py $c $idx` 
+		do 
+			wget -P $c $i 
+		done 
+		idx=`expr $idx + 8`
+	done
 done

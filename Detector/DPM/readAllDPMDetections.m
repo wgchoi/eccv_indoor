@@ -17,7 +17,10 @@ for i = 1:length(exts)
         
         dets{cnt}.name = files(j).name;
         dets{cnt}.dets = res.dets;
-        dets{cnt}.tops = res.top;
+        for k = 1:length(res.dets)
+            dets{cnt}.tops{k} = nms(res.dets{k}, 0.5);
+            dets{cnt}.tops2{k} = nms2(res.dets{k}, 0.5);
+        end
         dets{cnt}.resizefactor = res.resizefactor;
         
         cnt = cnt + 1;

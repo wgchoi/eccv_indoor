@@ -16,8 +16,6 @@ recall = zeros(length(gtids), length(thlist));
 fppi = zeros(length(gtids), length(thlist));
 pr = zeros(length(gtids), length(thlist));
 
-matlabpool open 4
-parfor i = 1:length(gtids)
+for i = 1:length(gtids)
     [recall(i, :), fppi(i, :), pr(i, :)] = evalDetection(gts, dets, gtids(i), detids(i), thlist);
 end
-matlabpool close

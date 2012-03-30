@@ -1,18 +1,26 @@
 % split positive training samples according to viewpoints
-function [spos, index_pose] = pose_split(pos, n)
+function [spos, index_pose] = pose_split(pos, n, subtype)
 
 N = numel(pos);
 view = zeros(N, 1);
+type = zeros(N, 1);
+
 for i = 1:N
     view(i) = find_interval(pos(i).azimuth, n);
+    type(i) = pos(i).subid;
 end
 
-spos = cell(n,1);
+spos = cell(n * subtype, 1);
 index_pose = [];
 for i = 1:n
-    spos{i} = pos(view == i);
-    if numel(spos{i}) >= 10
-        index_pose = [index_pose i];
+    for j = 1:subtype
+        idx = (j - 1) * n + i;
+        
+        spos{idx} = pos(view == i & type == j);
+        
+        if numel(spos{idx}) >= 10
+            index_pose = [index_pose idx];
+        end
     end
 end
 

@@ -1,4 +1,4 @@
-function model = pose_train(cls, n, note)
+function model = pose_train(cls, n, subtype, note)
 
 % model = pascal_train(cls, n, note)
 % Train a model with 2*n components using the PASCAL dataset.
@@ -17,7 +17,7 @@ end
 globals; 
 [pos, neg] = pose_data(cls);
 % split data by aspect ratio into n groups
-[spos, index_pose] = pose_split(pos, n);
+[spos, index_pose] = pose_split(pos, n, subtype);
 
 cachesize = 10*numel(pos);
 maxneg = numel(pos);
