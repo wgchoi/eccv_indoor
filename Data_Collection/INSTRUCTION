@@ -1,0 +1,32 @@
+1. Data collection/Annotation
+ 1) use the shell script in image_crawler/download_houzz.sh, change the list of c variable loop to the one you are interested in. It will download images into subdirectory
+  e.g. for c in 'table'
+
+ 2) call select_annotate_obj.m in matlab. READ the comments in select_annotate_obj.m before run it!
+  e.g. select_annotate_obj('./image_crawler/table', 2, 'objects');
+  - before it shows each image, the function print out data statistics to show you how many images you have in each model (e.g. full size, queen size, king size bed.) and each view point. 
+  - it asks whether you will select each image. press y and enter if you think the image is good/useful. 
+  - The rules to choose images : 
+     i) choose an image that shows a viewpoint that is not well-covered by already annotated images. Try to have at least 50 images per view point and model
+     ii) object should not be occluded or truncated too much. Try to choose images that shows more than 6~70% of the object. If there exists many of the objects in one image, annotate all of the choosen type of objects (e.g. all the tables) that is more than 50% visible.
+     iii) be careful when annotating an object. SEE BELOW for the DEFINITION of each type of OBJECT. E.G. Dining table or desk shouldn't be annotated as a table. Only coffee table should be annotated as a table. We will add Dining table/desk into the training set later, if necessary.
+  - The annotation is done in two steps : 1) polygon annotation and 2) view-point/model selection. 
+     i) polygon annotation. click the image to annotate object's extent. When occluded or truncated, BE SURE TO DRAW FULL EXTENT OF THE OBJECT WITH YOUR BEST GUESS!!!!!!! Press ESC if there is no more object of the category, then you will be directed to view-point/model selection.
+	 ii) Press 1~3 to choose subtype of the object. It changes the object's 3D model (e.g. queen or king bed). Press up/down to change elevation angle and left-right to change the azimuth. Front facade of the object will be shown shaded to help you identify where is the front side. Once you are done with adjusting model and view selection, press enter and do it for next instance. 
+
+  3) Once you collected enough examples, e.g. more tha 75 for each view/model press CTRL+C to stop annotation. Call form_object_dataset.m to reorganize all the data. e.g. form_object_dataset('bed', 'objects/', 'objdata'). Upload the object dataset by "git add objdata" and commit/push. BE SURE NOT TO ADD the TEMPORARY IMAGE DIRECTORY (e.g. objects/table) to avoid too much data!!!!!
+   
+
+2. Object Definition
+ Sofa : has two subtype - sofa(1) and sofa-chair(2)(one person)
+  - General sofa on which 2~3 people can sit.
+  - One-person sofa, a.k.a sofa-chair. 
+
+ Bed : obvious. has three sub-type : full(1), queen(2), king(3). choose one that best fit in the image.
+
+ Table : coffee-table. it should be the tables with low height. (NOT including dining-table/desk/tv-stand). has two sub-type : wide(1) or square(2) table
+
+ Chair : office chair or dining table chair. NEVER include SOFA-CHAIR for these. has only one subtype.
+
+3. Checking annotation
+ use show_obj_annotation.m for visualization

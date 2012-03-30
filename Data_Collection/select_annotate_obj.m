@@ -85,6 +85,7 @@ for i = i0:length(imfiles)
             count = count + 1;
             
             anno.im = imfile;
+            anno.poly = objs(j).poly;
             anno.x1 = objs(j).bbs(1);
             anno.x2 = objs(j).bbs(1) + objs(j).bbs(3) - 1;
             anno.y1 = objs(j).bbs(2);
