@@ -15,7 +15,11 @@ for i = 1:length(annofiles)
 	load(annofile);
 
 	imfilename = anno.im;
-	anno.im = imfilename(find(imfilename == '/', 1, 'last') + 1:end);
+    if(ispc())
+        anno.im = imfilename(find(imfilename == '\', 1, 'last') + 1:end);
+    else
+        anno.im = imfilename(find(imfilename == '/', 1, 'last') + 1:end);
+    end
 
 	if(~exist(fullfile(out_imdir, anno.im), 'file'))
 		copyfile(imfilename, fullfile(out_imdir, anno.im));
