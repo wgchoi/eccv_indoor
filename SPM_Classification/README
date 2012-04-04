@@ -1,0 +1,10 @@
+Spatial Pyramid Matching Implementation
+
+Author:  Yu-Wei Chao (ywchao@umich.edu)
+Update:  2012.04.04
+=======================================
+1. For scene category dataset, download the images from http://www.cs.unc.edu/~lazebnik/ and copy the 15 folders to the directory 'scene_categories/'.
+
+2. For Wongun's dataset, copy the folder 'livingroom' and 'bedroom' under 'Data_Collection/' to the directory 'nips_trail1/'.
+
+3. Start the code by runing 'main.m' (modify line 7-10 to specify the input dataset).
