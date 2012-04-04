@@ -1,5 +1,6 @@
 % function angle3 = get3DAngle(K, R, ct, pose, ref)
 function angle3 = get3DAngle(K, R, pose, ref)
+assert(0, 'obsolete function. use getObjAngleFromCamView instead');
 if nargin < 5
 	ref = -1;
 end
