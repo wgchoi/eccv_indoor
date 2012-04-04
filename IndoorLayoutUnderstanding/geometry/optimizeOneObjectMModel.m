@@ -6,6 +6,7 @@ minid = -1;
 minloc = [];
 
 for mid = 1:n
+    assert(0);
 	[fval, loc] = optimizeOneObject(camh, K, R, obj, model, mid);
 	if(minf > fval)
 		minf = fval;

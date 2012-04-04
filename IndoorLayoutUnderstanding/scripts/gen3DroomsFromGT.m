@@ -14,7 +14,7 @@ if(~exist(outdir, 'dir'))
 end
 
 %% i = 8 error!!!
-exts = {'jpg' 'JPEG'};
+exts = {'jpg'};
 for e = 1:length(exts)
 	imfiles = dir(fullfile(img_dir, ['*.' exts{e}]));
 	for i = 1:length(imfiles)
@@ -22,11 +22,15 @@ for e = 1:length(exts)
 		img = imread(fullfile(img_dir, imfiles(i).name));
 		try
 			load(fullfile(gt_dir, [fname '_labels.mat']));
-			[room, objs] = gen3DRoomFromGT(img, gtPolyg, objs);
+            polyout = checkLayoutAnnotation(gtPolyg, img);
+			[room, objs] = gen3DRoomFromGT(img, polyout, objs, poses);
+%             [a, b, c] = dcm2angle(room.R, 'XYZ')
 			save(fullfile(outdir, fname), 'room', 'objs', 'gtPolyg');
-%             drawAll(img, gtPolyg, room, objs(1), objmodels(), 1, 2);
+%             drawAll(img, polyout, room, objs(1:3), objmodels(), 1, 2);
 %             pause;
-		catch
+        catch ee
+            i
+            ee
 		end
 	end
 end
