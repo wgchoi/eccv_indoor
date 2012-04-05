@@ -25,6 +25,8 @@ area = max(min(area, 5000), 3000);
 w = sqrt(area/aspect);
 h = w*aspect;
 
+disp(['model ar : ' num2str(aspect, '%.02f') ' w : ' num2str(w, '%.02f') ' h : ' num2str(h, '%.02f')]);
+
 if nargin < 3
   note = '';
 end
