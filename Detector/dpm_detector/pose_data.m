@@ -14,6 +14,7 @@ switch cls
         index_train = 1:360;
     case {'chair'}
         index_train = 1:770;
+        index_train2 = 1:1102;
     case {'bed'};
         index_train = 1:400;
     case {'sofa'}
@@ -21,12 +22,12 @@ switch cls
         index_train2 = 1:874;
     case {'table'}
         index_train = 1:670;        
+        index_train2 = 1:685;
 end
 
 try
   load([cachedir cls '_train_pose']);
 catch
-    
   % positive examples from train+val
   fprintf('Read 3DObject samples\n');
   pos = read_positive(cls, index_train);
@@ -113,7 +114,7 @@ end
 function pos = read_positive2(cls, index_train)
 
 N = numel(index_train);
-path_image = sprintf('../../Data_Collection/objdata/images/%s', cls);
+path_image = sprintf('../../Data_Collection/objdata/images/');
 path_anno = sprintf('../../Data_Collection/objdata/annotation/%s', cls);
 
 count = 0;
@@ -130,7 +131,11 @@ for i = 1:N
     
     count = count + 1;
     
-    imfile = object.im(find(object.im == '/', 1, 'last')+1:end);
+%     imfile = object.im(find(object.im == '/', 1, 'last')+1:end);
+    imfile = object.im;
+    if(~isempty(find(imfile == '/', 1, 'last')))
+        imfile = imfile(find(imfile == '/', 1, 'last')+1:end);
+    end
     imfile = fullfile(path_image, imfile);
     
     pos(count).im = imfile;
