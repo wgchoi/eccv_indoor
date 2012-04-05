@@ -3,6 +3,14 @@ function polyout = checkLayoutAnnotation(gtPolyg, img)
 for i = length(gtPolyg)+1:5
     gtPolyg{i} = [];
 end
+
+for i = 1:5
+    %%%%% ther are some bug in the annotation
+    if(size(gtPolyg{i}, 1) < 2)
+        gtPolyg{i} = [];
+    end
+end
+
 polyout = cell(1, 5);
 % we only fix the error in center,right,left walls.
 polyout{1} = gtPolyg{1};
