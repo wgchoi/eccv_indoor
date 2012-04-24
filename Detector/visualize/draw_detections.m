@@ -15,7 +15,7 @@ for i = 1:length(dets)
 		bbox(4) = bbox(4) - bbox(2) + 1;
 
 		rectangle('position', bbox(1:4), 'linewidth', 2, 'edgecolor', cols(i));
-		text(bbox(1), bbox(2), [names{i} ':' poses{i}{bbox(5)}]);
+		text(bbox(1), bbox(2), [names{i} ':' poses{i}{bbox(5)}], 'backgroundcolor', 'w');
 	end
 end
 hold off;

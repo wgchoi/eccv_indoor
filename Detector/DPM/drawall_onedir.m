@@ -19,7 +19,11 @@ for i = 1:length(exts)
 
         idx = find(files(j).name == '.', 1, 'last');
 		res = load(fullfile(resdir, files(j).name(1:idx-1)), 'top', 'dets', 'resizefactor');
-
+        
+        for k = 1:length(res.dets)
+            res.top{k} = nms2(res.dets{k}, 0.5);
+        end
+        
         im = imresize(im, res.resizefactor);        
 		draw_detections(im, res.dets, res.top, th, names, poses, cols);
 		drawnow;
