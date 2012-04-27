@@ -67,10 +67,10 @@ elseif model == 5
     thlist = -2:0.1:2;
     expname = 'DPM My Model Augmented';
     imdir = '../Data_Collection/livingroom/';
-    resdir = './results/DPM_MINE_AUG/livingroom/sofa/';
+    resdir = './results/DPM_MINE_AUG/livingroom/chair/';
     annodir = '../Annotation/livingroom/'; 
     evaldir = 'results/DPM_MINE_AUG/eval';
-    gtids = 1;
+    gtids = 4;
     detids = 1;
     
     temp = load('../Annotation/livingroom/0000000004_labels.mat');
@@ -84,7 +84,7 @@ if ~exist(evaldir, 'dir')
     mkdir(evaldir);
 end
 % evalfile = fullfile(evaldir, 'detection.mat');
-evalfile = fullfile(evaldir, 'detection_nms2.mat');
+evalfile = fullfile(evaldir, 'detection_chair_nms2.mat');
 %%
 [recall, fppi, pr] = evalOneDetector(imdir, resdir, annodir, thlist, gtids, detids, dname, names);
 save(evalfile, 'recall', 'fppi', 'pr', 'names', 'dname', 'expname');
