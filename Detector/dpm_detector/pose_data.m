@@ -10,13 +10,12 @@ pascal_init;
 switch cls
     case {'car'}
         index_train = 1:240;
-    case {'bicycle'}
-        index_train = 1:360;
     case {'chair'}
         index_train = 1:770;
         index_train2 = 1:1102;
     case {'bed'};
         index_train = 1:400;
+        index_train2 = 1:846;
     case {'sofa'}
         index_train = 1:800;
         index_train2 = 1:874;
