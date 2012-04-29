@@ -1,4 +1,4 @@
-function[x] = readOneImageObservationData(imfile, detfiles, boxlayout, vpdata)
+function [x] = readOneImageObservationData(imfile, detfiles, boxlayout, vpdata)
 x.imfile = imfile;
 x.sfeat = zeros(3, 1);
 

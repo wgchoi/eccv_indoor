@@ -28,13 +28,12 @@ end
 isolated(numclusters+1:end) = [];
 
 % loop for compositional interaction templates.
-composite = graphnodes(1000);
+composite = graphnodes(0);
 numclusters = 0;
-for i = 1:length(isolated)
-    
+for i = 1:length(model.rules)
+    temp = findCompositionalTemplates(isolated, model.rules(i));
+    composite = [composite; temp];
 end
-composite(numclusters+1:end) = [];
-
 iclusters = [isolated; composite];
 
 end
