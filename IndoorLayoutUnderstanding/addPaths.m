@@ -5,4 +5,5 @@ addpath('visualize');
 addpath('inference');
 addpath('evaluation');
 addpath('scripts');
+addpath('potentials');
 addpath(genpath('3rdParty'));

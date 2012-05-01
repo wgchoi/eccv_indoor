@@ -1,61 +1,78 @@
-function moves = preprocessJumpMoves(x, iclusters)
+function [moves, cache] = preprocessJumpMoves(x, iclusters, cache)
 % moves : for each jump type : 
-%       add, delete,            % no cahce required.
+%       add, delete,
 %       switch, combine, break
 %       layout change : jump among the candidates
 %       camera height change : additive gaussian
 %       scene label switching
-moves = cell(5, 1);
-
+moves = cell(8, 1);
+%%% scene, layout, height
+for movetype = 1:3
+    moves{movetype} = mcmcmoveinfo(0);
+end
 %%% add moves
-moves{1} = mcmcmoveinfo(length(iclusters));
+movetype = 4;
+moves{movetype} = mcmcmoveinfo(length(iclusters));
 for i = 1:length(iclusters)
-    moves{1}(i).move = 1;
-    moves{1}(i).sid = [];
-    moves{1}(i).did = i;
+    moves{movetype}(i).move = movetype;
+    moves{movetype}(i).sid = [];
+    moves{movetype}(i).did = i;
     % prcompute caches if necessary
 end
 
 %%% delete moves
-moves{2} = mcmcmoveinfo(length(iclusters));
+movetype = 5;
+moves{movetype} = mcmcmoveinfo(length(iclusters));
 for i = 1:length(iclusters)
-    moves{1}(i).move = 2;
-    moves{1}(i).sid = i;
-    moves{1}(i).did = [];
+    moves{movetype}(i).move = movetype;
+    moves{movetype}(i).sid = i;
+    moves{movetype}(i).did = [];
     % prcompute caches if necessary
 end
 
 %%% switch moves
 count = 0;
-moves{3} = mcmcmoveinfo(length(iclusters)*length(iclusters));
+movetype = 6;
+moves{movetype} = mcmcmoveinfo(length(iclusters)*length(iclusters));
 for i = 1:length(iclusters)
+    swset = [];
     for j = 1:length(iclusters)
+        if(i == j), continue; end
         % if switching is necessary
         % competing elements
-        if(0)        
+        if(iclusters(i).isterminal && iclusters(j).isterminal)
+            if(x.intvol(i, j) > 0.1 || x.orarea(i, j) > 0.5)
+                count = count + 1;
+                moves{movetype}(count).move = movetype;
+                moves{movetype}(count).sid = i;
+                moves{movetype}(count).did = j;
+                % prcompute caches if necessary
+                swset(end + 1) = count;
+            end
+        else
+            continue;
             assert(0, 'implement compatibility check code');
-            count = count + 1;
-            moves{3}(count).move = 3;
-            moves{3}(count).sid = i;
-            moves{3}(count).did = j;
-            % prcompute caches if necessary
         end
     end
+    cache.swset{i} = swset;
+    cache.szswset(i) = length(swset);
 end
-moves{3}((count+1):end) = [];
+moves{movetype}((count+1):end) = [];
 
 %%% combine moves
 count = 0;
-moves{4} = mcmcmoveinfo(10000);
+movetype = 7;
+moves{movetype} = mcmcmoveinfo(10000);
 for i = 1:length(iclusters)
 end
-moves{4}((count+1):end) = [];
+moves{movetype}((count+1):end) = [];
 
 %%% break moves
 count = 0;
-moves{5} = mcmcmoveinfo(10000);
+movetype = 8;
+moves{movetype} = mcmcmoveinfo(10000);
 for i = 1:length(iclusters)
 end
-moves{5}((count+1):end) = [];
+moves{movetype}((count+1):end) = [];
 
 end

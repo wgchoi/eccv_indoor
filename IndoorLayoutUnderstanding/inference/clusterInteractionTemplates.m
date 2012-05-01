@@ -31,6 +31,8 @@ isolated(numclusters+1:end) = [];
 composite = graphnodes(0);
 numclusters = 0;
 for i = 1:length(model.rules)
+    continue;    
+    assert(0, 'not ready');
     temp = findCompositionalTemplates(isolated, model.rules(i));
     composite = [composite; temp];
 end
