@@ -1,4 +1,6 @@
 function [x] = readOneImageObservationData(imfile, detfiles, boxlayout, vpdata)
+%%% prepare all input informations.
+
 x.imfile = imfile;
 x.sfeat = zeros(3, 1);
 
@@ -13,7 +15,7 @@ for i = 1:size(x.lpolys, 1)
     for j = 1:size(x.lpolys, 2)
         x.lpolys{i, j} = x.lpolys{i, j} * rfactor;
     end
-    x.faces{i} = getRoomFaces(x.lpolys, size(img, 1), size(img, 2), x.K, x.R);
+    x.faces{i} = getRoomFaces(x.lpolys(i, :), size(img, 1), size(img, 2), x.K, x.R);
 end
 x.lconf = boxlayout.reestimated(:, 1);
 
@@ -40,6 +42,23 @@ for i = 1:length(detfiles)
     x.cubes = [x.cubes; cubes];
 end
 
+tic;
+x.intvol = sparse(size(x.cubes, 1), size(x.cubes, 1));
+for i = 1:size(x.cubes, 1)
+    for j = 1:size(x.cubes, 1)
+        x.intvol(i, j) = cuboidIntersectionsVolume(x.cubes{i}, x.cubes{j});
+    end
+end
+toc;
+
+tic;
+x.orarea = sparse(size(x.dets, 1), size(x.dets, 1));
+for i = 1:size(x.dets, 1)
+    for j = 1:size(x.dets, 1)
+        x.orarea(i, j) = boxoverlap(x.dets(i, 4:7), x.dets(j, 4:7));
+    end
+end
+toc;
 end
 
 % [obj type, subtype, pose, x, y, w, h, confidence]
@@ -48,10 +67,13 @@ function dets = parseDets(data, idx)
 bbox = data.bbox{1};
 bbox(:, 1:4) = bbox(:, 1:4) ./ data.resizefactor;
 subtypes = unique(bbox(:, 5));
+%% filter too low confidences
+bbox(bbox(:, end) < -1, :) = [];
+
 temp = [];
 for i = 1:length(subtypes)
 	tidx = find(bbox(:, 5) == subtypes(i));
-	tops = nms2(bbox(tidx, :), 0.5);
+	tops = nms2(bbox(tidx, :), 0.65);
 	temp = [temp; bbox(tidx(tops), :)];
 end
 [~, I] = sort(temp(:, end), 'descend');
