@@ -3,7 +3,7 @@ featlen =   1 + ... % layout confidence : no bias required, selection problem
             2 + ... % object pairs : 1) 3D intersection 2) 2D bboverlap
             5 + ... % object inclusion : 3D volume intersection
             1 + ... % floor distance : sofa to floor
-            2;      % object confidence : (weight + bias) per type
+            2 * model.nobjs;      % object confidence : (weight + bias) per type
 
 phi = zeros(featlen, 1);
 ibase = 1;
@@ -12,6 +12,7 @@ ibase = 1;
 phi(ibase) = x.lconf(pg.layoutidx);
 ibase = ibase + 1;
 
+% per object definition??
 % object interaction - repulsion
 for i = 1:length(pg.childs)
     for j = i+1:length(pg.childs)
@@ -53,8 +54,10 @@ for i = 1:length(pg.childs)
     i1 = pg.childs(i);
     assert(iclusters(i1).isterminal);
     
-    phi(ibase) = phi(ibase) + x.dets(i1, 8);
-    phi(ibase + 1) = phi(ibase + 1) + 1;
+    oid = (iclusters(i1).ittype - 1) * 2;
+    
+    phi(ibase + oid) = phi(ibase + oid) + x.dets(i1, 8);
+    phi(ibase + oid + 1) = phi(ibase + oid + 1) + 1;
 end
 ibase = ibase + 2;
 
