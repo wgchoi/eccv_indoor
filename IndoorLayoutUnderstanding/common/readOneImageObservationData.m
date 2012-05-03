@@ -2,7 +2,7 @@ function [x] = readOneImageObservationData(imfile, detfiles, boxlayout, vpdata)
 %%% prepare all input informations.
 
 x.imfile = imfile;
-x.sfeat = zeros(3, 1);
+x.sconf = zeros(3, 1);
 
 img = imread(x.imfile);
 
@@ -90,6 +90,10 @@ if(strcmp(data.names{1}, 'sofa8_2'))
 	dets(:, 2) = mod(bbox(:, 5) - 1, 2) + 1;
 	dets(:, 3) = floor((bbox(:, 5) - 1) ./ 2) .* pi / 4;
 elseif(strcmp(data.names{1}, 'table'))
+    submodels = [1 2 1 2 1 2 1 2];
+    poses = [0 0 pi/4 pi/4 pi/2 pi/2 -pi/4 -pi/4];
+    dets(:, 2) = submodels(bbox(:, 5));
+    dets(:, 3) = poses(bbox(:, 5));
 else
 end
 

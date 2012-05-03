@@ -47,7 +47,8 @@ for i = 1:length(iclusters)
                 moves{movetype}(count).sid = i;
                 moves{movetype}(count).did = j;
                 % prcompute caches if necessary
-                swset(end + 1) = count;
+                % swset(end + 1) = count;
+                swset(end + 1) = j;
             end
         else
             continue;

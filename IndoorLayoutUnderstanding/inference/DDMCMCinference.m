@@ -5,6 +5,11 @@
 %		5. image name
 % y :   parse graph samples
 function [spg, cache, history] = DDMCMCinference(x, iclusters, params, init)
+%%
+x.lconf(51:end) = [];
+x.lpolys(51:end, :) = [];
+x.faces(51:end) = [];
+%%
 params.model.w = getweights(params.model);
 %% prepare buffer
 spg = parsegraph(params.numsamples);
@@ -21,30 +26,45 @@ end
 %%
 history = zeros(8, 2);
 %% weighting the acceptance constant
-if(isfield(params, 'accconst'))
-    accconst = params.accconst;
-else
-    accconst = 10.0;
+if(~isfield(params, 'accconst'))
+    params.accconst = 1.0;
 end
+
+maxidx = 1;
+maxlkhood = spg(1).lkhood;
 
 while(count < params.numsamples)
     %% sample a new tree
     info = MCMCproposal(spg(count), x, moves, cache, params);
     if(info.move == 0), continue; end % error in sample
 	%% compute the acceptance ratio
-	[lar, newgraph] = computeAcceptanceRatio(spg(count), info, cache, x, iclusters, params.model);
+	[lar, newgraph] = computeAcceptanceRatio(spg(count), info, cache, x, iclusters, params);
     %% accept or reject
-    count = count + 1;	
-	if(lar * accconst > log(rand()))
+    count = count + 1;
+	if(lar > log(rand()))
         spg(count) = newgraph;
         history(info.move, 1) = history(info.move, 1) + 1;
         % update cache
         cache = updateCache(cache, info);
+        
+        % assertion check
+        assert(isempty(setdiff(find(cache.inset), spg(count).childs)));
+        assert(length(union(find(cache.inset), spg(count).childs)) == length(spg(count).childs));
     else
         spg(count) = spg(count - 1);
         history(info.move, 2) = history(info.move, 2) + 1;
-	end
+    end
+    % show2DGraph(spg(count), x, iclusters);
+    % drawnow;
+    % pause(0.2);
+    if(spg(count).lkhood > maxlkhood)
+        maxlkhood = spg(count).lkhood;
+        maxidx = count;
+    end
 end
+
+disp(['max sample at ' num2str(maxidx) ' with lk : ' num2str(maxlkhood)])
+spg(maxidx)
 
 end
 
@@ -68,9 +88,14 @@ cache = mcmccache(length(iclusters), length(x.lconf));
 obts = [];
 for i = 1:length(iclusters)
     assert(iclusters(i).isterminal);
+    if(isnan(iclusters(i).angle))
+        continue;
+    end
     % if no conflict with existing clusters
     % if confidence is larger than 0
-    lk = [x.dets(iclusters(i).chindices, 8), 1] * model.w_oo;
+    oid = x.dets(iclusters(i).chindices, 1);
+    
+    lk = [x.dets(iclusters(i).chindices, 8), 1] * model.w_oo((oid-1)*2+1:(2*oid));
     lk = lk + [sum(x.intvol(i, cache.inset)), sum(x.orarea(i, cache.inset))] * model.w_ioo;
     if(lk > 0)
         graph.childs(end+1) = i;
@@ -83,9 +108,9 @@ graph.camheight = -mean(obts);
 phi = features(graph, x, iclusters, model);
 graph.lkhood = dot(phi, model.w);
 %% init cache
-cache.playout = exp(x.lconf);
+cache.playout = exp(x.lconf .* model.w_or);
 cache.playout = cache.playout ./ sum(cache.playout);
 cache.clayout = cumsum(cache.playout);
 
-cache.padd = exp(x.dets(:, end));
+cache.padd = exp(x.dets(:, end) .* model.w_oo(1));
 end
