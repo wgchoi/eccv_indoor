@@ -1,5 +1,6 @@
 addpath('common');
 addpath('geometry');
+addpath('image');
 addpath('objmodel');
 addpath('visualize');
 addpath('inference');
