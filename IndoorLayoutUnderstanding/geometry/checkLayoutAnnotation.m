@@ -1,4 +1,6 @@
-function polyout = checkLayoutAnnotation(gtPolyg, img)
+function polyout = checkLayoutAnnotation(gtPolyg, imsz)
+assert(length(imsz) == 2);
+
 % bottom, center, right, left, top
 for i = length(gtPolyg)+1:5
     gtPolyg{i} = [];
@@ -54,7 +56,7 @@ elseif length(idx) == 2
     [~, rid] = max(mx); rid = idx(rid);
     [~, lid] = min(mx); lid = idx(lid);
     assert(rid ~= lid);
-    if(min( gtPolyg{rid}(:, 1) ) < size(img, 2) / 2)
+    if(min( gtPolyg{rid}(:, 1) ) < imsz(2) / 2)
         % left, center
         polyout{2} = gtPolyg{rid};
         polyout{4} = gtPolyg{lid};

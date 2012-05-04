@@ -1,17 +1,21 @@
 function phi = features(pg, x, iclusters, model)
 featlen =   1 + ... % layout confidence : no bias required, selection problem    
-            2 + ... % object pairs : 1) 3D intersection 2) 2D bboverlap
+            2 + ... % object-object interaction : 1) 3D intersection 2) 2D bboverlap
             5 + ... % object inclusion : 3D volume intersection
-            1 + ... % floor distance : sofa to floor
+            model.nobjs + ... % min distance to wall 3D
+            model.nobjs + ... % min distance to wall 2D
+            model.nobjs + ... % floor distance per object: sofa to floor
             2 * model.nobjs;      % object confidence : (weight + bias) per type
+
 
 phi = zeros(featlen, 1);
 ibase = 1;
 
+%% scene
 % layout confidence
 phi(ibase) = x.lconf(pg.layoutidx);
 ibase = ibase + 1;
-
+%% for a pair of objects
 % per object definition??
 % object interaction - repulsion
 for i = 1:length(pg.childs)
@@ -28,7 +32,7 @@ for i = 1:length(pg.childs)
     end
 end
 ibase = ibase + 2;
-
+%% below : all per object!
 % object-room face interaction - no inclusion
 for i = 1:length(pg.childs)
     i1 = pg.childs(i);
@@ -39,15 +43,37 @@ for i = 1:length(pg.childs)
 end
 ibase = ibase + 5;
 
-% object-room face interaction - no inclusion
+% object-wall interaction % min distance to wall 3D
 for i = 1:length(pg.childs)
     i1 = pg.childs(i);
     assert(iclusters(i1).isterminal);
-    
-    bottom = x.cubes{iclusters(i1).chindices}(2, 1); % bottom y position.
-    phi(ibase) = phi(ibase) + (pg.camheight + bottom) .^ 2; %
+    [d1, d2] = obj2wallFloorDist(x.faces{pg.layoutidx}, x.cubes{iclusters(i1).chindices}, pg.camheight);
+    oid = iclusters(i1).ittype - 1;
+    phi(ibase+oid) = phi(ibase+oid) + min(abs(d1) + abs(d2));
 end
-ibase = ibase + 1;
+ibase = ibase + model.nobjs;
+
+% object-wall interaction % min distance to wall 2D
+for i = 1:length(pg.childs)
+    i1 = pg.childs(i);
+    assert(iclusters(i1).isterminal);
+    [d1, d2] = obj2wallImageDist(x.corners{pg.layoutidx}, x.projs(iclusters(i1).chindices).poly);
+    oid = iclusters(i1).ittype - 1;
+    
+    phi(ibase+oid) = phi(ibase+oid) + min(d1 + d2);
+end
+ibase = ibase + model.nobjs;
+
+% object-floor interaction 
+for i = 1:length(pg.childs)
+    i1 = pg.childs(i);
+    assert(iclusters(i1).isterminal);
+    bottom = x.cubes{iclusters(i1).chindices}(2, 1); % bottom y position.
+    oid = iclusters(i1).ittype - 1;
+    
+    phi(ibase+oid) = phi(ibase+oid) + (pg.camheight + bottom) .^ 2; %
+end
+ibase = ibase + model.nobjs;
 
 % object observation confidence + bias
 for i = 1:length(pg.childs)
@@ -59,29 +85,29 @@ for i = 1:length(pg.childs)
     phi(ibase + oid) = phi(ibase + oid) + x.dets(i1, 8);
     phi(ibase + oid + 1) = phi(ibase + oid + 1) + 1;
 end
-ibase = ibase + 2;
-
-return;
-
-NClusterType = model.nobjs + length(model.rules);
-phi = zeros(model.nscene * NClusterType + ...
-            0, 1);
-% compatibility between cluster and scene 
-% function of cluster type and room type.
-ibase = 0;
-for i = 1:length(pg.childs)
-    idx = ibase + (pg.scenetype - 1) * NClusterType;
-    idx = idx + iclusters(pg.childs(i)).ittype;
-    
-    phi(idx) = phi(idx) + 1;
+ibase = ibase + 2 * model.nobjs;
+assert(featlen == ibase - 1);
 end
-ibase = ibase + model.nscene * NClusterType;
-% geometric compatibility between clusters and scene layout
-% function of camera height, room faces, clusters
 
-% compatibility between clusters and childs
+% NClusterType = model.nobjs + length(model.rules);
+% phi = zeros(model.nscene * NClusterType + ...
+%             0, 1);
+% % compatibility between cluster and scene 
+% % function of cluster type and room type.
+% ibase = 0;
+% for i = 1:length(pg.childs)
+%     idx = ibase + (pg.scenetype - 1) * NClusterType;
+%     idx = idx + iclusters(pg.childs(i)).ittype;
+%     
+%     phi(idx) = phi(idx) + 1;
+% end
+% ibase = ibase + model.nscene * NClusterType;
+% % geometric compatibility between clusters and scene layout
+% % function of camera height, room faces, clusters
 % 
-
-% observation
-% scene, layout, objects
-end
+% % compatibility between clusters and childs
+% % 
+% 
+% % observation
+% % scene, layout, objects
+% end

@@ -1,6 +1,5 @@
 function [x] = readOneImageObservationData(imfile, detfiles, boxlayout, vpdata)
 %%% prepare all input informations.
-
 x.imfile = imfile;
 x.sconf = zeros(3, 1);
 
@@ -8,38 +7,40 @@ img = imread(x.imfile);
 
 rfactor = size(img, 1) ./ vpdata.dim(1);
 [ x.K, x.R ]=calibrate_cam(vpdata.vp .* rfactor, size(img, 1), size(img, 2));
-
 %%%% images were rescaled for faster computation
+
 x.lpolys = boxlayout.polyg(boxlayout.reestimated(:, 2), :);
 for i = 1:size(x.lpolys, 1)
     for j = 1:size(x.lpolys, 2)
         x.lpolys{i, j} = x.lpolys{i, j} * rfactor;
     end
-    x.faces{i} = getRoomFaces(x.lpolys(i, :), size(img, 1), size(img, 2), x.K, x.R);
+    [x.faces{i}, x.corners{i}] = getRoomFaces(x.lpolys(i, :), size(img, 1), size(img, 2), x.K, x.R);
 end
 x.lconf = boxlayout.reestimated(:, 1);
 
 x.dets = zeros(0, 8);
 x.locs = zeros(0, 4);
 x.cubes = cell(0, 1);
+x.projs = struct('rt', cell(0,1), 'poly', cell(0,1));
+
 for i = 1:length(detfiles)
 	data = load(detfiles{i});
 	dets = parseDets(data, i);
     
     locs = zeros(size(dets, 1), 4);
     cubes = cell(size(dets, 1), 1);
+    projs = struct('rt', cell(size(dets, 1), 1), 'poly', []);
     
     fprintf('estimating 3D info of detections, took '); tic();
     for j = 1:size(dets, 1)
         [loc, angle, cube] = get_iproject(x.K, x.R, bbox2rect(dets(j, 4:7)), dets(j, 1:3));
         locs(j, :) = [loc', angle];
         cubes{j} = cube;
+        [projs(j).poly, projs(j).rt] = get2DCubeProjection(x.K, x.R, cube);
     end
     toc();
-    
-	x.dets = [x.dets; dets];
-    x.locs = [x.locs; locs];
-    x.cubes = [x.cubes; cubes];
+	x.dets = [x.dets; dets];    x.locs = [x.locs; locs];
+    x.cubes = [x.cubes; cubes]; x.projs = [x.projs; projs];
 end
 
 tic;
