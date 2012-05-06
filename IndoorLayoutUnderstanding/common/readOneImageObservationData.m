@@ -1,4 +1,11 @@
-function [x] = readOneImageObservationData(imfile, detfiles, boxlayout, vpdata)
+function [x, anno] = readOneImageObservationData(imfile, detfiles, boxlayout, vpdata, annofile)
+if(nargin < 5)
+    btrainset = false;
+    anno = [];
+else
+    anno = load(annofile);
+    btrainset = true;
+end
 %%% prepare all input informations.
 x.imfile = imfile;
 x.sconf = zeros(3, 1);
@@ -43,11 +50,47 @@ for i = 1:length(detfiles)
     x.cubes = [x.cubes; cubes]; x.projs = [x.projs; projs];
 end
 
+if(btrainset)
+    newdets = appendGTforTrain(x.imfile, x.dets, anno);
+    
+    types = unique(newdets(:, 1));
+    for i = 1:length(types)
+        %%%%%% data conversion
+        idx = newdets(:, 1) == types(i);
+        data.bbox{1} = newdets(idx, 2:end);
+        data.resizefactor = 1.0;
+        if(types(i) == 1)
+            data.names{1} = 'sofa8_2';
+        elseif(types(i) == 2)
+            data.names{1} = 'table';
+        end
+        %%%%%%%%
+        dets = parseDets(data, types(i), -5);
+        
+        locs = zeros(size(dets, 1), 4);
+        cubes = cell(size(dets, 1), 1);
+        projs = struct('rt', cell(size(dets, 1), 1), 'poly', []);
+        for j = 1:size(dets, 1)
+            [loc, angle, cube] = get_iproject(x.K, x.R, bbox2rect(dets(j, 4:7)), dets(j, 1:3));
+            locs(j, :) = [loc', angle];
+            cubes{j} = cube;
+            [projs(j).poly, projs(j).rt] = get2DCubeProjection(x.K, x.R, cube);
+        end
+        x.dets = [x.dets; dets];    x.locs = [x.locs; locs];
+        x.cubes = [x.cubes; cubes]; x.projs = [x.projs; projs];
+    end
+    
+    for i = 1:length(x.lconf)
+        x.lloss(i) = layout_loss(anno.gtPolyg, x.lpolys(i, :));
+    end
+end
+
 tic;
 x.intvol = sparse(size(x.cubes, 1), size(x.cubes, 1));
 for i = 1:size(x.cubes, 1)
-    for j = 1:size(x.cubes, 1)
+    for j = i+1:size(x.cubes, 1)
         x.intvol(i, j) = cuboidIntersectionsVolume(x.cubes{i}, x.cubes{j});
+        x.intvol(j, i) = x.intvol(i, j);
     end
 end
 toc;
@@ -63,13 +106,16 @@ toc;
 end
 
 % [obj type, subtype, pose, x, y, w, h, confidence]
-function dets = parseDets(data, idx)
+function dets = parseDets(data, idx, th)
+if nargin < 3
+    th = -1;
+end
 
 bbox = data.bbox{1};
 bbox(:, 1:4) = bbox(:, 1:4) ./ data.resizefactor;
 subtypes = unique(bbox(:, 5));
 %% filter too low confidences
-bbox(bbox(:, end) < -1, :) = [];
+bbox(bbox(:, end) < th, :) = [];
 
 temp = [];
 for i = 1:length(subtypes)
@@ -87,15 +133,17 @@ dets(:, 4:7) = bbox(:, 1:4);
 dets(:, 8) = bbox(:, 6);
 
 % view parsing
-if(strcmp(data.names{1}, 'sofa8_2'))
-	dets(:, 2) = mod(bbox(:, 5) - 1, 2) + 1;
-	dets(:, 3) = floor((bbox(:, 5) - 1) ./ 2) .* pi / 4;
-elseif(strcmp(data.names{1}, 'table'))
-    submodels = [1 2 1 2 1 2 1 2];
-    poses = [0 0 pi/4 pi/4 pi/2 pi/2 -pi/4 -pi/4];
-    dets(:, 2) = submodels(bbox(:, 5));
-    dets(:, 3) = poses(bbox(:, 5));
-else
+if(size(dets, 1) > 0)
+    if(strcmp(data.names{1}, 'sofa8_2'))
+        dets(:, 2) = mod(bbox(:, 5) - 1, 2) + 1;
+        dets(:, 3) = floor((bbox(:, 5) - 1) ./ 2) .* pi / 4;
+    elseif(strcmp(data.names{1}, 'table'))
+        submodels = [1 2 1 2 1 2 1 2];
+        poses = [0 0 pi/4 pi/4 pi/2 pi/2 -pi/4 -pi/4];
+        dets(:, 2) = submodels(bbox(:, 5));
+        dets(:, 3) = poses(bbox(:, 5));
+    else
+    end
 end
 
 end

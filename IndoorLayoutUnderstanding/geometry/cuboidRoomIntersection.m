@@ -67,6 +67,7 @@ if(~isnan(faces(2, :)))
         x1 = min(rt1(1, :))-1; x2 = max(rt1(1, :))+1;
         rt2 = [x1, x2, x2, x1, x1; z, z, z - 5, z - 5, z];
         [xi, yi] = polybool('intersection',rt1(1, :), rt1(2, :), rt2(1, :), rt2(2, :));
+        xi(isnan(xi)) = []; yi(isnan(yi)) = [];
         volume(2) = dz * polyarea(xi, yi);
     end
 end
@@ -81,6 +82,7 @@ if(~isnan(faces(3, :)))
         z1 = min(rt1(2, :)); z2 = max(rt1(2, :));
         rt2 = [x, x + 5, x + 5, x, x; z1, z1, z2, z2, z1];
         [xi, yi] = polybool('intersection',rt1(1, :), rt1(2, :), rt2(1, :), rt2(2, :));
+        xi(isnan(xi)) = []; yi(isnan(yi)) = [];
         volume(3) = dx * polyarea(xi, yi);
     end
 end
@@ -95,6 +97,7 @@ if(~isnan(faces(4, :)))
         z1 = min(rt1(2, :)); z2 = max(rt1(2, :));
         rt2 = [x, x - 5, x - 5, x, x; z1, z1, z2, z2, z1];
         [xi, yi] = polybool('intersection',rt1(1, :), rt1(2, :), rt2(1, :), rt2(2, :));
+        xi(isnan(xi)) = []; yi(isnan(yi)) = [];
         volume(4) = dx * polyarea(xi, yi);
     end
 end

@@ -14,6 +14,8 @@ else
     rt1 = cube1([1 3], [1 2 6 5 1]);
     rt2 = cube2([1 3], [1 2 6 5 1]);
     [xi, yi] = polybool('intersection',rt1(1, :), rt1(2, :), rt2(1, :), rt2(2, :));
+    xi(isnan(xi)) = []; yi(isnan(yi)) = [];
+    
     volume = dy * polyarea(xi, yi);
     if(bshow)
         clf;
