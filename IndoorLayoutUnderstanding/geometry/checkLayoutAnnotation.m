@@ -72,7 +72,7 @@ else
 end
 
 % assertLayout(gtPolyg);
-assertLayout(polyout);
+% assertLayout(polyout);
 
 end
 

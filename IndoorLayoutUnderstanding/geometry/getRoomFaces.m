@@ -208,10 +208,10 @@ if (visplanes(1) && visplanes(2))
                 (Polyg{3}(:,2) * ones(1, size(Polyg{1}, 1)) - ones(size(Polyg{3}, 1), 1) * Polyg{1}(:,2)') .^ 2;
             
         [i1, i2] = find(dists < 100);
-        assert(~isempty(i1));
-        
-        p = [Polyg{3}(unique(i1), :); Polyg{1}(unique(i2), :)];
-        Corners(:, 4) = mean(p, 1);
+        if(~isempty(i1))
+            p = [Polyg{3}(unique(i1), :); Polyg{1}(unique(i2), :)];
+            Corners(:, 4) = mean(p, 1);
+        end
     end
     
     if (visplanes(4))
@@ -219,10 +219,10 @@ if (visplanes(1) && visplanes(2))
                 (Polyg{4}(:,2) * ones(1, size(Polyg{1}, 1)) - ones(size(Polyg{4}, 1), 1) * Polyg{1}(:,2)') .^ 2;
             
         [i1, i2] = find(dists < 100);
-        assert(~isempty(i1));
-        
-        p = [Polyg{4}(unique(i1), :); Polyg{1}(unique(i2), :)];
-        Corners(:, 1) = mean(p, 1);
+        if(~isempty(i1))
+            p = [Polyg{4}(unique(i1), :); Polyg{1}(unique(i2), :)];
+            Corners(:, 1) = mean(p, 1);
+        end
     end
 end
 

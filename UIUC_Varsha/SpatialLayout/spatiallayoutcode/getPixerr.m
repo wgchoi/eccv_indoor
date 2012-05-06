@@ -47,7 +47,8 @@ for i=1:5
             [in,on]=inpolygon(XX1,YY1,[XX2;XX2(1)],[YY2;YY2(1)]);;
             XX1(find(on)) = XX1(find(on))+1;
             YY1(find(on)) = YY1(find(on))+1;
-            [X0 Y0 ind]=polyints(XX1,YY1,XX2,YY2); %remember to check polybool
+%             [X0 Y0 ind]=polyints(XX1,YY1,XX2,YY2); %remember to check polybool
+            [X0 Y0] = polybool('intersection',XX1,YY1,XX2,YY2); 
         end
         if numel(X0)>0
             nInter=polyarea([X0; X0(1)],[Y0;Y0(1)]);

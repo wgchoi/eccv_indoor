@@ -1,11 +1,18 @@
+function [spg, maxidx, cache, history] = DDMCMCinference(x, iclusters, params, init, anno)
 % x :   1. scene type, [confidence value]
 %       2. layout proposals, [poly, confidence value]
 %       3. detections, [x, y, w, h, p, confidence]
 %		4. R, T
 %		5. image name
 % y :   parse graph samples
-function [spg, cache, history] = DDMCMCinference(x, iclusters, params, init)
-%%
+
+if nargin < 5
+    includeloss = false;
+    anno = [];
+else
+    includeloss = true;
+end
+%% consider upto 50 layouts
 x.lconf(51:end) = [];
 x.lpolys(51:end, :) = [];
 x.faces(51:end) = [];
@@ -15,7 +22,7 @@ params.model.w = getweights(params.model);
 spg = parsegraph(params.numsamples);
 count = 1;
 %% initialize the sample
-if nargin < 4
+if (nargin < 4) || (isempty(init))
     [spg(count), cache] = initialize(spg(1), x, iclusters, params.model);
 else
     spg(count) = init.pg;
@@ -31,14 +38,24 @@ if(~isfield(params, 'accconst'))
 end
 
 maxidx = 1;
-maxlkhood = spg(1).lkhood;
+maxval = spg(1).lkhood;
+if(includeloss)
+    spg(1).loss = lossall(anno, x, spg(1));
+    maxval = maxval + spg(1).loss;
+end
 
 while(count < params.numsamples)
     %% sample a new tree
     info = MCMCproposal(spg(count), x, moves, cache, params);
     if(info.move == 0), continue; end % error in sample
 	%% compute the acceptance ratio
-	[lar, newgraph] = computeAcceptanceRatio(spg(count), info, cache, x, iclusters, params);
+	[lkhood, newgraph] = computeAcceptanceRatio(spg(count), info, cache, x, iclusters, params);
+    lar = lkhood;
+    %% loss value
+    if(includeloss)
+        newgraph.loss = lossall(anno, x, newgraph);
+        lar = lar + params.accconst * (newgraph.loss - spg(count).loss);
+    end
     %% accept or reject
     count = count + 1;
 	if(lar > log(rand()))
@@ -57,14 +74,23 @@ while(count < params.numsamples)
     % show2DGraph(spg(count), x, iclusters);
     % drawnow;
     % pause(0.2);
-    if(spg(count).lkhood > maxlkhood)
-        maxlkhood = spg(count).lkhood;
-        maxidx = count;
+    if(includeloss)
+        if(spg(count).lkhood + spg(count).loss > maxval)
+            maxval = spg(count).lkhood + spg(count).loss;
+            maxidx = count;
+        end
+    else
+        if(spg(count).lkhood > maxval)
+            maxval = spg(count).lkhood;
+            maxidx = count;
+        end
     end
 end
 
-disp(['max sample at ' num2str(maxidx) ' with lk : ' num2str(maxlkhood)])
-spg(maxidx)
+if(~includeloss)
+    disp(['max sample at ' num2str(maxidx) ' with lk : ' num2str(maxval)])
+    spg(maxidx)
+end
 
 end
 
@@ -103,7 +129,11 @@ for i = 1:length(iclusters)
         obts = [obts, min(x.cubes{i}(2, :))];
     end
 end
-graph.camheight = -mean(obts);
+if(~isempty(obts))
+    graph.camheight = -mean(obts);
+else
+    graph.camheight  = 1.0;
+end
 
 phi = features(graph, x, iclusters, model);
 graph.lkhood = dot(phi, model.w);

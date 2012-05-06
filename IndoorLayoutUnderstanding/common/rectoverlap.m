@@ -1,4 +1,4 @@
-function o = boxoverlap(a, b)
+function o = rectoverlap(a, b)
 
 a(:, 3:4) = a(:, 1:2) + a(:, 3:4) - 1;
 b(3:4) = b(1:2) + b(3:4) - 1;

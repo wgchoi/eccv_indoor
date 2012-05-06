@@ -6,7 +6,7 @@ iloc = getInitialGuess(obj, model, mid, K, R, camh);
 %%% avoid unnecessary computation.
 % [pbbox] = loc2bbox(iloc, obj.pose, K, R, model, mid);
 [pbbox] = loc2bbox(iloc, pose, K, R, model, mid);
-if(iloc(3) > 0 || boxoverlap(pbbox, obj.bbs) < 0.1)
+if(iloc(3) > 0 || rectoverlap(pbbox, obj.bbs) < 0.1)
     loc = nan(3, 1);
     fval = 1e10;
     return;
