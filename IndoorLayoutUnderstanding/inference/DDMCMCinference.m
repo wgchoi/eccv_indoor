@@ -87,10 +87,10 @@ while(count < params.numsamples)
     end
 end
 
-if(~includeloss)
-    disp(['max sample at ' num2str(maxidx) ' with lk : ' num2str(maxval)])
-    spg(maxidx)
-end
+% if(~includeloss)
+%     disp(['max sample at ' num2str(maxidx) ' with lk : ' num2str(maxval)])
+%     spg(maxidx)
+% end
 
 end
 

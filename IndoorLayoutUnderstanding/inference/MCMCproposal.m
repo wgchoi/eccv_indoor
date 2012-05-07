@@ -15,6 +15,10 @@ elseif(rval < cum_pmove(3)) % camheight
     % we can change! data driven??
 elseif(rval < cum_pmove(4)) % add
     idx = find(cache.inset == false);
+    if(isempty(idx))
+        info.move = 0;
+        return;
+    end
     temp = cumsum(cache.padd(idx));
     i = sum(temp < rand() * temp(end)) + 1;
     info = moves{4}(idx(i));
