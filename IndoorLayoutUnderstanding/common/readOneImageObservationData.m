@@ -41,43 +41,60 @@ for i = 1:length(detfiles)
     fprintf('estimating 3D info of detections, took '); tic();
     for j = 1:size(dets, 1)
         [loc, angle, cube] = get_iproject(x.K, x.R, bbox2rect(dets(j, 4:7)), dets(j, 1:3));
+        
         locs(j, :) = [loc', angle];
         cubes{j} = cube;
         [projs(j).poly, projs(j).rt] = get2DCubeProjection(x.K, x.R, cube);
     end
+    
+    nanidx = find(any(isnan(locs), 2));
+    if(~isempty(nanidx))
+%         imshow(imfile);
+%         for j = 1:length(nanidx)
+%             rectangle('position', bbox2rect(dets(nanidx(j), 4:7)));
+%         end
+%         pause;
+        dets(nanidx, :) = [];
+        locs(nanidx, :) = [];
+        cubes(nanidx, :) = [];
+        projs(nanidx, :) = [];
+    end
+
     toc();
 	x.dets = [x.dets; dets];    x.locs = [x.locs; locs];
     x.cubes = [x.cubes; cubes]; x.projs = [x.projs; projs];
 end
 
 if(btrainset)
-    newdets = appendGTforTrain(x.imfile, x.dets, anno);
-    
-    types = unique(newdets(:, 1));
-    for i = 1:length(types)
-        %%%%%% data conversion
-        idx = newdets(:, 1) == types(i);
-        data.bbox{1} = newdets(idx, 2:end);
-        data.resizefactor = 1.0;
-        if(types(i) == 1)
-            data.names{1} = 'sofa8_2';
-        elseif(types(i) == 2)
-            data.names{1} = 'table';
+    if(0)
+        newdets = appendGTforTrain(x.imfile, x.dets, anno);
+
+        types = unique(newdets(:, 1));
+        for i = 1:length(types)
+            %%%%%% data conversion
+            idx = newdets(:, 1) == types(i);
+            data.bbox{1} = newdets(idx, 2:end);
+            data.resizefactor = 1.0;
+            if(types(i) == 1)
+                data.names{1} = 'sofa8_2';
+            elseif(types(i) == 2)
+                data.names{1} = 'table';
+            end
+            %%%%%%%%
+            dets = parseDets(data, types(i), -5);
+
+            locs = zeros(size(dets, 1), 4);
+            cubes = cell(size(dets, 1), 1);
+            projs = struct('rt', cell(size(dets, 1), 1), 'poly', []);
+            for j = 1:size(dets, 1)
+                [loc, angle, cube] = get_iproject(x.K, x.R, bbox2rect(dets(j, 4:7)), dets(j, 1:3));
+                locs(j, :) = [loc', angle];
+                cubes{j} = cube;
+                [projs(j).poly, projs(j).rt] = get2DCubeProjection(x.K, x.R, cube);
+            end
+            x.dets = [x.dets; dets];    x.locs = [x.locs; locs];
+            x.cubes = [x.cubes; cubes]; x.projs = [x.projs; projs];
         end
-        %%%%%%%%
-        dets = parseDets(data, types(i), -5);
-        
-        locs = zeros(size(dets, 1), 4);
-        cubes = cell(size(dets, 1), 1);
-        projs = struct('rt', cell(size(dets, 1), 1), 'poly', []);
-        for j = 1:size(dets, 1)
-            [loc, angle, cube] = get_iproject(x.K, x.R, bbox2rect(dets(j, 4:7)), dets(j, 1:3));
-            locs(j, :) = [loc', angle];
-            cubes{j} = cube;
-            [projs(j).poly, projs(j).rt] = get2DCubeProjection(x.K, x.R, cube);
-        end
-        x.dets = [x.dets; dets];    x.locs = [x.locs; locs];
-        x.cubes = [x.cubes; cubes]; x.projs = [x.projs; projs];
     end
     
     for i = 1:length(x.lconf)
@@ -108,7 +125,7 @@ end
 % [obj type, subtype, pose, x, y, w, h, confidence]
 function dets = parseDets(data, idx, th)
 if nargin < 3
-    th = -1;
+    th = -1.25;
 end
 
 bbox = data.bbox{1};
@@ -120,7 +137,7 @@ bbox(bbox(:, end) < th, :) = [];
 temp = [];
 for i = 1:length(subtypes)
 	tidx = find(bbox(:, 5) == subtypes(i));
-	tops = nms2(bbox(tidx, :), 0.65);
+	tops = nms2(bbox(tidx, :), 0.5);
 	temp = [temp; bbox(tidx(tops), :)];
 end
 [~, I] = sort(temp(:, end), 'descend');

@@ -9,5 +9,4 @@ addpath('evaluation');
 addpath('scripts');
 addpath('potentials');
 addpath(genpath('3rdParty'));
-addpath('../3rdParty/svm-struct-matlab-1.0/');
 % addpath('detector');

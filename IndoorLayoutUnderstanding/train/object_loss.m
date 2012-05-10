@@ -24,7 +24,7 @@ for i = 1:length(hit)
     gid = hit(i);
     [val, idx] = max(or(gid, :));
     if(val > ovth)
-        loss = loss + anglediff(obj_annos(gid).azimuth, dets(idx, end)) / pi;
+        loss = loss + 1 * anglediff(obj_annos(gid).azimuth, dets(idx, end)) / pi;
         or(:, idx) = 0;
         tps(end+1) = idx;
     else

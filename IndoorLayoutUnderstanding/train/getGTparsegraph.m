@@ -7,16 +7,16 @@ for i = 1:length(x.lconf)
 end
 [~, gpg.layoutidx] = min(x.lloss);
 
-ovth = 0.6;
+ovth = 0.5;
 obts = [];
 or = zeros(length(anno.obj_annos), size(x.dets, 1));
 for i = 1:length(anno.obj_annos)
     for j = 1:size(x.dets, 1)
         if(x.dets(j, 1) == anno.obj_annos(i).objtype)
-            if(anglediff(x.dets(j, 3), anno.obj_annos(i).azimuth) <= pi / 6)
+%             if(anglediff(x.dets(j, 3), anno.obj_annos(i).azimuth) <= pi / 6)
                 gtbb = [anno.obj_annos(i).x1 anno.obj_annos(i).y1 anno.obj_annos(i).x2 anno.obj_annos(i).y2];
                 or(i, j) = boxoverlap(gtbb, x.dets(j, 4:7));
-            end
+%             end
         end
     end
     
