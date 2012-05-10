@@ -37,38 +37,39 @@ ibase = ibase + 2;
 for i = 1:length(pg.childs)
     i1 = pg.childs(i);
     assert(iclusters(i1).isterminal);
-    
-    volume = cuboidRoomIntersection(x.faces{pg.layoutidx}, pg.camheight, x.cubes{iclusters(i1).chindices});
+    %%%%%% need to make it robust!!!
+    volume = cuboidRoomIntersection(x.faces{pg.layoutidx}, pg.camheight, x.cubes{i1});
     phi(ibase:ibase+4) = phi(ibase:ibase+4) + volume;
 end
 ibase = ibase + 5;
 
 % object-wall interaction % min distance to wall 3D
-for i = 1:length(pg.childs)
-    i1 = pg.childs(i);
-    assert(iclusters(i1).isterminal);
-    [d1, d2] = obj2wallFloorDist(x.faces{pg.layoutidx}, x.cubes{iclusters(i1).chindices}, pg.camheight);
-    oid = iclusters(i1).ittype - 1;
-    phi(ibase+oid) = phi(ibase+oid) + min(abs(d1) + abs(d2));
-end
+% for i = 1:length(pg.childs)
+%     i1 = pg.childs(i);
+%     assert(iclusters(i1).isterminal);
+%     [d1, d2] = obj2wallFloorDist(x.faces{pg.layoutidx}, x.cubes{i1}, pg.camheight);
+%     oid = iclusters(i1).ittype - 1;
+%     phi(ibase+oid) = phi(ibase+oid) + min(abs(d1) + abs(d2));
+% end
 ibase = ibase + model.nobjs;
 
 % object-wall interaction % min distance to wall 2D
-for i = 1:length(pg.childs)
-    i1 = pg.childs(i);
-    assert(iclusters(i1).isterminal);
-    [d1, d2] = obj2wallImageDist(x.corners{pg.layoutidx}, x.projs(iclusters(i1).chindices).poly);
-    oid = iclusters(i1).ittype - 1;
-    
-    phi(ibase+oid) = phi(ibase+oid) + min(d1 + d2);
-end
+% for i = 1:length(pg.childs)
+%     i1 = pg.childs(i);
+%     assert(iclusters(i1).isterminal);
+%     [d1, d2] = obj2wallImageDist(x.corners{pg.layoutidx}, x.projs(i1).poly);
+%     oid = iclusters(i1).ittype - 1;
+%     
+%     phi(ibase+oid) = phi(ibase+oid) + min(d1 + d2);
+% end
 ibase = ibase + model.nobjs;
 
 % object-floor interaction 
 for i = 1:length(pg.childs)
     i1 = pg.childs(i);
     assert(iclusters(i1).isterminal);
-    bottom = x.cubes{iclusters(i1).chindices}(2, 1); % bottom y position.
+    
+    bottom = x.cubes{i1}(2, 1); % bottom y position.
     oid = iclusters(i1).ittype - 1;
     
     phi(ibase+oid) = phi(ibase+oid) + (pg.camheight + bottom) .^ 2; %
@@ -81,12 +82,16 @@ for i = 1:length(pg.childs)
     assert(iclusters(i1).isterminal);
     
     oid = (iclusters(i1).ittype - 1) * 2;
-    
     phi(ibase + oid) = phi(ibase + oid) + x.dets(i1, 8);
     phi(ibase + oid + 1) = phi(ibase + oid + 1) + 1;
 end
 ibase = ibase + 2 * model.nobjs;
 assert(featlen == ibase - 1);
+
+if(any(isnan(phi)) || any(isinf(phi)))
+    keyboard;
+end
+
 end
 
 % NClusterType = model.nobjs + length(model.rules);

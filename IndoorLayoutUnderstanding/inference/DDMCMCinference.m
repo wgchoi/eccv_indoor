@@ -13,9 +13,9 @@ else
     includeloss = true;
 end
 %% consider upto 50 layouts
-x.lconf(51:end) = [];
-x.lpolys(51:end, :) = [];
-x.faces(51:end) = [];
+% x.lconf(51:end) = [];
+% x.lpolys(51:end, :) = [];
+% x.faces(51:end) = [];
 %%
 params.model.w = getweights(params.model);
 %% prepare buffer
@@ -25,8 +25,15 @@ count = 1;
 if (nargin < 4) || (isempty(init))
     [spg(count), cache] = initialize(spg(1), x, iclusters, params.model);
 else
+    phi = features(init.pg, x, iclusters, params.model);
+    init.pg.lkhood = dot(phi, params.model.w);
+    
     spg(count) = init.pg;
-    cache = init.cache;
+    if(isfield(init, 'cache'))
+        cache = init.cache;
+    else
+        cache = initCache(spg(count), x, iclusters, params.model);
+    end
 end
 %% initialize cache
 [moves, cache] = preprocessJumpMoves(x, iclusters, cache);
@@ -40,7 +47,7 @@ end
 maxidx = 1;
 maxval = spg(1).lkhood;
 if(includeloss)
-    spg(1).loss = lossall(anno, x, spg(1));
+    spg(1).loss = lossall(anno, x, spg(1), params);
     maxval = maxval + spg(1).loss;
 end
 
@@ -53,7 +60,7 @@ while(count < params.numsamples)
     lar = lkhood;
     %% loss value
     if(includeloss)
-        newgraph.loss = lossall(anno, x, newgraph);
+        newgraph.loss = lossall(anno, x, newgraph, params);
         lar = lar + params.accconst * (newgraph.loss - spg(count).loss);
     end
     %% accept or reject
@@ -137,6 +144,18 @@ end
 
 phi = features(graph, x, iclusters, model);
 graph.lkhood = dot(phi, model.w);
+%% init cache
+cache.playout = exp(x.lconf .* model.w_or);
+cache.playout = cache.playout ./ sum(cache.playout);
+cache.clayout = cumsum(cache.playout);
+
+cache.padd = exp(x.dets(:, end) .* model.w_oo(1));
+end
+
+function cache = initCache(pg, x, iclusters, model)
+cache = mcmccache(length(iclusters), length(x.lconf));
+
+cache.inset(pg.childs) = true;
 %% init cache
 cache.playout = exp(x.lconf .* model.w_or);
 cache.playout = cache.playout ./ sum(cache.playout);

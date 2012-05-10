@@ -1,6 +1,6 @@
 function params = train_ssvm(data, params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-disp(['']);
+addpath('../3rdParty/svm-struct-matlab-1.0/');
 
 %%%%% assume all is preprocessed
 patterns = cell(length(data), 1);   % idx, x, iclusters 
@@ -18,8 +18,19 @@ for i=1:length(data)
     
     labels{i}.idx = i;
     labels{i}.pg = data(i).gpg;
-    
-    annos{i} = data(i).anno;
+%     annos{i} = data(i).anno;
+    if(strcmp(params.losstype, 'exclusive'))
+        labels{i}.loss = lossall(data(i).anno, patterns{i}.x, labels{i}.pg, params);
+        annos{i} = data(i).anno;
+    elseif(strcmp(params.losstype, 'isolation'))
+        Det = data(i).x.dets(:, [4:7 1]);
+        for j = 1:length(data(i).anno.obj_annos)
+            anno = data(i).anno.obj_annos(j);
+            GT(j, :) = [anno.x1 anno.y1 anno.x2 anno.y2 anno.objtype];
+        end
+        annos{i}.oloss = computeloss(Det, GT);
+        labels{i}.loss = lossall(annos{i}, patterns{i}.x, labels{i}.pg, params);
+    end
 end
 clear data;
 %%%%%%%%%%%% dimension
@@ -63,7 +74,7 @@ parm.params = params ;
 parm.last_ceps = 1e10;
 
 tic;
-model = svm_struct_learn([' -c ' num2str(params.C) ' -o 2 -v 1 -w ' num2str(params.joint_op) ' -e 1 '], parm) ;
+model = svm_struct_learn([' -c ' num2str(params.C) ' -o 2 -v 1 -w ' num2str(params.joint_op) ' -e .01 '], parm) ;
 
 params.model = getmodelparam(parm.params.model, model.w);
 
@@ -88,12 +99,13 @@ params.model = getmodelparam(params.model, model.w);
 
 %% evaluate loss for all examples
 allloss = 0;
-for i = 1:length(param.patterns)
-    x = param.patterns{i};
-    [spg, maxidx] = DDMCMCinference(x.x, x.iclusters, params);
-    allloss = allloss + lossall(param.annos{i}, x.x, spg(maxidx));
-end
-
+% for i = 1:length(param.patterns)
+%     x = param.patterns{i};
+%     init.pg = param.labels{i}.pg;
+%     [spg, maxidx] = DDMCMCinference(x.x, x.iclusters, params, init);
+%     allloss = allloss + lossall(param.annos{i}, x.x, spg(maxidx));
+% end
+model.w'
 %% save info
 if(isfield(param, 'resmodel'))
 	if(exist(param.resmodel, 'file'))
@@ -114,8 +126,8 @@ tic;
 end
 
 function delta = lossCB(param, y, ybar)
-delta = lossall(param.annos{y.idx}, param.patterns{y.idx}.x, ybar.pg) ...
-        - lossall(param.annos{y.idx}, param.patterns{y.idx}.x, y.pg);
+delta = lossall(param.annos{y.idx}, param.patterns{y.idx}.x, ybar.pg, param.params) ...
+        - lossall(param.annos{y.idx}, param.patterns{y.idx}.x, y.pg, param.params);
 % delta = loss_class(y.label, ybar.label, param.params);
 % disp([num2str(length(y.label.inodes)) ' => ' num2str(delta)])
 end
@@ -131,7 +143,22 @@ function yhat = constraintCB(param, model, x, y)
 params = param.params;
 params.model = getmodelparam(params.model, model.w);
 
-[spg, maxidx] = DDMCMCinference(x.x, x.iclusters, params, [], param.annos{y.idx});
+% init.pg = y.pg;
+% [spg, maxidx] = DDMCMCinference(x.x, x.iclusters, params, init, param.annos{y.idx});
+if(strcmp(params.inference, 'mcmc'))
+    init.pg = y.pg;
+    [spg, maxidx] = DDMCMCinference(x.x, x.iclusters, params, init, param.annos{y.idx});
+elseif(strcmp(params.inference, 'greedy'))
+    initpg = y.pg;
+    [spg] = GreedyInference(x.x, x.iclusters, params, initpg, param.annos{y.idx});
+    maxidx = 1;
+elseif(strcmp(params.inference, 'combined'))
+    init.pg = y.pg;
+    [init.pg] = GreedyInference(x.x, x.iclusters, params, init.pg, param.annos{y.idx});
+    [spg, maxidx] = DDMCMCinference(x.x, x.iclusters, params, init, param.annos{y.idx});
+else
+    assert(0);
+end
 
 yhat = y;
 yhat.pg = spg(maxidx);
