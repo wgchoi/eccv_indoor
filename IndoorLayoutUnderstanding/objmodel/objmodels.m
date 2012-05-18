@@ -28,7 +28,7 @@ model(3).grounded = 0;
 model(4).name = 'Chair';
 model(4).type = {'Regular'};
 model(4).width = [0.5];
-model(4).height = [1.3];
+model(4).height = [1.0];
 model(4).depth = [0.5];
 model(4).grounded = 1;
 
