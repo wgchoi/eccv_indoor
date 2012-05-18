@@ -19,7 +19,8 @@ anno.gtPolyg = checkLayoutAnnotation(anno.gtPolyg, x.imsz);
 
 rfactor = size(img, 1) ./ vpdata.dim(1);
 
-x.vp = order_vp(vpdata.vp .* rfactor);
+x.vp = vpdata.vp .* rfactor;
+% x.vp = order_vp(vpdata.vp .* rfactor);
 [ x.K, x.R ]=calibrate_cam(x.vp, size(img, 1), size(img, 2));
 %%%% images were rescaled for faster computation
 

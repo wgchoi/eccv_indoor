@@ -16,7 +16,7 @@ end
 exts = {'jpg' 'JPEG' 'png'};
 
 labelpostfix = '_labels.mat';
-objtypes = {'Sofa', 'Table', 'TV', 'Chair', 'Bed'};
+objtypes = {'Sofa', 'Table', 'TV', 'Chair', 'Bed', 'Dining Table'};
 
 times = [];
 
