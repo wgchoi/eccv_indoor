@@ -10,7 +10,34 @@ if(isnan(cuboid))
     return;
 end
 % volume = cuboidRoomIntersectionVer1(faces, camheight, cuboid);
-volume = cuboidRoomIntersectionVer2(faces, camheight, cuboid);
+% volume = cuboidRoomIntersectionVer2(faces, camheight, cuboid);
+volume = cuboidRoomIntersectionVer3(faces, camheight, cuboid);
+
+end
+
+
+function [volume] = cuboidRoomIntersectionVer3(faces, camheight, cuboid)
+volume = zeros(5, 1);
+% floor
+if(~isnan(faces(1, :)))
+    y = -camheight;
+    if(cuboid(2, 1) > y)
+        volume(1) = 0;
+    else
+        volume(1) = y - cuboid(2, 1);
+    end
+end
+[d1, d2] = obj2wallFloorDist(faces, cuboid, camheight);
+volume(2:4) = max(d1, 0) + max(d2, 0);
+% ceiling
+if(~isnan(faces(5, :)))
+    y = -camheight * faces(5, end);
+    if(cuboid(2, 3) < y)
+        volume(5) = 0;
+    else
+        volume(5) = cuboid(2, 3) - y;
+    end
+end
 
 end
 

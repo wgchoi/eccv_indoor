@@ -11,9 +11,16 @@ x.imfile = imfile;
 x.sconf = zeros(3, 1);
 
 img = imread(x.imfile);
+x.imsz(1) = size(img, 1);
+x.imsz(2) = size(img, 2);
+
+%%%% fix annotation error
+anno.gtPolyg = checkLayoutAnnotation(anno.gtPolyg, x.imsz);
 
 rfactor = size(img, 1) ./ vpdata.dim(1);
-[ x.K, x.R ]=calibrate_cam(vpdata.vp .* rfactor, size(img, 1), size(img, 2));
+
+x.vp = order_vp(vpdata.vp .* rfactor);
+[ x.K, x.R ]=calibrate_cam(x.vp, size(img, 1), size(img, 2));
 %%%% images were rescaled for faster computation
 
 x.lpolys = boxlayout.polyg(boxlayout.reestimated(:, 2), :);
@@ -22,6 +29,7 @@ for i = 1:size(x.lpolys, 1)
         x.lpolys{i, j} = x.lpolys{i, j} * rfactor;
     end
     [x.faces{i}, x.corners{i}] = getRoomFaces(x.lpolys(i, :), size(img, 1), size(img, 2), x.K, x.R);
+    x.lfpts{i} = lpoly2fourpoints(x.lpolys(i, :), x.imsz);
 end
 x.lconf = boxlayout.reestimated(:, 1);
 
