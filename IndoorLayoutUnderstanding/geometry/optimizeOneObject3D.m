@@ -2,12 +2,24 @@ function [fval, loc] = optimizeOneObject3D(K, R, obj, pose, model)
 
 mid = pose.subid;
 %%% find the best fitting object hypothesis given a camera height
-iloc = getInitialGuess3D(obj, model, pose, K, R, 1.0);
-[pbbox] = loc2bbox(iloc, pose, K, R, model, mid);
+iloc = getInitialGuess3D(obj, model, pose, K, R, 1.5);
+if(iloc(3) > 0)
+    iloc = getInitialGuess3D(obj, model, pose, K, R, 1.0);
+end
+if(iloc(3) > 0)
+    iloc = getInitialGuess3D(obj, model, pose, K, R, 2.0);
+end
+if(iloc(3) > 0)
+    iloc = getInitialGuess3D(obj, model, pose, K, R, -1.5);
+end
 if(iloc(3) > 0)
     iloc = getInitialGuess3D(obj, model, pose, K, R, -1.0);
-    [pbbox] = loc2bbox(iloc, pose, K, R, model, mid);
 end
+if(iloc(3) > 0)
+    iloc = getInitialGuess3D(obj, model, pose, K, R, -2.0);
+end
+assert(iloc(3) < 0);
+[pbbox] = loc2bbox(iloc, pose, K, R, model, mid);
 
 if(rectoverlap(pbbox, obj.bbs) < 1e-10)
     loc = nan(3, 1);

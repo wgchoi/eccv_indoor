@@ -1,6 +1,7 @@
 function show2DGraph(pg, x, icluster)
 % imshow(x.imfile);
-fig2d = 1;
+fig2d = 1000;
+figure(fig2d); clf;
 
 om = objmodels();
 

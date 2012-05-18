@@ -99,6 +99,8 @@ end
 %     spg(maxidx)
 % end
 
+a = 1;
+
 end
 
 function cache = updateCache(cache, info)

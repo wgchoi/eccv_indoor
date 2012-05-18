@@ -13,10 +13,11 @@ or = zeros(length(anno.obj_annos), size(x.dets, 1));
 for i = 1:length(anno.obj_annos)
     for j = 1:size(x.dets, 1)
         if(x.dets(j, 1) == anno.obj_annos(i).objtype)
-%             if(anglediff(x.dets(j, 3), anno.obj_annos(i).azimuth) <= pi / 6)
+            if(x.dets(j, 1) == 2 ... % don't care if it is a table
+                    || anglediff(x.dets(j, 3), anno.obj_annos(i).azimuth) <= pi / 6)
                 gtbb = [anno.obj_annos(i).x1 anno.obj_annos(i).y1 anno.obj_annos(i).x2 anno.obj_annos(i).y2];
                 or(i, j) = boxoverlap(gtbb, x.dets(j, 4:7));
-%             end
+            end
         end
     end
     
@@ -27,7 +28,13 @@ for i = 1:length(anno.obj_annos)
     end
 end
 assert(length(unique(gpg.childs)) == length(gpg.childs));
-gpg.camheight = -mean(obts);
+
+if(isempty(obts))
+    gpg.camheight = 1.5;
+else
+    gpg.camheight = -mean(obts);
+end
+
 gpg.lkhood = dot(getweights(model), features(gpg, x, iclusters, model));
 
 end

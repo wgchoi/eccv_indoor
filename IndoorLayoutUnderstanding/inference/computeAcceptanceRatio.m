@@ -74,7 +74,20 @@ switch(info.move)
 			%%% object-room interaction
 			% room intersection
 			volume = cuboidRoomIntersection(x.faces{graph.layoutidx}, graph.camheight, x.cubes{i1});
-			lkratio = lkratio + dot(params.model.w_ior, volume);
+            if(~isfield(params.model, 'feattype') || strcmp(params.model.feattype, 'type1'))
+                lkratio = lkratio + dot(params.model.w_ior, volume);
+            elseif(strcmp(params.model.feattype, 'type2'))
+                n = length(params.model.ow_edge) - 1;
+                
+                temp = histc(volume(1), params.model.ow_edge);
+                lkratio = lkratio + dot(params.model.w_ior(1:n), temp(1:n));
+                temp = histc(volume(5), params.model.ow_edge);
+                lkratio = lkratio + dot(params.model.w_ior(n+1:2*n), temp(1:n));
+                temp = histc(volume(2:4), params.model.ow_edge);
+                lkratio = lkratio + dot(params.model.w_ior(2*n+1:3*n), temp(1:n));
+            else
+                assert(0);
+            end
 			% min wall distance
 			[d1, d2] = obj2wallFloorDist(x.faces{graph.layoutidx}, x.cubes{i1}, graph.camheight);
 			lkratio = lkratio + params.model.w_iow3(otype) * min(abs(d1) + abs(d2));
@@ -120,7 +133,20 @@ switch(info.move)
 			%%% object-room interaction
 			% room intersection
 			volume = cuboidRoomIntersection(x.faces{graph.layoutidx}, graph.camheight, x.cubes{i1});
-			lkratio = lkratio - dot(params.model.w_ior, volume);
+            if(~isfield(params.model, 'feattype') || strcmp(params.model.feattype, 'type1'))
+                lkratio = lkratio - dot(params.model.w_ior, volume);
+            elseif(strcmp(params.model.feattype, 'type2'))
+                n = length(params.model.ow_edge) - 1;
+                
+                temp = histc(volume(1), params.model.ow_edge);
+                lkratio = lkratio - dot(params.model.w_ior(1:n), temp(1:n));
+                temp = histc(volume(5), params.model.ow_edge);
+                lkratio = lkratio - dot(params.model.w_ior(n+1:2*n), temp(1:n));
+                temp = histc(volume(2:4), params.model.ow_edge);
+                lkratio = lkratio - dot(params.model.w_ior(2*n+1:3*n), temp(1:n));
+            else
+                assert(0);
+            end			
 			% min wall distance
 			[d1, d2] = obj2wallFloorDist(x.faces{graph.layoutidx}, x.cubes{i1}, graph.camheight);
 			lkratio = lkratio - params.model.w_iow3(otype) * min(abs(d1) + abs(d2));
@@ -164,7 +190,20 @@ switch(info.move)
 			%%% object-room interaction
 			% room intersection
 			volume = cuboidRoomIntersection(x.faces{graph.layoutidx}, graph.camheight, x.cubes{i1});
-			lkratio = lkratio + dot(params.model.w_ior, volume);
+			if(~isfield(params.model, 'feattype') || strcmp(params.model.feattype, 'type1'))
+                lkratio = lkratio + dot(params.model.w_ior, volume);
+            elseif(strcmp(params.model.feattype, 'type2'))
+                n = length(params.model.ow_edge) - 1;
+                
+                temp = histc(volume(1), params.model.ow_edge);
+                lkratio = lkratio + dot(params.model.w_ior(1:n), temp(1:n));
+                temp = histc(volume(5), params.model.ow_edge);
+                lkratio = lkratio + dot(params.model.w_ior(n+1:2*n), temp(1:n));
+                temp = histc(volume(2:4), params.model.ow_edge);
+                lkratio = lkratio + dot(params.model.w_ior(2*n+1:3*n), temp(1:n));
+            else
+                assert(0);
+            end
 			% min wall distance
 			[d1, d2] = obj2wallFloorDist(x.faces{graph.layoutidx}, x.cubes{i1}, graph.camheight);
 			lkratio = lkratio + params.model.w_iow3(otype) * min(abs(d1) + abs(d2));
@@ -194,7 +233,20 @@ switch(info.move)
 			%%% object-room interaction
 			% room intersection
 			volume = cuboidRoomIntersection(x.faces{graph.layoutidx}, graph.camheight, x.cubes{i1});
-			lkratio = lkratio - dot(params.model.w_ior, volume);
+            if(~isfield(params.model, 'feattype') || strcmp(params.model.feattype, 'type1'))
+                lkratio = lkratio - dot(params.model.w_ior, volume);
+            elseif(strcmp(params.model.feattype, 'type2'))
+                n = length(params.model.ow_edge) - 1;
+                
+                temp = histc(volume(1), params.model.ow_edge);
+                lkratio = lkratio - dot(params.model.w_ior(1:n), temp(1:n));
+                temp = histc(volume(5), params.model.ow_edge);
+                lkratio = lkratio - dot(params.model.w_ior(n+1:2*n), temp(1:n));
+                temp = histc(volume(2:4), params.model.ow_edge);
+                lkratio = lkratio - dot(params.model.w_ior(2*n+1:3*n), temp(1:n));
+            else
+                assert(0);
+            end
 			% min wall distance
 			[d1, d2] = obj2wallFloorDist(x.faces{graph.layoutidx}, x.cubes{i1}, graph.camheight);
 			lkratio = lkratio - params.model.w_iow3(otype) * min(abs(d1) + abs(d2));

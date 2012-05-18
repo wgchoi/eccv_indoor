@@ -1,7 +1,6 @@
 function [params, info] = train_ssvm_uci(data, params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 addpath('../3rdParty/ssvmqp_uci/');
-
 VERBOSE = 0;  
 
 %%%%% assume all is preprocessed
@@ -121,10 +120,7 @@ end
 %%%% initial empty constraints
 for id = 1:length(patterns)
     [yhat dphi margin] = getEmpty(patterns{id}, labels{id}, annos{id}, params);
-    
-    score = margin - dot(params.model.w, dphi);
-    cost = cost + C * max(0, score);
-    
+ 
     n = n + 1;
     Constraints(:, n) = dphi;
     Margins(n) = margin;
@@ -132,19 +128,14 @@ for id = 1:length(patterns)
 end
 
 %%%% initial all selected constraints
-temp = zeros(length(patterns), 1);
 parfor id = 1:length(patterns)
     [yhat dphi margin] = getFull(patterns{id}, labels{id}, annos{id}, params);
-    
-    score = margin - dot(params.model.w, dphi);
-    temp(id) = C * max(0, score);
-    
+   
     Constraints(:, n + id) = dphi;
     Margins(n + id) = margin;
     IDS(n + id) = id;
 end
 n = n + length(patterns);
-cost = cost + sum(temp);
 
 [w, cache]= lsvmopt(Constraints(:,1:n),Margins(1:n), IDS(1:n) ,C, 0.01,[]);
 % Update parameters
@@ -155,10 +146,8 @@ low_bound = cache.lb;
 trigger = 1;
 
 chunksize = 16;
-
-showModel(params);
-drawnow;
-
+% showModel(params);
+% drawnow;
 % initial evaluation
 ls = evaluateModel(patterns, labels, annos, params);
 
@@ -258,9 +247,8 @@ while (iter < max_iter && trigger)
             cost = cache.ub;
             low_bound = cache.lb;
             trigger = 1;
-            
-            showModel(params);
-            drawnow;
+%             showModel(params);
+%             drawnow;
         end
     end
     fprintf('done. '); toc;
@@ -275,6 +263,10 @@ while (iter < max_iter && trigger)
     info.params(end + 1) = params;
 end
 matlabpool close;
+
+info.Constraints = Constraints(:,1:n); 
+info.Margins = Margins(1:n); 
+info.IDS =  IDS(1:n);
 
 end
 
