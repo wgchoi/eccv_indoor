@@ -19,9 +19,21 @@ for i=1:length(data)
     
     labels{i}.idx = i;
     labels{i}.pg = data(i).gpg;
-    labels{i}.feat = features(labels{i}.pg, patterns{i}.x, patterns{i}.iclusters, params.model);
-    
     if(strcmp(params.losstype, 'exclusive'))
+        if(isfield(params.model, 'commonground') && params.model.commonground)
+            labels{i}.pg = findConsistent3DObjects(labels{i}.pg, data(i).x);
+        else
+            mh = getAverageObjectsBottom(labels{i}.pg, data(i).x);
+            if(~isnan(mh))
+                labels{i}.pg.camheight = -mh;
+            else
+                labels{i}.pg.camheight = 1.5;
+            end
+            assert(~isnan(labels{i}.pg.camheight));
+            assert(~isinf(labels{i}.pg.camheight));
+        end
+        
+        labels{i}.feat = features(labels{i}.pg, patterns{i}.x, patterns{i}.iclusters, params.model);
         labels{i}.loss = lossall(data(i).anno, patterns{i}.x, labels{i}.pg, params);
         annos{i} = data(i).anno;
     elseif(strcmp(params.losstype, 'isolation'))
@@ -59,14 +71,18 @@ for i=1:length(data)
         %%%%%%%%%%%% find the ground truth solution
         labels{i}.pg = data(i).gpg;
         labels{i}.pg.childs = find(annos{i}.oloss(:, 2));
-        mh = getAverageObjectsBottom(labels{i}.pg, data(i).x);
-        if(~isnan(mh))
-            labels{i}.pg.camheight = -mh;
+        if(isfield(params.model, 'commonground') && params.model.commonground)
+            labels{i}.pg = findConsistent3DObjects(labels{i}.pg, patterns{i}.x);
         else
-            labels{i}.pg.camheight = 1.5;
+            mh = getAverageObjectsBottom(labels{i}.pg, patterns{i}.x);
+            if(~isnan(mh))
+                labels{i}.pg.camheight = -mh;
+            else
+                labels{i}.pg.camheight = 1.5;
+            end
+            assert(~isnan(labels{i}.pg.camheight));
+            assert(~isinf(labels{i}.pg.camheight));
         end
-        assert(~isnan(labels{i}.pg.camheight));
-        assert(~isinf(labels{i}.pg.camheight));
         
         labels{i}.feat = features(labels{i}.pg, patterns{i}.x, patterns{i}.iclusters, params.model);
         labels{i}.loss = lossall(annos{i}, patterns{i}.x, labels{i}.pg, params);

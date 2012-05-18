@@ -38,16 +38,18 @@ while(iter < 20)
     for i = 1:length(addidx)
         newgraph = pg;
         newgraph.childs(end + 1) = addidx(i);
-        obts = [];
-        for j = newgraph.childs(:)'
-            obts = [obts, min(x.cubes{j}(2, :))];
-        end
-        if(isempty(obts))
-%             newgraph.camheight = 1.0;
-        else
-%             newgraph.camheight = -mean(obts);
-        end
         
+        if(isfield(params.model, 'commonground') && params.model.commonground)
+            newgraph = findConsistent3DObjects(newgraph, x);
+        else
+            mh = getAverageObjectsBottom(newgraph, x);
+            if(~isnan(mh))
+                newgraph.camheight = -mh;
+            else
+                newgraph.camheight = 1.5;
+            end
+        end
+                
         temp(1, count) = 1;
         phi = features(newgraph, x, iclusters, params.model);
         temp(2, count) = dot(phi, params.model.w) - pg.lkhood;

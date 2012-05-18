@@ -8,15 +8,13 @@ room.K = x.K; room.R = x.R; room.h = pg.camheight;
 
 drawCube(room, x.lpolys(pg.layoutidx, :), figid);
 
-if isfield(pg, 'cubes')
-    for i = 1:length(pg.cubes)
-         draw3Dcube(pg.cubes{i}, figid);
-    end
-else
-    for i = 1:length(pg.childs)
-         idx = pg.childs(i);
-         draw3Dcube(x.cubes{idx}, figid);
-    end
+for i = 1:length(pg.childs)
+     idx = pg.childs(i);
+     if isfield(pg, 'objscale')
+        draw3Dcube(pg.objscale(i) * x.cubes{idx}, figid);
+     else
+        draw3Dcube(x.cubes{idx}, figid);
+     end
 end
 
 end
