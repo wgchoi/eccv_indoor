@@ -45,11 +45,11 @@ for i = 1:length(org.objs)
         end
         
         bbs = oneobj.bbs * ratio;
-        show_obj(hbbox, bbs, htext, models(i).name, i);
-        figure(1);
+%         show_obj(hbbox, bbs, htext, models(i).name, i);
+%         figure(1);
         
-        key = input(['What is the object? {' objnames ', otherwise : Correct} '], 's');
-        objid = key - '0';
+%         key = input(['What is the object? {' objnames ', otherwise : Correct} '], 's');
+%         objid = key - '0';
         
         obj_annos(count) = struct(  'im', imfile, ...
                                     'objtype', [], ...
@@ -57,7 +57,7 @@ for i = 1:length(org.objs)
                                     'x1', oneobj.bbs(1), 'x2', oneobj.bbs(1) + oneobj.bbs(3), ...
                                     'y1', oneobj.bbs(2), 'y2', oneobj.bbs(2) + oneobj.bbs(4), ...
                                     'azimuth', oneposes.az, 'elevation', oneposes.el);
-        if(isempty(objid))
+        if(1) % isempty(objid))
             obj_annos(count).objtype = i;
         elseif (objid <= length(models) && objid >= 0)
             obj_annos(count).objtype = objid;
@@ -82,6 +82,9 @@ save(annofile, '-append', 'obj_annos');
 % end
 
 draw_all(imdir, imfile, models, obj_annos);
+pause(1);
+return;
+
 if(input('Is all correct? (y/n)', 's') == 'n')
     obj_annos = correct_obj_labels(imdir, imfile, annofile, models);
 end

@@ -1,7 +1,7 @@
 clear
 
-imdir = '../Data_Collection/livingroom/';
-annodir = './livingroom/';
+imdir = '../Data_Collection/bedroom/';
+annodir = './bedroom/';
 exts = {'jpg' 'JPEG'};
 
 for i = 1:length(exts)
@@ -29,8 +29,8 @@ clear
 
 addpath ../IndoorLayoutUnderstanding/objmodel/
 
-imdir = '../Data_Collection/livingroom/';
-annodir = './livingroom/';
+imdir = '../Data_Collection/bedroom/';
+annodir = './bedroom/';
 imfiles = dir(fullfile(imdir, '*.jpg'));
 
 for j = 1:length(imfiles)
