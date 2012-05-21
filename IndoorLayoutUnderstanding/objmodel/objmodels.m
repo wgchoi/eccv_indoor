@@ -28,7 +28,7 @@ model(3).grounded = 0;
 model(4).name = 'Chair';
 model(4).type = {'Regular'};
 model(4).width = [0.5];
-model(4).height = [1.3];
+model(4).height = [1.0];
 model(4).depth = [0.5];
 model(4).grounded = 1;
 
@@ -38,5 +38,12 @@ model(5).width = [1.5, 1.6, 2.1];
 model(5).height = [1.3, 1.3, 1.3];
 model(5).depth = [2.0, 2.1, 2.2];
 model(5).grounded = 1;
+
+model(6).name = 'Dining Table';
+model(6).type = {'Wide' 'Square'};
+model(6).width = [1.2 0.8];
+model(6).height = [0.75 0.75];
+model(6).depth = [0.75 0.8];
+model(6).grounded = 1;
 
 end

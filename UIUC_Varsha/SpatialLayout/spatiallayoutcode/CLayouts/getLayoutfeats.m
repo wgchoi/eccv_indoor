@@ -8,9 +8,6 @@ function [line_lab_features ]=getLayoutfeats(Polyg,integData,vp,h,w,showfeats,qu
 %weighted line-memership features:31-40
 %surface label confidence :41 -75
 
-
-
-
 LineNum=4;
 LabelNum=7;
 line_features=[];

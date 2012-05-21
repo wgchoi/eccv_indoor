@@ -1,5 +1,5 @@
-function [Faces] = getRoomFaces(Polyg, h, w, K, R)
-
+function [Faces, Corners] = getRoomFaces(Polyg, h, w, K, R)
+checkLayoutAnnotation(Polyg, [h w]);
 %%
 DistfromSurface = zeros(5,1);
 visplanes = zeros(1,5);
@@ -187,6 +187,42 @@ for i = 1:size(Faces, 1)
     if(visplanes(i))
         Faces(i, 1:3) = SurfaceNormals(i, :) ./ norm(SurfaceNormals(i, :));
         Faces(i, 4) = DistfromSurface(i);
+    end
+end
+%% bottom corners on the image
+Corners = nan(2, 4);
+if (visplanes(1) && visplanes(2))
+    corners = [1 h; w h];
+    numV = size(Polyg{2}, 1);
+    
+    dists = (corners(:,1) * ones(1,numV) - ones(2,1) * Polyg{2}(:,1)') .^ 2 + ...
+            (corners(:,2) * ones(1,numV) - ones(2,1) * Polyg{2}(:,2)') .^ 2;
+    
+    [~,ii] = min(dists,[],2);
+    
+    Corners(:, 2) = Polyg{2}(ii(1),:);
+    Corners(:, 3) = Polyg{2}(ii(2),:);
+    
+    if (visplanes(3))
+        dists = (Polyg{3}(:,1) * ones(1, size(Polyg{1}, 1)) - ones(size(Polyg{3}, 1), 1) * Polyg{1}(:,1)') .^ 2 + ...
+                (Polyg{3}(:,2) * ones(1, size(Polyg{1}, 1)) - ones(size(Polyg{3}, 1), 1) * Polyg{1}(:,2)') .^ 2;
+            
+        [i1, i2] = find(dists < 100);
+        if(~isempty(i1))
+            p = [Polyg{3}(unique(i1), :); Polyg{1}(unique(i2), :)];
+            Corners(:, 4) = mean(p, 1);
+        end
+    end
+    
+    if (visplanes(4))
+        dists = (Polyg{4}(:,1) * ones(1, size(Polyg{1}, 1)) - ones(size(Polyg{4}, 1), 1) * Polyg{1}(:,1)') .^ 2 + ...
+                (Polyg{4}(:,2) * ones(1, size(Polyg{1}, 1)) - ones(size(Polyg{4}, 1), 1) * Polyg{1}(:,2)') .^ 2;
+            
+        [i1, i2] = find(dists < 100);
+        if(~isempty(i1))
+            p = [Polyg{4}(unique(i1), :); Polyg{1}(unique(i2), :)];
+            Corners(:, 1) = mean(p, 1);
+        end
     end
 end
 

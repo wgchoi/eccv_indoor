@@ -3,7 +3,7 @@
   e.g. for c in 'table'
 
  2) call select_annotate_obj.m in matlab. READ the comments in select_annotate_obj.m before run it!
-  e.g. select_annotate_obj('./image_crawler/table', 2, 'objects');
+  e.g. select_annotate_obj('./image_crawler/table', 3, 'objects');
   - before it shows each image, the function print out data statistics to show you how many images you have in each model (e.g. full size, queen size, king size bed.) and each view point. 
   - it asks whether you will select each image. press y and enter if you think the image is good/useful. 
   - The rules to choose images : 

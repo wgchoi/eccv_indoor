@@ -16,7 +16,7 @@ end
 exts = {'jpg' 'JPEG' 'png'};
 
 labelpostfix = '_labels.mat';
-objtypes = {'Sofa', 'Table', 'TV', 'Chair', 'Bed'};
+objtypes = {'Sofa', 'Table', 'TV', 'Chair', 'Bed', 'Dining Table'};
 
 times = [];
 
@@ -74,6 +74,10 @@ for i = 1:length(exts)
             
             %%%%
             save(annofile, 'gtPolyg', 'objs', 'annotator', 'objtypes');
+            
+            addpath ../IndoorLayoutUnderstanding/objmodel/
+            annotate_obj_poses(imfile, annofile, objmodels());
+            rmpath ../IndoorLayoutUnderstanding/objmodel/
         else
             annotate_one_image( imfile, annofile, objtypes, annotator);
         end

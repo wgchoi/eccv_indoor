@@ -1,7 +1,4 @@
-function o = boxoverlap(a, b)
-
-a(:, 3:4) = a(:, 1:2) + a(:, 3:4) - 1;
-b(3:4) = b(1:2) + b(3:4) - 1;
+function [o, inter, aarea, barea] = boxoverlap(a, b)
 
 % Compute the symmetric intersection over union overlap between a set of
 % bounding boxes in a and a single bounding box in b.
@@ -15,7 +12,9 @@ x2 = min(a(:,3), b(3));
 y2 = min(a(:,4), b(4));
 
 w = x2-x1+1;
+w(w <= 0) = 0;
 h = y2-y1+1;
+h(h <= 0) = 0;
 inter = w.*h;
 aarea = (a(:,3)-a(:,1)+1) .* (a(:,4)-a(:,2)+1);
 barea = (b(3)-b(1)+1) * (b(4)-b(2)+1);
