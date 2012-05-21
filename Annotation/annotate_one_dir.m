@@ -74,6 +74,10 @@ for i = 1:length(exts)
             
             %%%%
             save(annofile, 'gtPolyg', 'objs', 'annotator', 'objtypes');
+            
+            addpath ../IndoorLayoutUnderstanding/objmodel/
+            annotate_obj_poses(imfile, annofile, objmodels());
+            rmpath ../IndoorLayoutUnderstanding/objmodel/
         else
             annotate_one_image( imfile, annofile, objtypes, annotator);
         end
