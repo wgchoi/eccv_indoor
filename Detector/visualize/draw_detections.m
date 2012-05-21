@@ -1,6 +1,6 @@
 function draw_detections(im, dets, tops, th, names, poses, cols)
 
-imagesc(im);
+imshow(im);
 hold on;
 for i = 1:length(dets)
 	odets = dets{i}(tops{i}, :);

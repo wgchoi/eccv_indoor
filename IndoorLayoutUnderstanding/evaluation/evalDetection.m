@@ -23,7 +23,7 @@ for i = 1:length(xs)
     clsidx = (xs{i}.dets(:, 1) == cls);
     boxes = [xs{i}.dets(clsidx, 4:7), xs{i}.dets(clsidx, 3), confs{i}(clsidx)];
     pick = 1:sum(clsidx); 
-%     pick = nms(boxes, 0.5);
+    pick = nms(boxes, 0.5);
     boxes = boxes(pick, :);
     
     confidence(ndet+1:ndet+length(pick)) = boxes(:, end);

@@ -12,6 +12,8 @@ if(strcmp(params.losstype, 'exclusive'))
 elseif(strcmp(params.losstype, 'isolation'))
     hit = false(size(x.dets, 1), 1);
     hit(pg.childs) = true;
-    loss = loss + sum(anno.oloss(hit, 1)) + 5 * sum(anno.oloss(~hit, 2));
+    
+    K = params.fncost;    
+    loss = loss + sum(anno.oloss(hit, 1)) + K * sum(anno.oloss(~hit, 2));
 end
 end

@@ -120,15 +120,17 @@ for i = 1:size(x.cubes, 1)
     end
 end
 toc;
-
-tic;
-x.orarea = sparse(size(x.dets, 1), size(x.dets, 1));
-for i = 1:size(x.dets, 1)
-    for j = 1:size(x.dets, 1)
-        x.orarea(i, j) = boxoverlap(x.dets(i, 4:7), x.dets(j, 4:7));
-    end
-end
-toc;
+x = precomputeOverlapArea(x);
+% tic;
+% x.orarea = sparse(size(x.dets, 1), size(x.dets, 1));
+% for i = 1:size(x.dets, 1)
+%     for j = i+1:size(x.dets, 1)
+%         [~, inter, aarea, barea] = boxoverlap(x.dets(i, 4:7), x.dets(j, 4:7));
+%         x.orarea(i, j) = inter / aarea;
+%         x.orarea(j, i) = inter / barea;
+%     end
+% end
+% toc;
 end
 
 % [obj type, subtype, pose, x, y, w, h, confidence]

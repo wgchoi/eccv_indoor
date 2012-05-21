@@ -12,7 +12,6 @@ for i=1:length(data)
     %%% it would help making over-generated violating consts
     %%% also make it iterate less as it goes through iterations.
     % disp(['prepare data ' num2str(i)])
-    
     patterns{i}.idx = i;
     patterns{i}.x = data(i).x;
     patterns{i}.iclusters = data(i).iclusters;
@@ -91,18 +90,9 @@ for i=1:length(data)
     else
         assert(0, 'not defined loss type');
     end
-    
-%     nanidx = find(any(isnan(patterns{i}.x.locs), 2));
-%     imshow(patterns{i}.x.imfile);
-%     for j = 1:length(nanidx)
-%         rectangle('position', bbox2rect(patterns{i}.x.dets(nanidx(j), 4:7)));
-%     end
-%     i
-%     pause;
 end
 clear data;
 %%%%%%%%%%%% dimension
-% params.model = getmodelparam(params.model, ones(18, 1));
 params.model.w = getweights(params.model);
 ndim = length(params.model.w);
 %%%%%%%%%%%%
@@ -112,26 +102,14 @@ ndim = length(params.model.w);
 Constraints = zeros(ndim, 10000, 'single');
 Margins = zeros(1, 10000, 'single');
 IDS = zeros(1, 10000, 'single');
+ITER = zeros(1, 10000, 'single');
 
-max_iter = 500;
+max_iter = 5;
 iter=1;
-
-trigger=1; low_bound= 0;
 
 C = params.C;
 n = 0;
-
-w = params.model.w;
-cost = w'*w*.5;
-
 MAX_CON = 10000;
-
-%%%% open parallel pools
-try
-    matlabpool open 8
-catch emsg
-    disp('Matlabpool already opened?')
-end
 
 %%%% initial empty constraints
 for id = 1:length(patterns)
@@ -141,18 +119,17 @@ for id = 1:length(patterns)
     Constraints(:, n) = dphi;
     Margins(n) = margin;
     IDS(n) = id;
+    ITER(n) = 0;
 end
-
-%%%% initial all selected constraints
-parfor id = 1:length(patterns)
-    [yhat dphi margin] = getFull(patterns{id}, labels{id}, annos{id}, params);
-   
-    Constraints(:, n + id) = dphi;
-    Margins(n + id) = margin;
-    IDS(n + id) = id;
-end
-n = n + length(patterns);
-
+% %%%% initial all selected constraints
+% % parfor id = 1:length(patterns)
+% %     [yhat dphi margin] = getFull(patterns{id}, labels{id}, annos{id}, params);
+% %    
+% %     Constraints(:, n + id) = dphi;
+% %     Margins(n + id) = margin;
+% %     IDS(n + id) = id;
+% % end
+% % n = n + length(patterns);
 [w, cache]= lsvmopt(Constraints(:,1:n),Margins(1:n), IDS(1:n) ,C, 0.01,[]);
 % Update parameters
 params.model = getmodelparam(params.model, w);
@@ -162,14 +139,16 @@ low_bound = cache.lb;
 trigger = 1;
 
 chunksize = 16;
-% showModel(params);
-% drawnow;
 % initial evaluation
-ls = evaluateModel(patterns, labels, annos, params);
-
+ls = 0;
+if(params.evaltrain)
+    ls = evaluateModel(patterns, labels, annos, params);
+end
 info.err = sum(ls);
 info.cost = cost;
 info.params = params;
+info.history.w = w(:);
+info.history.n = n;
 disp(['initial : all cost ' num2str(cost) ', inference error : ' num2str(sum(ls))]);
 
 while (iter < max_iter && trigger)
@@ -208,6 +187,7 @@ while (iter < max_iter && trigger)
                     Constraints(:, n) = dphi(:, did);
                     Margins(n) = margin(:, did);
                     IDS(n) = (id + did - 1);
+                    ITER(n) = iter;
 
                     any_addition = 1;
 
@@ -219,17 +199,23 @@ while (iter < max_iter && trigger)
                         Constraints(:, 1:n) = Constraints(:, J);
                         Margins(:, 1:n) = Margins(:, J);
                         IDS(:, 1:n) = IDS(:, J);
+                        ITER(:, 1:n) = ITER(:, J);
                     end
-
                 end
 
                 if(VERBOSE > 0)
                     disp(['new constraint ' num2str(id) 'th added : score ' num2str(score) ' all cost ' num2str(cost) ' LB : ' num2str(low_bound)]);
                 else
                     fprintf('+');
+                    if(mod(id + did - 1, 100) == 0)
+                        fprintf('\n');
+                    end
                 end
             else
                 fprintf('.');
+                if(mod(id + did - 1, 100) == 0)
+                    fprintf('\n');
+                end
             end
         end
         assert(cost + 1e-3 >= low_bound);
@@ -242,12 +228,13 @@ while (iter < max_iter && trigger)
             [w, cache]= lsvmopt(Constraints(:,1:n),Margins(1:n), IDS(1:n) ,C, 0.0001,[]);
 %             [w, cache]= lsvmopt(Constraints(:,1:n),Margins(1:n), 1:n ,C, 0.01,[]);
             % Prune working set
-            if 1
+            if 0
                 I = find(cache.sv > 0);
                 n = length(I);
                 Constraints(:,1:n) = Constraints(:,I);
                 Margins(:,1:n) = Margins(:,I);
                 IDS(:,1:n) = IDS(:,I);
+                ITER(:, 1:n) = ITER(:, I);
             end
             % Update parameters
             params.model = getmodelparam(params.model, w);
@@ -263,38 +250,49 @@ while (iter < max_iter && trigger)
             cost = cache.ub;
             low_bound = cache.lb;
             trigger = 1;
+
+			info.history.w(:, end+1) = w(:);
+			info.history.n(end+1) = n;
 %             showModel(params);
 %             drawnow;
         end
     end
     fprintf('done. '); toc;
-    iter = iter +1;
     
-    ls = evaluateModel(patterns, labels, annos, params);
-   
+    iter = iter + 1;
+    ls = 0;
+    if(params.evaltrain)
+        ls = evaluateModel(patterns, labels, annos, params);
+    end
+    
     disp(['all cost ' num2str(cost) ' LB : ' num2str(low_bound) ', inference error : ' num2str(sum(ls))]);
-    
+    disp(['w : ' num2str(w')]);
     info.cost(end + 1) = cost;
     info.err(end + 1) = sum(ls);
     info.params(end + 1) = params;
+    
+    if(info.cost(end) - info.cost(end - 1) < 1)
+        break;
+    end
 end
-matlabpool close;
+% matlabpool close;
 
 info.Constraints = Constraints(:,1:n); 
 info.Margins = Margins(1:n); 
 info.IDS =  IDS(1:n);
+info.ITER =  ITER(1:n);
 
 end
 
 function ls = evaluateModel(patterns, labels, annos, params)
 
 ls = zeros(length(patterns), 1);
-
+tic;
 parfor id = 1:length(patterns)
     [spg, maxidx] = infer_top(patterns{id}.x, patterns{id}.iclusters, params, labels{id}.pg);
     ls(id) = lossall(annos{id}, patterns{id}.x, spg(maxidx), params);
 end
-
+toc;
 end
 
 function drawPlot(w, Constraints, Margins)
@@ -369,6 +367,16 @@ function [yhat dphi margin] = getFull(x, y, anno, params)
 % 3rd output: the margin you want to enforce for this constraint.
 yhat = y;
 yhat.pg.childs = 1:size(x.x.dets, 1);
+if(isfield(params.model, 'commonground') && params.model.commonground)
+    yhat.pg = findConsistent3DObjects(yhat.pg, x.x);
+else
+    mh = getAverageObjectsBottom(yhat.pg, x.x);
+    if(~isnan(mh))
+        yhat.pg.camheight = -mh;
+    else
+        yhat.pg.camheight = 1.5;
+    end
+end
 yhat.feat = features(yhat.pg, x.x, x.iclusters, params.model);
 yhat.loss = lossall(anno, x.x, yhat.pg, params);
 

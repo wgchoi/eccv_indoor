@@ -28,7 +28,7 @@ else
     phi = features(init.pg, x, iclusters, params.model);
     init.pg.lkhood = dot(phi, params.model.w);
     
-    spg(count) = init.pg;
+    spg(:) = init.pg;
     if(isfield(init, 'cache'))
         cache = init.cache;
     else
