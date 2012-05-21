@@ -1,5 +1,5 @@
 # for c in 'sofa' 'living-room' 'dining-room' 'bedroom' 'media-room' 'home-office' 'kitchen' 'laundry-room' 
-for c in 'bed' 
+for c in 'dining-room' 
 do 
 	mkdir $c 
 	idx=0

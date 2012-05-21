@@ -8,8 +8,9 @@ if ~exist(resdir, 'dir')
 end
 
 threshold = -2;
-
-matlabpool open 4
+try
+    matlabpool open 4
+end
 for i = 1:length(exts)
     files = dir(fullfile(imdir, ['*.' exts{i}]));
     parfor j = 1:length(files)
