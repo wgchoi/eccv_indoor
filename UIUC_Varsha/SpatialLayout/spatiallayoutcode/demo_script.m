@@ -2,7 +2,7 @@ clear;
 % Add local code directories to Matlab path
 addpaths;
 
-dataset = 'livingroom';
+dataset = 'diningroom';
 
 %% prep directories
 orgdir = ['../../../Data_Collection/' dataset '/'];

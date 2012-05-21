@@ -27,7 +27,7 @@ cache = initCache(pg, x, iclusters, params.model);
 %% initialize cache
 [moves, cache] = preprocessJumpMoves(x, iclusters, cache);
 iter = 0;
-while(iter < 20)
+while(iter < 10)
     iter = iter + 1;
     
     addidx = find(~cache.inset);
@@ -76,15 +76,15 @@ while(iter < 20)
                 end
                 newgraph.childs(tempidx) = addset(j);
 
-                obts = [];
-                for k = newgraph.childs(:)'
-                    obts = [obts, min(x.cubes{k}(2, :))];
-                end
-
-                if(isempty(obts))
-%                     newgraph.camheight = 1.0;
+                if(isfield(params.model, 'commonground') && params.model.commonground)
+                    newgraph = findConsistent3DObjects(newgraph, x);
                 else
-%                     newgraph.camheight = -mean(obts);
+                    mh = getAverageObjectsBottom(newgraph, x);
+                    if(~isnan(mh))
+                        newgraph.camheight = -mh;
+                    else
+                        newgraph.camheight = 1.5;
+                    end
                 end
 
                 temp(1, count) = 2;
@@ -132,16 +132,26 @@ while(iter < 20)
         cache.inset(delidx) = false;
         cache.inset(addidx) = true;
     end
+    
+    if(isfield(params.model, 'commonground') && params.model.commonground)
+        newgraph = findConsistent3DObjects(newgraph, x);
+    else
+        mh = getAverageObjectsBottom(newgraph, x);
+        if(~isnan(mh))
+            newgraph.camheight = -mh;
+        else
+            newgraph.camheight = 1.5;
+        end
+    end
 %     obts = [];
 %     for j = newgraph.childs(:)'
 %         obts = [obts, min(x.cubes{j}(2, :))];
 %     end
-    mh = getAverageObjectsBottom(newgraph, x);
-    if(~includeloss)
-        newgraph.camheight = -mh;
-    end
+%     mh = getAverageObjectsBottom(newgraph, x);
+%     if(~includeloss)
+%         newgraph.camheight = -mh;
+%     end
 %     newgraph.camheight = -mean(obts);
-
     phi = features(newgraph, x, iclusters, params.model);
     newgraph.lkhood = dot(phi, params.model.w);
     if(includeloss)

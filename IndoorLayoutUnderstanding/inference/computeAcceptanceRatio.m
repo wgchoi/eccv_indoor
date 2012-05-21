@@ -1,6 +1,10 @@
 function [lar, newgraph] = computeAcceptanceRatio(graph, info, cache, x, iclusters, params)
 
-[lar, newgraph] = computeAcceptanceRatioEfficient(graph, info, cache, x, iclusters, params);
+if(isfield(params.model, 'commonground') && params.model.commonground)
+    [lar, newgraph] = computeAcceptanceRatioBF(graph, info, cache, x, iclusters, params);
+else
+    [lar, newgraph] = computeAcceptanceRatioEfficient(graph, info, cache, x, iclusters, params);
+end
 
 % if(info.move == 4)
 %     lar2 = computeAcceptanceRatioEfficient(graph, info, cache, x, iclusters, params);
@@ -300,35 +304,21 @@ qratio = 0.0;
 switch(info.move)
     case 1 % scene
         newgraph.scenetype = info.idx;
-        % compute the features
-        phi = features(newgraph, x, iclusters, params.model);
-        newgraph.lkhood = dot(phi, params.model.w);
-        lkratio = newgraph.lkhood - graph.lkhood;
         % balanced already, no proposal adjust required
         % lar = lar + 0.0;
     case 2 % layout index
         newgraph.layoutidx = info.idx;
-        % compute the features
-        phi = features(newgraph, x, iclusters, params.model);
-        newgraph.lkhood = dot(phi, params.model.w);
-        lkratio = newgraph.lkhood - graph.lkhood;
         % proposal
         qratio = log(cache.playout(graph.layoutidx)) - log(cache.playout(info.idx));
     case 3 % camera height
+        assert(0);
         newgraph.camheight = info.dval;
-        % compute the features
-        phi = features(newgraph, x, iclusters, params.model);
-        newgraph.lkhood = dot(phi, params.model.w);
-        lkratio = newgraph.lkhood - graph.lkhood;
         % balanced already, no proposal adjust required
         % lar = lar + 0.0;
     case 4 % add
         idx = find(graph.childs == info.did, 1);
         if(isempty(idx)) 
             newgraph.childs(end + 1) = info.did;
-            phi = features(newgraph, x, iclusters, params.model);
-            newgraph.lkhood = dot(phi, params.model.w);
-            lkratio = newgraph.lkhood - graph.lkhood;
             
             p1 = cache.padd(info.did) / sum(cache.padd(~cache.inset));
             p2 = 1 / cache.padd(info.did) / ( sum(1 ./ cache.padd(cache.inset)) + 1 / cache.padd(info.did) );
@@ -342,9 +332,6 @@ switch(info.move)
             assert(0);
         else
             newgraph.childs(idx) = [];
-            phi = features(newgraph, x, iclusters, params.model);
-            newgraph.lkhood = dot(phi, params.model.w);
-            lkratio = newgraph.lkhood - graph.lkhood;
             
             p1 = 1 / cache.padd(info.sid) / sum(1 ./ cache.padd(cache.inset));
             p2 = cache.padd(info.sid) / (sum(cache.padd(~cache.inset)) + cache.padd(info.sid));
@@ -356,9 +343,6 @@ switch(info.move)
             assert(0);
         else
             newgraph.childs(idx) = info.did;
-            phi = features(newgraph, x, iclusters, params.model);
-            newgraph.lkhood = dot(phi, params.model.w);
-            lkratio = newgraph.lkhood - graph.lkhood;
             
             p11 = 1 / cache.padd(info.sid) / sum(1 ./ cache.padd(cache.inset));
             id2 = cache.swset{info.sid};
@@ -379,8 +363,16 @@ switch(info.move)
     otherwise
         assert(0, ['not defined mcmc move = ' num2str(info.move)]);
 end
+
+% compute the features
+newgraph = findConsistent3DObjects(newgraph, x);
+phi = features(newgraph, x, iclusters, params.model);
+newgraph.lkhood = dot(phi, params.model.w);
+lkratio = newgraph.lkhood - graph.lkhood;
+
 lar = params.accconst * lkratio + qratio;
 if isnan(lar)
     lar = -inf;
 end
+
 end
