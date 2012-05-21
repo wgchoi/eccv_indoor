@@ -1,14 +1,15 @@
 clear
+close all
 
 corrector = 'wongun';
 
 setname = 'set10';
 
-imbase = ['livingroom/' setname '/'];
-annobase = ['annotation/livingroom_temp/' setname '/'];
-verifiedbase = ['annotation/livingroom/' setname '/'];
+imbase = ['bedroom/' setname '/'];
+annobase = ['annotation/bedroom_temp/' setname '/'];
+verifiedbase = ['annotation/bedroom/' setname '/'];
 
-imfiles = dir(fullfile(imbase, '*.JPEG'));
+imfiles = dir(fullfile(imbase, '*.jpg'));
 
 if(~exist(verifiedbase, 'dir'))
     mkdir(verifiedbase);
@@ -35,8 +36,11 @@ for i = 1:length(imfiles)
     if('y' == input('Correct annotation? [y/n]', 's'))
         correct_annotation(fullfile(imbase, imfiles(i).name), orgfile, destfile, corrector);
     else
+        data = load(orgfile);
+        data.gtPolyg = rearrangePolyg(data.gtPolyg);
         if ~strcmp(orgfile, destfile)
-            copyfile(orgfile, destfile);
+            save(destfile, '-struct', 'data');
+            % copyfile(orgfile, destfile);
         end
     end
 end

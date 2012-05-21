@@ -2,7 +2,7 @@ function draw_annotation(imfile, annofile, outfile)
 img = imread(imfile);
 
 load(annofile);
-ShowGTPolyg(img, gtPolyg, 1);
+ShowGTPolyg(img, rearrangePolyg(gtPolyg), 1);
 
 hold on;
 for id = 1:length(objs)
