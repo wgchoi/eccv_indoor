@@ -11,6 +11,8 @@ name = {'floor' 'center wall' 'right wall' 'left wall' 'ceiling'};
 pfc={'r','g','b','k','w'};
 lines = cell(1, length(name));
 
+gtPolyg = rearrangePolyg(gtPolyg);
+
 i = 1;
 while(i <= length(name))
     if(~isempty(gtPolyg{i}))
