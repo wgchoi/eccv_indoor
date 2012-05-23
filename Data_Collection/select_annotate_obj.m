@@ -3,7 +3,7 @@
 % after finishing all annotation run form_object_dataset
 %       form_object_dataset('bed', 'objects/', 'objdata')
 % upload data after adding the new directory
-% objid => 1: sofa, 2: table, 3: tv, 4: chair, 5 : bed
+% objid => 1: sofa, 2: table, 3: tv, 4: chair, 5 : bed, 6 : dining table
 function select_annotate_obj(imgdir, objid, outbase)
 addpath('../Annotation');
 addpath('../IndoorLayoutUnderstanding/objmodel/');
