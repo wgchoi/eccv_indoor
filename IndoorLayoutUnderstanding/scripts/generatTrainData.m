@@ -1,45 +1,41 @@
-clear; clc
+function generatTrainData(roomname)
+rootdir = 'traindata3';
+params = initparam(3, 5);
 
-load tempvar
-load ../Results/layout/livingroom/res_set_jpg.mat
+load(['../Results/layout/' roomname '/res_set_jpg.mat']);
+
+imdir = fullfile('../Data_Collection', roomname);
+imfiles = dir(fullfile(imdir, '*.jpg'));
+
+detdir = fullfile('../Detector/results/DPM_MINE_AUG/', roomname);
+detfiles = dir(fullfile([detdir '/sofa'], '*.mat'));
+
+annodir = fullfile('../Annotation', roomname);
 %%
-dirname = fullfile('traindata', 'livingroom');
+dirname = fullfile(rootdir, roomname);
+if exist(dirname, 'dir')
+    unix(['rm -rf ' dirname]);
+end
 mkdir(dirname);
-
-for i = 1:length(imfiles)
+data = struct(  'x', cell(length(imfiles), 1), 'anno', cell(length(imfiles), 1), ...
+                'iclusters',  cell(length(imfiles), 1), 'gpg',  cell(length(imfiles), 1));
+parfor i = 1:length(imfiles)
     try
-        if(exist([dirname '/data' num2str(i, '%03d') '.mat'], 'file'))
-            continue;
-        end
-        i
         annofile = [imfiles(i).name(1:find(imfiles(i).name == '.', 1, 'last')-1) '_labels.mat'];
-        
-        [x, anno] = readOneImageObservationData(fullfile(imdir, imfiles(i).name), ...
-                                                {fullfile([detdir '/sofa'], detfiles(i).name) fullfile([detdir '/table'], detfiles(i).name)}, ...
+        [data(i).x, data(i).anno] = readOneImageObservationData(fullfile(imdir, imfiles(i).name), ...
+                                                {fullfile([detdir '/sofa'], detfiles(i).name), ...
+                                                fullfile([detdir '/table'], detfiles(i).name), ...
+                                                fullfile([detdir '/chair'], detfiles(i).name), ...
+                                                fullfile([detdir '/bed'], detfiles(i).name), ...
+                                                fullfile([detdir '/diningtable'], detfiles(i).name)}, ...
                                                 boxlayout{i}, vpdata{i}, fullfile(annodir, annofile));
                                             
-        [iclusters] = clusterInteractionTemplates(x, params.model);
-        
-        gpg = getGTparsegraph(x, iclusters, anno, params.model);
-        gpg = findConsistent3DObjects(gpg, x);
-        
-        for j = 1:length(gpg.childs)
-            assert(sum(isnan(x.cubes{gpg.childs(j)}(:))) == 0);
-        end
-        
-        save([dirname '/data' num2str(i, '%03d')], 'x', 'anno', 'iclusters', 'gpg');
-    catch ee
-        ee
-        errid(end+1) = i;
+        [data(i).iclusters] = clusterInteractionTemplates(data(i).x, params.model);
+        data(i).gpg = getGTparsegraph(data(i).x, data(i).iclusters, data(i).anno, params.model);
     end
 end
-errid
 disp('done');
-
-%%
-% for i = 1:length(nonerridx)
-%     load(['./tempdata2/train' num2str(nonerridx(i), '%03d')], 'x', 'anno', 'iclusters', 'gpg');
-%     gpg = getGTparsegraph(x, iclusters, anno, params.model);
-%     show2DGraph(gpg, x, iclusters);
-%     pause;
-% end
+for i = 1:length(imfiles)
+    temp = data(i);
+    save([dirname '/data' num2str(i, '%03d')], '-struct', 'temp');
+end

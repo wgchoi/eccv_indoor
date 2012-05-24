@@ -27,14 +27,18 @@ for i = 1:length(anno.obj_annos)
         obts = [obts, min(x.cubes{midx}(2, :))];
     end
 end
-assert(length(unique(gpg.childs)) == length(gpg.childs));
-
-if(isempty(obts))
-    gpg.camheight = 1.5;
-else
-    gpg.camheight = -mean(obts);
+if(length(unique(gpg.childs)) ~= length(gpg.childs))
+    gpg.childs = unique(gpg.childs);
 end
-
+if (isfield(model, 'commonground') && model.commonground)
+    gpg = findConsistent3DObjects(gpg, x);
+else
+    if(isempty(obts))
+        gpg.camheight = 1.5;
+    else
+        gpg.camheight = -mean(obts);
+    end
+end
 gpg.lkhood = dot(getweights(model), features(gpg, x, iclusters, model));
 
 end

@@ -4,6 +4,7 @@ if(nargin < 5)
     anno = [];
 else
     anno = load(annofile);
+    anno = sync_objmodel(anno);
     btrainset = true;
 end
 %%% prepare all input informations.
@@ -76,6 +77,8 @@ end
 
 if(btrainset)
     if(0)
+        assert(0);
+        
         newdets = appendGTforTrain(x.imfile, x.dets, anno);
 
         types = unique(newdets(:, 1));
@@ -108,19 +111,22 @@ if(btrainset)
     
     for i = 1:length(x.lconf)
         x.lloss(i) = layout_loss(anno.gtPolyg, x.lpolys(i, :));
+        x.lerr(i) = getPixerr(anno.gtPolyg, x.lpolys(i, :));
     end
 end
 
-tic;
-x.intvol = sparse(size(x.cubes, 1), size(x.cubes, 1));
-for i = 1:size(x.cubes, 1)
-    for j = i+1:size(x.cubes, 1)
-        x.intvol(i, j) = cuboidIntersectionsVolume(x.cubes{i}, x.cubes{j});
-        x.intvol(j, i) = x.intvol(i, j);
-    end
-end
-toc;
+% tic;
+% x.intvol = sparse(size(x.cubes, 1), size(x.cubes, 1));
+% for i = 1:size(x.cubes, 1)
+%     for j = i+1:size(x.cubes, 1)
+%         x.intvol(i, j) = cuboidIntersectionsVolume(x.cubes{i}, x.cubes{j});
+%         x.intvol(j, i) = x.intvol(i, j);
+%     end
+% end
+% toc;
+tic
 x = precomputeOverlapArea(x);
+fprintf('overlap computation '); toc;
 % tic;
 % x.orarea = sparse(size(x.dets, 1), size(x.dets, 1));
 % for i = 1:size(x.dets, 1)
@@ -165,12 +171,29 @@ if(size(dets, 1) > 0)
     if(strcmp(data.names{1}, 'sofa8_2'))
         dets(:, 2) = mod(bbox(:, 5) - 1, 2) + 1;
         dets(:, 3) = floor((bbox(:, 5) - 1) ./ 2) .* pi / 4;
+    elseif(strcmp(data.names{1}, 'sofa'))
+        dets(:, 2) = mod(bbox(:, 5) - 1, 2) + 1;
+        dets(:, 3) = floor((bbox(:, 5) - 1) ./ 2) .* pi / 4;
     elseif(strcmp(data.names{1}, 'table'))
         submodels = [1 2 1 2 1 2 1 2];
         poses = [0 0 pi/4 pi/4 pi/2 pi/2 -pi/4 -pi/4];
         dets(:, 2) = submodels(bbox(:, 5));
         dets(:, 3) = poses(bbox(:, 5));
-    else
+    elseif(strcmp(data.names{1}, 'chair'))
+        submodels = [1 1 1 1 1 1 1 1];
+        poses = [0 pi/4 pi/2 3*pi/4 pi -3*pi/4 -pi/2 -pi/4];
+        dets(:, 2) = submodels(bbox(:, 5));
+        dets(:, 3) = poses(bbox(:, 5));
+    elseif(strcmp(data.names{1}, 'bed'))
+        submodels = [1 2 3 1 2 3 1 2 3 1 2 3 1 2 3];
+        poses = [0 0 0 pi/4 pi/4 pi/4 pi/2 pi/2 pi/2 -pi/2 -pi/2 -pi/2 -pi/4 -pi/4 -pi/4];
+        dets(:, 2) = submodels(bbox(:, 5));
+        dets(:, 3) = poses(bbox(:, 5));
+    elseif(strcmp(data.names{1}, 'diningtable'))
+        submodels = [1 2 1 2 1 1 1 2];
+        poses = [0 0 pi/4 pi/4 pi/2 -pi/2 -pi/4 -pi/4];
+        dets(:, 2) = submodels(bbox(:, 5));
+        dets(:, 3) = poses(bbox(:, 5));
     end
 end
 

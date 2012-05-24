@@ -326,6 +326,7 @@ switch(info.move)
         else % cannot add already existing cluster
             assert(0);
         end
+        newgraph = findConsistent3DObjects(newgraph, x);
     case 5 % delete
         idx = find(graph.childs == info.sid, 1);
         if(isempty(idx)) % cannot delete not existing cluster
@@ -337,6 +338,7 @@ switch(info.move)
             p2 = cache.padd(info.sid) / (sum(cache.padd(~cache.inset)) + cache.padd(info.sid));
             qratio = log(params.pmove(4) * p2) - log(params.pmove(5) * p1);
         end
+        newgraph = findConsistent3DObjects(newgraph, x);
     case 6 % switch
         idx = find(graph.childs == info.sid, 1);
         if(isempty(idx)) % cannot switch not existing cluster
@@ -358,6 +360,7 @@ switch(info.move)
             p22 = cache.padd(info.sid) / sum(cache.padd(id2));
             qratio = log((p21*p22) / (p11*p12));
         end
+        newgraph = findConsistent3DObjects(newgraph, x);
     case 7 % combine
     case 8 % break
     otherwise
@@ -365,7 +368,6 @@ switch(info.move)
 end
 
 % compute the features
-newgraph = findConsistent3DObjects(newgraph, x);
 phi = features(newgraph, x, iclusters, params.model);
 newgraph.lkhood = dot(phi, params.model.w);
 lkratio = newgraph.lkhood - graph.lkhood;

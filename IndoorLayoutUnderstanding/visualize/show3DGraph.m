@@ -1,6 +1,8 @@
-function show3DGraph(pg, x, icluster)
+function show3DGraph(pg, x, figid)
 % imshow(x.imfile);
-figid = 1001;
+if nargin < 3
+    figid = 1001;
+end
 figure(figid); clf;
 
 room.F = x.faces{pg.layoutidx};

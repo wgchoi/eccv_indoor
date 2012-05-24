@@ -41,7 +41,8 @@ for i = 1:length(iclusters)
         % if switching is necessary
         % competing elements
         if(iclusters(i).isterminal && iclusters(j).isterminal)
-            if(x.intvol(i, j) > 0.1 || x.orarea(i, j) > 0.5)
+            % conflicting
+            if(x.orpolys(i, j) > 0.3 || x.orarea(i, j) > 0.5)
                 count = count + 1;
                 moves{movetype}(count).move = movetype;
                 moves{movetype}(count).sid = i;

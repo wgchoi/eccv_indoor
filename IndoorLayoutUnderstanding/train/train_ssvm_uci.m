@@ -42,9 +42,7 @@ for i=1:length(data)
             anno = data(i).anno.obj_annos(j);
             GT(j, :) = [anno.x1 anno.y1 anno.x2 anno.y2 anno.objtype];
         end
-        
-        GT(GT(:, end) > 2, :) = [];
-        
+        % GT(GT(:, end) > 2, :) = [];
         annos{i}.oloss = computeloss(Det, GT);
         
         numtp(i) = sum(annos{i}.oloss(:, 2));
@@ -61,8 +59,8 @@ for i=1:length(data)
         patterns{i}.x.cubes(ambids) = [];
         patterns{i}.x.projs(ambids) = [];
         
-        patterns{i}.x.intvol(ambids, :) = [];
-        patterns{i}.x.intvol(:, ambids) = [];
+        patterns{i}.x.orpolys(ambids, :) = [];
+        patterns{i}.x.orpolys(:, ambids) = [];
         patterns{i}.x.orarea(ambids, :) = [];
         patterns{i}.x.orarea(:, ambids) = [];
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -104,8 +102,8 @@ Margins = zeros(1, 10000, 'single');
 IDS = zeros(1, 10000, 'single');
 ITER = zeros(1, 10000, 'single');
 
-max_iter = 5;
-iter=1;
+max_iter = 8;
+iter = 1;
 
 C = params.C;
 n = 0;
@@ -150,6 +148,7 @@ info.params = params;
 info.history.w = w(:);
 info.history.n = n;
 disp(['initial : all cost ' num2str(cost) ', inference error : ' num2str(sum(ls))]);
+disp(['w : ' num2str(w')]);
 
 while (iter < max_iter && trigger)
     disp(['ssvm training iter = ' num2str(iter)])
@@ -271,9 +270,9 @@ while (iter < max_iter && trigger)
     info.err(end + 1) = sum(ls);
     info.params(end + 1) = params;
     
-    if(info.cost(end) - info.cost(end - 1) < 1)
-        break;
-    end
+%     if(info.cost(end) - info.cost(end - 1) < 1)
+%         break;
+%     end
 end
 % matlabpool close;
 

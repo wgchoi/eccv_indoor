@@ -18,7 +18,15 @@ end
 if(iloc(3) > 0)
     iloc = getInitialGuess3D(obj, model, pose, K, R, -2.0);
 end
-assert(iloc(3) < 0);
+
+if(iloc(3) > 0)
+    % fail!!
+    disp('objet back projection failed!!');
+    loc = nan(3, 1);
+    fval = 1e10;
+    return;
+end
+
 [pbbox] = loc2bbox(iloc, pose, K, R, model, mid);
 
 if(rectoverlap(pbbox, obj.bbs) < 1e-10)

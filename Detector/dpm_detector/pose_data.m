@@ -22,6 +22,9 @@ switch cls
     case {'table'}
         index_train = 1:670;        
         index_train2 = 1:685;
+	case {'diningtable'}
+        index_train = [];        
+        index_train2 = 1:1185;
 end
 
 try
@@ -60,6 +63,7 @@ N = numel(index_train);
 path_image = sprintf('../../Data_Collection/yuxiangdata/Images/%s', cls);
 path_anno = sprintf('../../Data_Collection/yuxiangdata/Annotations/%s', cls);
 
+pos = struct('im', {}, 'x1', {}, 'y1', {}, 'x2', {}, 'y2', {}, 'flip', {}, 'trunc', {}, 'azimuth', {}, 'mirrored', {}, 'subid', {});
 count = 0;
 for i = 1:N
     index = index_train(i);

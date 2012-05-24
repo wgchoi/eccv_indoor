@@ -5,8 +5,9 @@ models = objmodels();
 
 load(annofile);
 
+imdir = './objdata/images/';
 imfile = anno.im;
-im = imread(imfile);
+im = imread(fullfile(imdir, imfile));
 
 
 imshow(im);
@@ -34,6 +35,7 @@ line('Parent', gca, ...
           'LineStyle', '-', ...
           'LineWidth', 4);
 
+return;
 [poly, face] = getProjectedObjectPoly([anno.y2 - anno.y1, anno.x2 - anno.x1], ...
                                     models(objid).width(anno.subid), ...
                                     models(objid).height(anno.subid), ... 

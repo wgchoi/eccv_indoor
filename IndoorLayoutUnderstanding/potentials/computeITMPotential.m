@@ -1,4 +1,4 @@
-function [potential, feat] = computeCompositePotential(node, childs, rule)
+function [potential, feat] = computeITMPotential(node, childs, rule)
 % N = 5;
 feat = zeros(5 * rule.numparts, 1);
 assert(isfield(rule, 'w'));
