@@ -55,4 +55,14 @@ model(idx).height = [0.75 0.75];
 model(idx).depth = [0.75 0.8];
 model(idx).grounded = 1;
 model(idx).ori_sensitive = 0;
+
+idx = idx + 1;
+model(idx).name = 'Side Table';
+model(idx).type = {'Wide' 'tall'};
+model(idx).width = [0.55 0.35];
+model(idx).height = [0.6 0.6];
+model(idx).depth = [0.4 0.35];
+model(idx).grounded = 1;
+model(idx).ori_sensitive = 1;
+
 end
