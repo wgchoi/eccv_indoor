@@ -1,8 +1,11 @@
-function visualizeITM(rule, omodel)
+function visualizeITM(rule, omodel, figid)
 if nargin < 2
     omodel = objmodels();
+    figid = 2000;
+elseif nargin < 3
+    figid = 2000;
 end
-figure(2000);
+figure(figid);
 clf
 for i = 1:length(rule.parts)
     drawpart(rule.parts(i), omodel, i);

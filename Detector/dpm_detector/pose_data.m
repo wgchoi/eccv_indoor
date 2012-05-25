@@ -25,6 +25,9 @@ switch cls
 	case {'diningtable'}
         index_train = [];        
         index_train2 = 1:1185;
+    case {'sidetable'}
+        index_train = [];        
+        index_train2 = 1:739;
 end
 
 try

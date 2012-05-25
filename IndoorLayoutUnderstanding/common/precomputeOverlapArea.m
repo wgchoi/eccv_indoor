@@ -43,7 +43,7 @@ for i = 1:length(x.projs)
         x.orpolys(j, i) = inter / barea;
     end
 end
-
-assert(max(max(x.orpolys)) <= 1.01);
+x.orpolys(x.orpolys > 1) = 1;
+% assert(max(max(x.orpolys)) <= 1.01);
 assert(min(min(x.orpolys)) >= 0);
 end

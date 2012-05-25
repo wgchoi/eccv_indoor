@@ -1,4 +1,7 @@
-function draw3Dcube(cube, figid)
+function draw3Dcube(cube, figid, col)
+if nargin < 3
+    col = 'm';
+end
 cube = cube';
 % place 3D model
 X = [   cube(1, 1), cube(2, 1), cube(4, 1), cube(3, 1); ...
@@ -28,7 +31,7 @@ Z = [   cube(1, 3), cube(2, 3), cube(4, 3), cube(3, 3); ...
 figure(figid);
 hold on;
 for i=1:6
-    h=patch(X(:, i), Y(:, i), Z(:, i), 'm');
+    h=patch(X(:, i), Y(:, i), Z(:, i), col);
     set(h,'edgecolor','k', 'linewidth',5);%, 'FaceAlpha', 0.7);
     plot3(cube(1,1), cube(1,2), cube(1, 3) , 'k.', 'MarkerSize', 40);
 end

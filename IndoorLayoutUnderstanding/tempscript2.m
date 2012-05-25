@@ -14,7 +14,7 @@ params = initparam(3, 5);
 cnt = 1;
 rooms = {'bedroom' 'livingroom' 'diningroom'};
 for i = 1:length(rooms)
-    datadir = fullfile('traindata3', rooms{i});
+    datadir = fullfile('traindata4', rooms{i});
     datafiles = dir(fullfile(datadir, '*.mat'));
     for j = 1:length(datafiles) % min(200, length(datafiles))
         data(cnt) = load(fullfile(datadir, datafiles(j).name));
@@ -47,16 +47,16 @@ parfor i = 1:length(data)
     fprintf(' => done\n')
 end
 %% evaluation
-names = {'sofa', 'table', 'chair', 'bed'};
-for i = 1:4
+names = {'sofa', 'table', 'chair', 'bed', 'dtable'};
+for i = 1:length(names)
     [rec{i}, prec{i}, ap{i}] = evalDetection(annos, xs, conf1, i, false);
 end
 
-for i = 1:4
+for i = 1:length(names)
     [recbase{i}, precbase{i}, apbase{i}] = evalDetection(annos, xs, conf2, i, false);
 end
 
-for i = 1:4
+for i = 1:length(names)
     figure(i);
     plot(rec{i}, prec{i}, 'b-', 'linewidth', 2)
     hold on;
@@ -67,6 +67,7 @@ for i = 1:4
     ylabel('precision');
     legend({['ours AP=' num2str(ap{i}, '%.04f')], ['dets AP=' num2str(apbase{i}, '%.04f')]});
     title(names{i})
+    saveas(gcf, ['pr_' names{i}], 'fig');
 end
 %% layout evaluation
 baseline = zeros(1, length(data));

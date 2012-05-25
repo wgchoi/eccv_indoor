@@ -10,11 +10,11 @@
 %     disp(em);
 % end
 % 
-% params = initparam(3, 5);
+% params = initparam(3, 6);
 % cnt = 1;
 % rooms = {'bedroom' 'livingroom' 'diningroom'};
 % for i = 1:length(rooms)
-%     datadir = fullfile('traindata', rooms{i});
+%     datadir = fullfile('traindata4', rooms{i});
 %     datafiles = dir(fullfile(datadir, '*.mat'));
 %     for j = 1:length(datafiles) % min(200, length(datafiles))
 %         data(cnt) = load(fullfile(datadir, datafiles(j).name));
@@ -28,16 +28,14 @@
 % end
 % data(temp) = [];
 % 
-% %% reduce set for quick experiment
-% data = data(1:3:end);
-% %%
-% cand_data = true(1, length(data));
-% numobjs = zeros(1, length(data));
-% for i = 1:length(data)
-%     cand_data(i) = length(data(i).gpg.childs) > 1;
-%     numobjs(i) = length(data(i).gpg.childs);
-% end
 %%
+cand_data = true(1, length(data));
+numobjs = zeros(1, length(data));
+for i = 1:length(data)
+    cand_data(i) = length(data(i).gpg.childs) > 1;
+    numobjs(i) = length(data(i).gpg.childs);
+end
+%
 allrules = ITMrule(1);
 allrules(:) = [];
 all_composites = {};
@@ -45,6 +43,12 @@ all_didx = {};
 
 % lets ignore..... way to expensive....
 cand_data(numobjs > 5) = false;
+% %% reduce set for quick experiment
+for i = 1:length(data)
+    if(data(i).gpg.scenetype ~= 2)
+        cand_data(i) = false;
+    end
+end
 
 rid = 100;
 while(any(cand_data))
@@ -59,6 +63,19 @@ while(any(cand_data))
         rid = rid + 1;
     end
     cand_data(idx) = false;
+    
+    removeidx = [];
+    for i = 1:length(rules)
+        for j = 1:length(allrules)
+            if(compareITM(rules(i), allrules(j)) < 4)
+                removeidx(end+1) = i;
+                break;
+            end
+        end
+    end
+    fprintf('proposal before filtering : %d ', length(rules)); 
+    rules(removeidx) = [];
+    fprintf('after filtering %d \n', length(rules));
 
     for j = length(rules):-1:1
         composite = graphnodes(0);

@@ -1,6 +1,6 @@
 function generatTrainData(roomname)
 rootdir = 'traindata4';
-params = initparam(3, 5);
+params = initparam(3, 6);
 
 load(['../Results/layout/' roomname '/res_set_jpg.mat']);
 
@@ -17,25 +17,39 @@ if exist(dirname, 'dir')
     unix(['rm -rf ' dirname]);
 end
 mkdir(dirname);
-data = struct(  'x', cell(length(imfiles), 1), 'anno', cell(length(imfiles), 1), ...
-                'iclusters',  cell(length(imfiles), 1), 'gpg',  cell(length(imfiles), 1));
-for i = 1:length(imfiles)
-    try
-        annofile = [imfiles(i).name(1:find(imfiles(i).name == '.', 1, 'last')-1) '_labels.mat'];
-        [data(i).x, data(i).anno] = readOneImageObservationData(fullfile(imdir, imfiles(i).name), ...
-                                                {fullfile([detdir '/sofa'], detfiles(i).name), ...
-                                                fullfile([detdir '/table'], detfiles(i).name), ...
-                                                fullfile([detdir '/chair'], detfiles(i).name), ...
-                                                fullfile([detdir '/bed'], detfiles(i).name), ...
-                                                fullfile([detdir '/diningtable'], detfiles(i).name)}, ...
-                                                boxlayout{i}, vpdata{i}, fullfile(annodir, annofile));
-                                            
-        [data(i).iclusters] = clusterInteractionTemplates(data(i).x, params.model);
-        data(i).gpg = getGTparsegraph(data(i).x, data(i).iclusters, data(i).anno, params.model);
+csize = 16;
+for idx = 1:csize:length(imfiles)
+    setsize = min(length(imfiles) - idx + 1, csize);
+    
+    data = struct(  'x', cell(setsize, 1), 'anno', cell(setsize, 1), ...
+                'iclusters',  cell(setsize, 1), 'gpg',  cell(setsize, 1));
+            
+    imfiles2 = imfiles(idx:idx+setsize-1);
+    detfiles2 = detfiles(idx:idx+setsize-1);
+    boxlayout2 = boxlayout(idx:idx+setsize-1);
+    vpdata2 = vpdata(idx:idx+setsize-1);
+    models = params.model;
+    
+    parfor i = 1:setsize 
+        try
+            annofile = [imfiles2(i).name(1:find(imfiles2(i).name == '.', 1, 'last')-1) '_labels.mat'];
+            
+            [data(i).x, data(i).anno] = readOneImageObservationData(fullfile(imdir, imfiles2(i).name), ...
+                                                    {fullfile([detdir '/sofa'], detfiles2(i).name), ...
+                                                    fullfile([detdir '/table'], detfiles2(i).name), ...
+                                                    fullfile([detdir '/chair'], detfiles2(i).name), ...
+                                                    fullfile([detdir '/bed'], detfiles2(i).name), ...
+                                                    fullfile([detdir '/diningtable'], detfiles2(i).name)}, ...
+                                                    boxlayout2{i}, vpdata2{i}, fullfile(annodir, annofile));
+
+            [data(i).iclusters] = clusterInteractionTemplates(data(i).x, models);
+            data(i).gpg = getGTparsegraph(data(i).x, data(i).iclusters, data(i).anno, models);
+        end
     end
-end
-disp('done');
-for i = 1:length(imfiles)
-    temp = data(i);
-    save([dirname '/data' num2str(i, '%03d')], '-struct', 'temp');
+    disp('done');
+    
+    for i = 1:setsize
+        temp = data(i);
+        save([dirname '/data' num2str(idx+i-1, '%03d')], '-struct', 'temp');
+    end
 end
