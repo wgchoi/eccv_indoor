@@ -46,4 +46,11 @@ model(6).height = [0.75 0.75];
 model(6).depth = [0.75 0.8];
 model(6).grounded = 1;
 
+model(7).name = 'Side Table';
+model(7).type = {'Wide' 'tall'};
+model(7).width = [0.55 0.35];
+model(7).height = [0.6 0.6];
+model(7).depth = [0.4 0.35];
+model(7).grounded = 1;
+
 end
