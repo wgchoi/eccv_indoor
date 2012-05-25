@@ -1,5 +1,5 @@
 function generatTrainData(roomname)
-rootdir = 'traindata3';
+rootdir = 'traindata4';
 params = initparam(3, 5);
 
 load(['../Results/layout/' roomname '/res_set_jpg.mat']);
@@ -19,7 +19,7 @@ end
 mkdir(dirname);
 data = struct(  'x', cell(length(imfiles), 1), 'anno', cell(length(imfiles), 1), ...
                 'iclusters',  cell(length(imfiles), 1), 'gpg',  cell(length(imfiles), 1));
-parfor i = 1:length(imfiles)
+for i = 1:length(imfiles)
     try
         annofile = [imfiles(i).name(1:find(imfiles(i).name == '.', 1, 'last')-1) '_labels.mat'];
         [data(i).x, data(i).anno] = readOneImageObservationData(fullfile(imdir, imfiles(i).name), ...

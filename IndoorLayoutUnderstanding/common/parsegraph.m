@@ -1,5 +1,4 @@
 function pg = parsegraph(num)
-
 if nargin == 0
     num = 1;
 end

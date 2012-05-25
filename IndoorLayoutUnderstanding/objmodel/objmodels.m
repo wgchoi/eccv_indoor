@@ -55,5 +55,4 @@ model(idx).height = [0.75 0.75];
 model(idx).depth = [0.75 0.8];
 model(idx).grounded = 1;
 model(idx).ori_sensitive = 0;
-
 end

@@ -78,7 +78,6 @@ end
 if(btrainset)
     if(0)
         assert(0);
-        
         newdets = appendGTforTrain(x.imfile, x.dets, anno);
 
         types = unique(newdets(:, 1));
@@ -114,7 +113,6 @@ if(btrainset)
         x.lerr(i) = getPixerr(anno.gtPolyg, x.lpolys(i, :));
     end
 end
-
 % tic;
 % x.intvol = sparse(size(x.cubes, 1), size(x.cubes, 1));
 % for i = 1:size(x.cubes, 1)

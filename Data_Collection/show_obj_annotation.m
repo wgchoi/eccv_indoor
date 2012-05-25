@@ -9,7 +9,6 @@ imdir = './objdata/images/';
 imfile = anno.im;
 im = imread(fullfile(imdir, imfile));
 
-
 imshow(im);
 
 xdata = anno.poly(:, 1);

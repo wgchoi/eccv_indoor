@@ -12,7 +12,6 @@ end
 
 end
 
-
 function model = getmodelparam5(model, w)
 featlen =   1 + ... % scene classification 
             1 + ... % layout confidence : no bias required, selection problem    
