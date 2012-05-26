@@ -192,6 +192,11 @@ if(size(dets, 1) > 0)
         poses = [0 0 pi/4 pi/4 pi/2 -pi/2 -pi/4 -pi/4];
         dets(:, 2) = submodels(bbox(:, 5));
         dets(:, 3) = poses(bbox(:, 5));
+    elseif(strcmp(data.names{1}, 'sidetable'))
+        submodels = [1 2 1 2 1 2];
+        poses = [0 0 pi/4 pi/4 -pi/4 -pi/4];
+        dets(:, 2) = submodels(bbox(:, 5));
+        dets(:, 3) = poses(bbox(:, 5));
     end
 end
 
