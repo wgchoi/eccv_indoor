@@ -1,10 +1,9 @@
-function obj_annos = correct_obj_labels(imdir, imfile, annofile, models)
+function obj_annos = correct_obj_labels(imdir, imfile, annofile, objmodel)
 
 im = imread(fullfile(imdir, imfile));
 org = load(annofile);
-
 if(isfield(org, 'obj_annos'))
-    draw_all(imdir, imfile, models, org.obj_annos);
+    draw_all(imdir, imfile, objmodel, org.obj_annos);
     key = input('Correct annotation? (y/n)', 's');
     if(isempty(key) || key ~= 'y')
         obj_annos = org.obj_annos;
@@ -29,13 +28,27 @@ hbbox = line('Parent', gca(), ...
 
 htext = text(5, 10, '', 'BackgroundColor', 'w');
 objnames  = '0 : N/A';
-for i = 1:length(models)
-    objnames = [objnames, ', ', num2str(i), ' : ', models(i).name];
+for i = 1:length(objmodel)
+    objnames = [objnames, ', ', num2str(i), ' : ', objmodel(i).name];
 end
 
+eobjs = struct('id', cell(1, 0), 'pose', cell(1, 0), 'poly', cell(1, 0), 'bbs', cell(1, 0));
+eobjs(:) = [];
+
+for k = 1:length(objmodel)
+    org.objtypes{k} = objmodel(k).name;
+    if(length(org.objs) < k)
+        org.objs{k} = eobjs;
+        org.poses{k} = struct('subid', cell(0, 1), 'az', cell(0, 1), 'el', cell(0, 1));
+    end
+end
+                
 % obj_annos = struct('im', {}, 'objtype', {}, 'subid', {}, 'x1', {}, 'x2', {}, 'y1', {}, 'y2', {}, 'azimuth', {}, 'elevation', {});
 count = 1;
+
+dest = org;
 for i = 1:length(org.objs)
+    cnt = 0;
     for j = 1:length(org.objs{i})
         oneobj = org.objs{i}(j);
         try
@@ -45,11 +58,11 @@ for i = 1:length(org.objs)
         end
         
         bbs = oneobj.bbs * ratio;
-%         show_obj(hbbox, bbs, htext, models(i).name, i);
-%         figure(1);
+        show_obj(hbbox, bbs, htext, objmodel(i).name, i);
+        figure(1);
         
-%         key = input(['What is the object? {' objnames ', otherwise : Correct} '], 's');
-%         objid = key - '0';
+        key = input(['What is the object? {' objnames ', otherwise : Correct} '], 's');
+        objid = key - '0';
         
         obj_annos(count) = struct(  'im', imfile, ...
                                     'objtype', [], ...
@@ -57,18 +70,33 @@ for i = 1:length(org.objs)
                                     'x1', oneobj.bbs(1), 'x2', oneobj.bbs(1) + oneobj.bbs(3), ...
                                     'y1', oneobj.bbs(2), 'y2', oneobj.bbs(2) + oneobj.bbs(4), ...
                                     'azimuth', oneposes.az, 'elevation', oneposes.el);
-        if(1) % isempty(objid))
+        if(isempty(objid))
             obj_annos(count).objtype = i;
-        elseif (objid <= length(models) && objid >= 0)
+        elseif (objid <= length(objmodel) && objid >= 0)
             obj_annos(count).objtype = objid;
+            
+            pose = annotate_object_poses(fullfile(imdir, imfile), oneobj, objid, objmodel);
+            
+            obj_annos(count).subid = pose.subid;
+            obj_annos(count).azimuth = pose.az;
+            obj_annos(count).elevation = pose.el;
+            
+            % remove
+            dest.objs{i}(j-cnt) = [];
+            dest.poses{i}(j-cnt) = [];
+            % add
+            dest.objs{objid}(end+1) = oneobj;
+            dest.poses{objid}(end+1) = pose;
+            cnt = cnt + 1;
         else
             obj_annos(count).objtype = i;
         end
         count = count + 1;
     end
 end
-save(annofile, '-append', 'obj_annos');
-
+dest.obj_annos = obj_annos;
+dest.objmodel = objmodel;
+save(annofile, '-struct', 'dest');
 %%% draw all
 % figure(1);
 % imshow(fullfile(imdir, imfile));
@@ -81,12 +109,9 @@ save(annofile, '-append', 'obj_annos');
 %     end
 % end
 
-draw_all(imdir, imfile, models, obj_annos);
-pause(1);
-return;
-
+draw_all(imdir, imfile, objmodel, obj_annos);
 if(input('Is all correct? (y/n)', 's') == 'n')
-    obj_annos = correct_obj_labels(imdir, imfile, annofile, models);
+    obj_annos = correct_obj_labels(imdir, imfile, annofile, objmodel);
 end
 
 end
