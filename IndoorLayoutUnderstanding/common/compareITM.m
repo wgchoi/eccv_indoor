@@ -43,8 +43,8 @@ mindiff = min(diff);
 end
 
 function d = partdist(part1, part2, om)
-d = ( (part1.dx - part2.dx) / 0.1 ) .^ 2 + ((part1.dz - part2.dz) / 0.1 ) .^ 2;
+d = ( (part1.dx - part2.dx) / 0.15 ) .^ 2 + ((part1.dz - part2.dz) / 0.15 ) .^ 2;
 if(om(part1.citype).ori_sensitive)
-    d = d + (part1.da - part2.da) .^ 2 ;
+    d = d + (anglediff(part1.da, part2.da) / 0.5) .^ 2 ;
 end
 end

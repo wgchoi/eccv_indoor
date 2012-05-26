@@ -27,7 +27,7 @@
 %     temp(i) = isempty(data(i).x);
 % end
 % data(temp) = [];
-% 
+
 %%
 cand_data = true(1, length(data));
 numobjs = zeros(1, length(data));
@@ -44,13 +44,14 @@ all_didx = {};
 % lets ignore..... way to expensive....
 cand_data(numobjs > 5) = false;
 % %% reduce set for quick experiment
-for i = 1:length(data)
-    if(data(i).gpg.scenetype ~= 2)
-        cand_data(i) = false;
-    end
-end
+% for i = 1:length(data)
+%     if(data(i).gpg.scenetype ~= 2)
+%         cand_data(i) = false;
+%     end
+% end
 
 rid = 100;
+%%
 while(any(cand_data))
     idx = find(cand_data);
     [~, maxid] = sort(-numobjs(cand_data));
@@ -67,7 +68,7 @@ while(any(cand_data))
     removeidx = [];
     for i = 1:length(rules)
         for j = 1:length(allrules)
-            if(compareITM(rules(i), allrules(j)) < 4)
+            if(compareITM(rules(i), allrules(j)) < 9)
                 removeidx(end+1) = i;
                 break;
             end
@@ -77,22 +78,23 @@ while(any(cand_data))
     rules(removeidx) = [];
     fprintf('after filtering %d \n', length(rules));
 
+    tic();
     for j = length(rules):-1:1
         composite = graphnodes(0);
         didx = [];
         tidx = find(cand_data);
         
-        tic();
-        cset = {};
-        dset = {};
-        parfor tt = 1:length(tidx)
+        cset = cell(1, length(tidx));
+        dset = cell(1, length(tidx));
+        
+        ptn = rules(j);
+%         parfor tt = 1:length(tidx)
+        for tt = 1:length(tidx)
             k = tidx(tt);
-            temp = findITMCandidates(data(k).x, data(k).iclusters, params, rules(j), data(k).gpg.childs);
+            temp = findITMCandidates(data(k).x, data(k).iclusters, params, ptn, data(k).gpg.childs);
             cset{tt} = temp;
             dset{tt} = k .* ones(1, length(temp));
         end
-        toc();
-        
         for tt = 1:length(tidx)
             composite(end+1:end+length(dset{tt})) = cset{tt};
             didx(end+1:end+length(dset{tt})) = dset{tt};
@@ -104,31 +106,35 @@ while(any(cand_data))
 %             composite(end+1:end+length(temp)) = temp;
 %             didx(end+1:end+length(temp)) = k .* ones(1, length(temp));
 %         end
-        
+%         length(composite)
         if(length(composite) > 15)
+            for k = 1:length(allrules)
+                if(compareITM(rules(j), allrules(k)) < 9)
+                    continue;
+                end
+            end
             rule = reestimateITM(rules(j), composite);
-            
             allrules(end+1) = rules(j);
-            fprintf('filter : ');
-            
             all_composites{end+1} = composite;
             all_didx{end+1} = didx;
             
             for k = 1:length(didx)
                 did = didx(k);
-                
                 if(length(data(did).gpg.childs) == length(composite(k).chindices))
                     cand_data(did) = false;
-                    fprintf('%d, ', did);
                 end
             end
-            fprintf('. Total %d rules discovered\n', length(allrules));
+            fprintf('+');
         else
             fprintf('.');
         end
     end    
-    disp(['search ' num2str(idx) ' is done']);
+    fprintf([num2str(idx) ' is done (remain : ' num2str(sum(cand_data)) ' patterns : ' num2str(length(allrules)) '). ']); toc();    
+    
+    save('temppatterns2', 'allrules', 'all_composites', 'all_didx');
 end
+disp('proposal done!!');
+return
 %% Iterative clustering
 for i = 1:length(all_composites)
     hit(i) = length(all_composites{i});
