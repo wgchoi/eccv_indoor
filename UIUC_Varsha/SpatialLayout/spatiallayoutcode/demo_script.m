@@ -2,10 +2,9 @@ clear;
 % Add local code directories to Matlab path
 addpaths;
 
-dataset = 'diningroom';
-
+dataset = 'UIUC_CVPR';
 %% prep directories
-orgdir = ['../../../Data_Collection/' dataset '/'];
+orgdir = '../../../UIUC_CVPR_dataset/Images/'; % ['../../../Data_Collection/' dataset '/'];
 imdir = ['../../../Results/temp/' dataset '/resized/'];
 if ~exist(imdir,'dir')
     mkdir(imdir);
@@ -19,7 +18,7 @@ if ~exist(resdir,'dir')
     mkdir(resdir);
 end
 %% extensions
-exts = {'jpg' 'JPEG'};
+exts = {'jpg'};
 %% image resize all
 for e = 1:length(exts)
     files = dir(fullfile(orgdir, ['*.' exts{e}]));
