@@ -1,13 +1,13 @@
-function pg = findConsistent3DObjects(pg, x)
+function pg = findConsistent3DObjects(pg, x, iclusters)
 if(isempty(pg.childs))
     pg.camheight = 1.5;
     pg.objscale = [];
     return;
 end
-
-bottoms = zeros(1, length(pg.childs));
-for i = 1:length(pg.childs)
-    cube = x.cubes{pg.childs(i)};
+objidx = getObjIndices(pg, iclusters);
+bottoms = zeros(1, length(objidx));
+for i = 1:length(objidx)
+    cube = x.cubes{objidx(i)};
     bottoms(i) = -min(cube(2, :));
 end
 
@@ -15,8 +15,8 @@ end
 
 pg.camheight = camh;
 pg.objscale = alpha; 
-% for i = 1:length(pg.childs)
-%     pg.objscale(i) = alpha(i) .* x.cubes{pg.childs(i)};
+% for i = 1:length(objidx)
+%     pg.objscale(i) = alpha(i) .* x.cubes{objidx(i)};
 % end
 
 end

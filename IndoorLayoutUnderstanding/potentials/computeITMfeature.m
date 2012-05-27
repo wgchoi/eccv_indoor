@@ -17,6 +17,42 @@ if(quickrun)
     pg.camheight = camh;
     pg.objscale = camh ./ bottoms; 
     
+    if(isnan(camh))
+        cloc = [0;0];
+        theta = 0;
+        dloc = [];
+        dpose = [];
+        return;
+    end
+else
+    pg = findConsistent3DObjects(pg, x);
+end
+    
+locs = [x.locs(idx, 1:3) .* repmat(pg.objscale', 1, 3), x.locs(idx, 4)];
+[ifeat, cloc, theta, dloc, dpose] = getITMfeat(rule, locs, params.model);
+
+end
+
+
+function [ifeat, cloc, theta, dloc, dpose] = computeITMfeature_bk(x, rule, idx, params, quickrun)
+% (dx^2, dz^2, da^2) * n + view dependent biases
+if nargin < 5
+    quickrun = 0;
+end
+ifeat = zeros(rule.numparts * 3 + 8, 1);
+
+pg.childs = idx;
+if(quickrun)
+    bottoms = zeros(1, length(pg.childs));
+    for i = 1:length(pg.childs)
+        cube = x.cubes{pg.childs(i)};
+        bottoms(i) = -min(cube(2, :));
+    end
+    
+    camh = mean(bottoms(bottoms > 0));
+    pg.camheight = camh;
+    pg.objscale = camh ./ bottoms; 
+    
     
     if(isnan(camh))
         cloc = [0;0];

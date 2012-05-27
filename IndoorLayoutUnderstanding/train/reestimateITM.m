@@ -2,7 +2,6 @@ function rule = reestimateITM(rule, composites)
 
 % conservative..
 N = 4;
-
 for i = 1:rule.numparts
     temp = [rule.parts(i).dx, rule.parts(i).dz, rule.parts(i).da];
     for j = 1:length(composites)

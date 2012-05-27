@@ -8,9 +8,63 @@ elseif(strcmp(model.feattype, 'type3'))
     model = getmodelparam3(model, w);    
 elseif(strcmp(model.feattype, 'type5'))
     model = getmodelparam5(model, w);        
+elseif(strcmp(model.feattype, 'itm_v0'))
+    model = getmodelparam6(model, w);        
 end
 
 end
+
+
+function model = getmodelparam6(model, w)
+featlen =   1 + ... % scene classification 
+            1 + ... % layout confidence : no bias required, selection problem    
+            2 * model.nobjs + ... % object confidence : (weight + bias) per type
+            ( length(model.ow_edge) - 1 ) + ... % object-wall inclusion 
+            ( model.nobjs * model.nscene ) + ... % semantic constext
+            sum(model.itmfeatlen) + ... % intearction templates!
+            2 + ... % object-object interaction : 2D bboverlap, 2D polyoverlap
+            1 + ...         % projection-deformation cost
+            1;              % floor distance
+
+
+assert(length(w) == featlen);
+
+ibase = 1;
+% scene classification 
+model.w_os = w(ibase);
+ibase = ibase + 1;
+% layout confidence 
+model.w_or = w(ibase);
+ibase = ibase + 1;
+% object confidence
+model.w_oo = w(ibase:ibase+2*model.nobjs-1);
+ibase = ibase+2*model.nobjs;
+% object-wall inclusion 
+model.w_ior = w(ibase:ibase+length(model.ow_edge)-2);
+ibase = ibase + length(model.ow_edge) - 1;
+% semantic constext
+model.w_iso = w(ibase:ibase+model.nscene*model.nobjs-1);
+ibase = ibase + model.nscene*model.nobjs;
+% intearction templates!
+for i = 1:length(model.itmptns)
+    % w(ibase:ibase+model.itmfeatlen(i)-1) = getITMweights(model.itmptns(i));
+    model.itmptns(i) = setITMweights(model.itmptns(i), w(ibase:ibase+model.itmfeatlen(i)-1));
+    ibase = ibase + model.itmfeatlen(i);
+end
+% object-object interaction
+model.w_ioo = w(ibase:ibase+1);
+ibase = ibase + 2;
+% projection-deformation cost
+model.w_iod = w(ibase);
+ibase = ibase + 1;
+% floor distance
+model.w_iof = w(ibase);
+ibase = ibase + 1;
+
+assert(featlen == ibase - 1);
+
+end
+
 
 function model = getmodelparam5(model, w)
 featlen =   1 + ... % scene classification 

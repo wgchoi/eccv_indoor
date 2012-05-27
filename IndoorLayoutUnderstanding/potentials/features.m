@@ -7,6 +7,8 @@ if( isfield(model, 'commonground') && model.commonground )
         phi = features4(pg, x, iclusters, model);
     elseif(strcmp(model.feattype, 'type5'))
         phi = features5(pg, x, iclusters, model);
+    elseif(strcmp(model.feattype, 'itm_v0'))
+        phi = features6(pg, x, iclusters, model);
     end
     return;
 end
@@ -16,6 +18,119 @@ if(~isfield(model, 'feattype') || strcmp(model.feattype, 'type1'))
 elseif(strcmp(model.feattype, 'type2'))
     phi = features2(pg, x, iclusters, model);
 end
+
+end
+
+function phi = features6(pg, x, iclusters, model)
+
+featlen =   1 + ... % scene classification 
+            1 + ... % layout confidence : no bias required, selection problem    
+            2 * model.nobjs + ... % object confidence : (weight + bias) per type
+            ( length(model.ow_edge) - 1 ) + ... % object-wall inclusion 
+            ( model.nobjs * model.nscene ) + ... % semantic constext
+            sum(model.itmfeatlen) + ... % intearction templates!
+            2 + ... % object-object interaction : 2D bboverlap, 2D polyoverlap
+            1 + ...         % projection-deformation cost
+            1;              % floor distance
+
+phi = zeros(featlen, 1);
+ibase = 1;
+
+objidx = getObjIndices(pg, iclusters);
+
+assert(isfield(pg, 'objscale'));
+cubes = cell(1, length(objidx));
+for i = 1:length(objidx)
+    idx = objidx(i);
+    cubes{i} = x.cubes{idx} .* pg.objscale(i);
+end
+
+%% scene classification
+phi(ibase) = x.sconf(pg.scenetype);
+ibase = ibase + 1;
+%% scene layout confidence
+phi(ibase) = x.lconf(pg.layoutidx);
+ibase = ibase + 1;
+%% object observation confidence + bias
+for i = 1:length(objidx)
+    i1 = objidx(i);
+    if(iclusters(i1).isterminal)
+        obase = (iclusters(i1).ittype - 1) * 2;
+        
+        phi(ibase + obase) = phi(ibase + obase) + x.dets(i1, 8); % detection confidence
+        phi(ibase + obase + 1) = phi(ibase + obase + 1) + 1;
+    else
+        assert(false, 'not ready');
+    end
+end
+ibase = ibase + 2 * model.nobjs;
+%% object-wall interaction - no inclusion
+buf_w = zeros(3 * length(objidx), 1);
+
+for i = 1:length(cubes)
+    %%%%%% need to make it robust!!!
+    volume = cuboidRoomIntersection(x.faces{pg.layoutidx}, pg.camheight, cubes{i});
+    buf_w((3*i-2):3*i) = volume(2:4);
+end
+
+temp = histc(buf_w, model.ow_edge);
+phi(ibase:ibase+(length(model.ow_edge) - 2)) = temp(1:end-1);
+ibase = ibase + length(model.ow_edge) - 1;
+
+%% object scene context
+sidx = (pg.scenetype - 1) * model.nobjs;
+for i = 1:length(objidx)
+    i1 = objidx(i);
+    if(iclusters(i1).isterminal)
+        idx = ibase + sidx + iclusters(i1).ittype - 1;
+        phi(idx) = phi(idx) + 1;
+    else
+        assert(false, 'not ready');
+    end
+end
+ibase = ibase + model.nobjs * model.nscene;
+%% interaction templates!
+for i = 1:length(pg.childs)
+    i1 = pg.childs(i);
+    if(~iclusters(i1).isterminal)
+        itmid = iclusters(i1).ittype - model.nobjs;
+        % compute itm features
+        temp = ibase + model.itmbase(itmid);
+        locs = zeros(length(iclusters(i1).chindices), 4);
+        for j = 1:length(iclusters(i1).chindices)
+            idx = find(objidx == iclusters(i1).chindices(j), 1);
+            
+            locs(j, 1:3) = x.locs(iclusters(i1).chindices(j), 1:3) * pg.objscale(idx);
+            locs(j, 4) = x.locs(iclusters(i1).chindices(j), 4);
+        end
+        % 
+        itmfeat = getITMfeat(model.itmptns(itmid), locs, model);
+        phi(temp:temp+model.itmfeatlen(itmid)-1) = itmfeat;
+    end
+end
+ibase = ibase + sum(model.itmfeatlen);
+%% overlap between a pair of objects
+phi(ibase) = sum(sum(x.orarea(objidx, objidx)));
+phi(ibase + 1) = sum(sum(x.orpolys(objidx, objidx)));
+ibase = ibase + 2;
+
+%% object scale deformation
+objscale = pg.objscale;
+objscale(objscale < 0) = 1e-2; % safe guard to avoid error
+for i = 1:length(objidx)
+    phi(ibase) = phi(ibase) + ( log(objscale(i)) ) .^ 2;
+end
+ibase = ibase + 1;
+
+%% object-floor interaction 
+for i = 1:length(objidx)
+    bottom = min(cubes{i}(2, :)); % bottom y position.
+    phi(ibase) = phi(ibase) + (pg.camheight + bottom) .^ 2; %
+end
+ibase = ibase + 1;
+
+assert(featlen == ibase - 1);
+assert(~(any(isnan(phi)) || any(isinf(phi))));
 
 end
 

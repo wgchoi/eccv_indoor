@@ -1,10 +1,13 @@
-function [ composite ] = findITMCandidates(x, isolated, params, rule, cidx)
+function [composite, x] = findITMCandidates(x, isolated, params, rule, cidx)
 if(nargin < 5)
     % candidate childs
     % in case of training, gives gt detections.
     cidx = 1:length(isolated);
     x = precomputeDistances(x);
 end
+
+%%%% due to inconsistent reference to detections...
+%%%% ensure they are the same.. TODO : fix it!
 assert(length(isolated) == size(x.dets, 1));
 
 composite = graphnodes(1000);
