@@ -32,7 +32,7 @@ figure(figid);
 hold on;
 for i=1:6
     h=patch(X(:, i), Y(:, i), Z(:, i), col);
-    set(h,'edgecolor','k', 'linewidth',5);%, 'FaceAlpha', 0.7);
+    set(h,'edgecolor','k', 'linewidth',5, 'FaceAlpha', 0.2);
     plot3(cube(1,1), cube(1,2), cube(1, 3) , 'k.', 'MarkerSize', 40);
 end
 hold off;

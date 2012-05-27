@@ -21,16 +21,14 @@ model(idx).height = [0.4 0.4];
 model(idx).depth = [0.75 0.8];
 model(idx).grounded = 1;
 model(idx).ori_sensitive = 0;
-% 
-idx = idx + 1;
-model(idx).name = 'TV';
-model(idx).type = {'Flat' 'CRT'};
-model(idx).width = [0.8, 0.5];
-model(idx).height = [0.4, 0.5];
-model(idx).depth = [0.2, 0.3];
-model(idx).grounded = 0;
-model(idx).ori_sensitive = 1;
-
+% idx = idx + 1;
+% model(idx).name = 'TV';
+% model(idx).type = {'Flat' 'CRT'};
+% model(idx).width = [0.8, 0.5];
+% model(idx).height = [0.4, 0.5];
+% model(idx).depth = [0.2, 0.3];
+% model(idx).grounded = 0;
+% model(idx).ori_sensitive = 1;
 idx = idx + 1;
 model(idx).name = 'Chair';
 model(idx).type = {'Regular'};

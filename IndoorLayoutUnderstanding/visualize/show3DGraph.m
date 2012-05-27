@@ -12,15 +12,44 @@ drawCube(room, x.lpolys(pg.layoutidx, :), figid);
 
 col = 'rgbykmcrgbykmcrgbykmcrgbykmc';
 
+cnt = 1;
 for i = 1:length(pg.childs)
      idx = pg.childs(i);
-     oid = iclusters(idx).ittype;
-     
-     if isfield(pg, 'objscale')
-        draw3Dcube(pg.objscale(i) * x.cubes{idx}, figid, col(oid));
+     if(iclusters(idx).isterminal)
+        oid = iclusters(idx).ittype;
+        if isfield(pg, 'objscale')
+            draw3Dcube(pg.objscale(cnt) * x.cubes{idx}, figid, col(oid));
+            cnt = cnt + 1;
+        else
+            draw3Dcube(x.cubes{idx}, figid, col(oid));
+        end
      else
-        draw3Dcube(x.cubes{idx}, figid, col(oid));
+        childs = iclusters(idx).chindices;
+        locs = zeros(length(childs), 3);
+        for j = 1:length(childs)
+            oid = iclusters(childs(j)).ittype;
+            if isfield(pg, 'objscale')
+                draw3Dcube(pg.objscale(cnt) * x.cubes{childs(j)}, figid, col(oid));
+                locs(j, :) = pg.objscale(cnt) * x.locs(childs(j), 1:3);
+                cnt = cnt + 1;
+            else
+                draw3Dcube(x.cubes{childs(j)}, figid, col(oid));
+                locs(j, :) = x.locs(childs(j), 1:3);
+            end
+            
+            % bbs(j, :) = drawObject(x, childs(j), oid, om, fig2d);
+        end
+        draw3DITMLink(locs);
      end
+end
+
+end
+
+function draw3DITMLink(locs)
+ct = mean(locs, 1);
+for i = 1:size(locs, 1)
+    line([ct(1) locs(i, 1)], [ct(2) locs(i, 2)], [ct(3) locs(i, 3)], 'LineWidth',8, 'Color', 'w', 'linestyle', '-.');
+    line([ct(1) locs(i, 1)], [ct(2) locs(i, 2)], [ct(3) locs(i, 3)], 'LineWidth',4, 'Color', 'r', 'linestyle', '-.');
 end
 
 end

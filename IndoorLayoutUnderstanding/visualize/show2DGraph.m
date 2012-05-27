@@ -33,16 +33,18 @@ text(10, 20, str, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2);
 end
 
 function drawITMLink(bbs)
-bbox = [min(bbs(:, 1)) - 10, min(bbs(:, 2)) - 10, max(bbs(:, 3)) + 10, max(bbs(:, 4)) + 10];
-ct = bbox2ct(bbox);
+objct = zeros(size(bbs, 1), 2);
 for i = 1:size(bbs, 1)
-    temp = bbox2ct(bbs(i, :));
-    line([ct(1) temp(1)], [ct(2) temp(2)], 'LineWidth',8, 'Color', 'k', 'linestyle', '-.');
-    line([ct(1) temp(1)], [ct(2) temp(2)], 'LineWidth',4, 'Color', 'w', 'linestyle', '-.');
-    rectangle('position', [temp(1) - 10, temp(2) - 10, 20, 20], 'facecolor', 'w', 'edgecolor', 'k', 'linewidth', 4);
+    objct(i, :) = bbox2ct(bbs(i, :));
+end
+ct = mean(objct, 1);
+for i = 1:size(bbs, 1)
+    line([ct(1) objct(i, 1)], [ct(2) objct(i, 2)], 'LineWidth',8, 'Color', 'k', 'linestyle', '-.');
+    line([ct(1) objct(i, 1)], [ct(2) objct(i, 2)], 'LineWidth',4, 'Color', 'w', 'linestyle', '-.');
+    rectangle('position', [objct(i, 1) - 10, objct(i, 2) - 10, 20, 20], 'facecolor', 'w', 'edgecolor', 'k', 'linewidth', 4);
 end
 % rectangle('position', bbox2rect(bbox), 'linewidth', 4, 'linestyle', '-.', 'edgecolor', 'w');
-rectangle('position', [ct(1) - 10, ct(2) - 10, 20, 20], 'facecolor', 'c', 'edgecolor', 'k', 'linewidth', 4);
+rectangle('position', [ct(1) - 10, ct(2) - 10, 20, 20], 'Curvature', .8, 'facecolor', 'c', 'edgecolor', 'k', 'linewidth', 4);
 
 end
 

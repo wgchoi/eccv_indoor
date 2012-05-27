@@ -1,7 +1,6 @@
 function w = getITMweights(ptn)
 
 w = zeros(ptn.numparts * 3 + 8, 1);
-
 ibase = 0;
 for i = 1:length(ptn.parts)
     w(ibase + 1) = ptn.parts(i).wx;
