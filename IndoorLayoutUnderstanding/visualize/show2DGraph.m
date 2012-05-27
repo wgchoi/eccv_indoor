@@ -1,6 +1,8 @@
-function show2DGraph(pg, x, icluster)
+function show2DGraph(pg, x, icluster, fig2d)
 % imshow(x.imfile);
-fig2d = 1000;
+if nargin < 4
+    fig2d = 1000;
+end
 figure(fig2d); clf;
 
 om = objmodels();

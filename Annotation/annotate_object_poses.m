@@ -16,5 +16,5 @@ for j = 1:num
     poses(j) = annotate_one_obj_pose(window, objmodel, objid, pose);
     elevation = poses(j).el;
 end
-close all;
+close(2);
 end

@@ -74,7 +74,7 @@ for i = 1:size(linePairs, 1)
         else
             % get projection of camera location onto the line
             pp = get_vector_direction(N, P, [0, 0, 0]);
-            p1 = pp - N * cam_height * 3;
+            pi = pp - N * cam_height * 3;
             pe = pp + N * cam_height * 3;
         end
         % find the point of intersection
