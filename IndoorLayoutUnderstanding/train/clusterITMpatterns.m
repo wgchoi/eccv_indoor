@@ -35,8 +35,18 @@ if(~isempty(maxc))
     
     imatch = mode(maxc.imatch, 2);
     if(length(unique(imatch)) ~= size(maxc.imatch, 1))
-        disp('!');
-        keyboard;
+        disp('!!!!!!');
+        
+        maxc.imatch(:, end) = [];
+        imatch = mode(maxc.imatch, 2);
+        
+        if(length(unique(imatch)) ~= size(maxc.imatch, 1))
+            % error?
+            newptns(maxc.i) = [];
+            newcomps(maxc.i) = [];
+            newdids(maxc.i) = [];
+            return;
+        end
     end
     
     N = length(dids{maxc.i});
@@ -53,7 +63,13 @@ if(~isempty(maxc))
         for j = 1:length(imatch)
             cidx(imatch(j)) = comps{maxc.i}(idx(i)).chindices(j);
         end
-        setcomps(end + 1) = createITMnode(ptn, data(setid(end)).x, cidx, params);
+        if(iscell(data))
+            setcomps(end + 1) = createITMnode(ptn, data{setid(end)}.x, cidx, params);
+        elseif(isstruct(data))
+            setcomps(end + 1) = createITMnode(ptn, data(setid(end)).x, cidx, params);
+        else
+            assert(0);
+        end
     end
     
     newptns(maxc.j) = reestimateITM(ptn, setcomps);

@@ -1,19 +1,19 @@
-function rules = proposeITM(pg, x, iclusters, params)
+function rules = proposeITM(pg, x, isolated, params)
 %%% propose all possible ITM rules
 %%% found from given example
 %%% any combination of objects can be the candidates
 %%% validity will be examined by considering the frequency
 
 % find common grounding
-pg = findConsistent3DObjects(pg, x);
+pg = findConsistent3DObjects(pg, x, isolated);
 
 objtypes = []; objlocs = []; objcubes = {}; objpose = [];
 for i = 1:length(pg.childs)
     iidx = pg.childs(i);
     
-    assert(iclusters(iidx).isterminal == 1);
+    assert(isolated(iidx).isterminal == 1);
     
-    objtypes(end + 1) = iclusters(iidx).ittype;
+    objtypes(end + 1) = isolated(iidx).ittype;
     objlocs(end + 1, :) = x.locs(iidx, 1:3) .* pg.objscale(i);
     objcubes{end + 1} = x.cubes{iidx} .* pg.objscale(i);
     objpose(end + 1) = x.locs(iidx, 4) ;
@@ -51,10 +51,10 @@ for i = 1:size(comb, 1)
         rules(i).parts(j).da = dpose(j);
         
         % initial deformation costs
-        rules(i).parts(j).wx = -10;
-        rules(i).parts(j).wy = -10;
-        rules(i).parts(j).wz = -10;
-        rules(i).parts(j).wa = -5;
+        rules(i).parts(j).wx = -5;
+        rules(i).parts(j).wy = -5;
+        rules(i).parts(j).wz = -5;
+        rules(i).parts(j).wa = -3;
     end
     
     rules(i).biases(:) = numpart;

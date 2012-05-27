@@ -3,7 +3,8 @@ function show3DGraph(pg, x, iclusters, figid)
 if nargin < 4
     figid = 1001;
 end
-figure(figid); clf;
+figure(figid); 
+clf;
 
 room.F = x.faces{pg.layoutidx};
 room.K = x.K; room.R = x.R; room.h = pg.camheight;

@@ -3,7 +3,8 @@ function show2DGraph(pg, x, icluster, fig2d)
 if nargin < 4
     fig2d = 1000;
 end
-figure(fig2d); clf;
+figure(fig2d); 
+clf;
 
 om = objmodels();
 

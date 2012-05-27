@@ -91,7 +91,7 @@ while(any(cand_data))
         
         %%% match threshold
         if(length(composite) > 15)
-            rule = reestimateITM(ptn, composite);
+            ptn = reestimateITM(ptn, composite);
             allrules(end+1) = ptn;
             all_composites{end+1} = composite;
             all_didx{end+1} = didx;

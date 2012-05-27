@@ -69,7 +69,7 @@ for i=1:length(data)
         labels{i}.pg = data(i).gpg;
         labels{i}.pg.childs = find(annos{i}.oloss(:, 2));
         if(isfield(params.model, 'commonground') && params.model.commonground)
-            labels{i}.pg = findConsistent3DObjects(labels{i}.pg, patterns{i}.x);
+            labels{i}.pg = findConsistent3DObjects(labels{i}.pg, patterns{i}.x, patterns{i}.iclusters);
         else
             mh = getAverageObjectsBottom(labels{i}.pg, patterns{i}.x);
             if(~isnan(mh))

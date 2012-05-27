@@ -10,26 +10,23 @@ catch em
     disp(em);
 end
 
-params = initparam(3, 5);
-cnt = 1;
-rooms = {'bedroom' 'livingroom' 'diningroom'};
-for i = 1:length(rooms)
-    datadir = fullfile('traindata4', rooms{i});
-    datafiles = dir(fullfile(datadir, '*.mat'));
-    for j = 1:length(datafiles) % min(200, length(datafiles))
-        data(cnt) = load(fullfile(datadir, datafiles(j).name));
-        data(cnt).gpg.scenetype = i;
-        cnt = cnt + 1;
-    end
+params = initparam(3, 6);
+
+dataroot = 'filtereddata'; 
+datadir = fullfile(dataroot, 'data');
+
+datafiles = dir(fullfile(datadir, '*.mat'));
+for i = 1:length(datafiles) % min(200, length(datafiles))
+    data(i) = load(fullfile(datadir, datafiles(i).name));
 end
 
-for i = 1:length(data)
-    temp(i) = isempty(data(i).x);
-end
-data(temp) = [];
-[paramsout, info] = train_ssvm_uci(data, params);
+expinfo = load(fullfile(dataroot, 'info'));
+[paramsout, info] = train_ssvm_uci(data(expinfo.trainsplit), params);
+%% remove train data
+testidx = setdiff(1:length(data), expinfo.trainsplit);
+data = data(testidx);
 %% testing
-res = struct('spg', cell(length(data), 1), 'maxidx', []);
+res = struct('spg', cell(length(data), 1), 'maxidx', [], 'h', []);
 parfor i = 1:length(data)
     fprintf(['processing ' num2str(i)])
     params = paramsout;
@@ -37,7 +34,7 @@ parfor i = 1:length(data)
 	pg = findConsistent3DObjects(data(i).gpg, data(i).x);
 	pg.layoutidx = 1; % initialization
 
-    [res(i).spg, res(i).maxidx] = infer_top(data(i).x, data(i).iclusters, params, pg);
+    [res(i).spg, res(i).maxidx, res(i).h] = infer_top(data(i).x, data(i).iclusters, params, pg);
     params.objconftype = 'odd';
     [conf1{i}] = reestimateObjectConfidences(res(i).spg, res(i).maxidx, data(i).x, data(i).iclusters, params);
     params.objconftype = 'orgdet';
@@ -47,7 +44,7 @@ parfor i = 1:length(data)
     fprintf(' => done\n')
 end
 %% evaluation
-names = {'sofa', 'table', 'chair', 'bed', 'dtable'};
+names = {'sofa', 'table', 'chair', 'bed', 'dtable', 'stable'};
 for i = 1:length(names)
     [rec{i}, prec{i}, ap{i}] = evalDetection(annos, xs, conf1, i, false);
 end

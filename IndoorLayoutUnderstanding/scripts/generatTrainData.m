@@ -1,5 +1,5 @@
 function generatTrainData(roomname)
-rootdir = 'traindata4';
+rootdir = 'finaldata';
 params = initparam(3, 6);
 
 load(['../Results/layout/' roomname '/res_set_jpg.mat']);

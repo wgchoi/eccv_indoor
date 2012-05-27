@@ -40,7 +40,7 @@ while(iter < 10)
         newgraph.childs(end + 1) = addidx(i);
         
         if(isfield(params.model, 'commonground') && params.model.commonground)
-            newgraph = findConsistent3DObjects(newgraph, x);
+            newgraph = findConsistent3DObjects(newgraph, x, iclusters);
         else
             mh = getAverageObjectsBottom(newgraph, x);
             if(~isnan(mh))
@@ -77,7 +77,7 @@ while(iter < 10)
                 newgraph.childs(tempidx) = addset(j);
 
                 if(isfield(params.model, 'commonground') && params.model.commonground)
-                    newgraph = findConsistent3DObjects(newgraph, x);
+                    newgraph = findConsistent3DObjects(newgraph, x, iclusters);
                 else
                     mh = getAverageObjectsBottom(newgraph, x);
                     if(~isnan(mh))
@@ -134,7 +134,7 @@ while(iter < 10)
     end
     
     if(isfield(params.model, 'commonground') && params.model.commonground)
-        newgraph = findConsistent3DObjects(newgraph, x);
+        newgraph = findConsistent3DObjects(newgraph, x, iclusters);
     else
         mh = getAverageObjectsBottom(newgraph, x);
         if(~isnan(mh))

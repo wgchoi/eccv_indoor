@@ -1,8 +1,8 @@
-function [spg, maxidx] = infer_top(x, iclusters, params, y)
-
+function [spg, maxidx, h] = infer_top(x, iclusters, params, y)
+h = [];
 if(strcmp(params.inference, 'mcmc'))
     init.pg = y;
-    [spg, maxidx] = DDMCMCinference(x, iclusters, params, init);
+    [spg, maxidx, ~, h] = DDMCMCinference(x, iclusters, params, init);
 elseif(strcmp(params.inference, 'greedy'))
     initpg = y;
     [spg] = GreedyInference(x, iclusters, params, initpg);
