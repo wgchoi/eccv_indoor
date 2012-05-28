@@ -129,7 +129,7 @@ for i = 1:length(indices{1})
             temp(:, angdiff(newidx, temp(k, :)) < ma(k) - 1) = [];
             temp(:, angdiff(newidx, temp(k, :)) > ma(k) + 1) = [];
         end
-        %  temp(:, any(temp == newidx, 1)) = [];
+        temp(:, any(temp == newidx, 1)) = [];
     end
     
     idx = (1:size(temp, 2)) + cnt;

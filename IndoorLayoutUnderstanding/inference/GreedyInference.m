@@ -20,10 +20,15 @@ pg.childs = [];
 phi = features(pg, x, iclusters, params.model);
 pg.lkhood = dot(phi, params.model.w);
 if(includeloss)
-    pg.loss = lossall(anno, x, pg, params);
+    pg.loss = lossall2(anno, x, iclusters, pg, params);
 end
 cache = initCache(pg, x, iclusters, params.model);
 
+if(isfield(params, 'quicklearn') && params.quicklearn)
+    quickrun = true;
+else
+    quickrun = false;
+end
 %% initialize cache
 [moves, cache] = preprocessJumpMoves(x, iclusters, cache);
 iter = 0;
@@ -36,11 +41,17 @@ while(iter < 10)
     count = 1;
     
     for i = 1:length(addidx)
+        if(~iclusters(addidx(i)).isterminal)
+            if( any( cache.inset(iclusters(addidx(i)).chindices) ) )
+                continue;
+            end
+        end
+        
         newgraph = pg;
         newgraph.childs(end + 1) = addidx(i);
         
         if(isfield(params.model, 'commonground') && params.model.commonground)
-            newgraph = findConsistent3DObjects(newgraph, x, iclusters);
+            newgraph = findConsistent3DObjects(newgraph, x, iclusters, quickrun);
         else
             mh = getAverageObjectsBottom(newgraph, x);
             if(~isnan(mh))
@@ -54,7 +65,7 @@ while(iter < 10)
         phi = features(newgraph, x, iclusters, params.model);
         temp(2, count) = dot(phi, params.model.w) - pg.lkhood;
         if(includeloss)
-            newgraph.loss = lossall(anno, x, newgraph, params);
+            newgraph.loss = lossall2(anno, x, iclusters, newgraph, params);
             temp(2, count) = temp(2, count) + newgraph.loss - pg.loss;
         end
         temp(3, count) = addidx(i);
@@ -77,7 +88,7 @@ while(iter < 10)
                 newgraph.childs(tempidx) = addset(j);
 
                 if(isfield(params.model, 'commonground') && params.model.commonground)
-                    newgraph = findConsistent3DObjects(newgraph, x, iclusters);
+                    newgraph = findConsistent3DObjects(newgraph, x, iclusters, quickrun);
                 else
                     mh = getAverageObjectsBottom(newgraph, x);
                     if(~isnan(mh))
@@ -91,7 +102,7 @@ while(iter < 10)
                 phi = features(newgraph, x, iclusters, params.model);
                 temp(2, count) = dot(phi, params.model.w)  - pg.lkhood;
                 if(includeloss)
-                    newgraph.loss = lossall(anno, x, newgraph, params);
+                    newgraph.loss = lossall2(anno, x, iclusters, newgraph, params);
                     temp(2, count) = temp(2, count) + newgraph.loss - pg.loss;
                 end
                 temp(3, count) = delidx;
@@ -118,7 +129,11 @@ while(iter < 10)
         newgraph = pg;
         newgraph.childs(end + 1) = addidx;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        cache.inset(addidx) = true;
+        if(iclusters(addidx).isterminal)
+            cache.inset(addidx) = true;
+        else
+            cache.inset([iclusters(addidx).chindices, addidx]) = true;
+        end
     elseif(temp(1, select) == 2)
         delidx = temp(3, select);
         addidx = temp(4, select);
@@ -134,7 +149,7 @@ while(iter < 10)
     end
     
     if(isfield(params.model, 'commonground') && params.model.commonground)
-        newgraph = findConsistent3DObjects(newgraph, x, iclusters);
+        newgraph = findConsistent3DObjects(newgraph, x, iclusters, quickrun);
     else
         mh = getAverageObjectsBottom(newgraph, x);
         if(~isnan(mh))
@@ -155,7 +170,7 @@ while(iter < 10)
     phi = features(newgraph, x, iclusters, params.model);
     newgraph.lkhood = dot(phi, params.model.w);
     if(includeloss)
-        newgraph.loss = lossall(anno, x, newgraph, params);
+        newgraph.loss = lossall2(anno, x, iclusters, newgraph, params);
     end
 
     pg = newgraph;

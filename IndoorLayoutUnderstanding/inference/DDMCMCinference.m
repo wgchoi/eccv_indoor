@@ -47,7 +47,7 @@ end
 maxidx = 1;
 maxval = spg(1).lkhood;
 if(includeloss)
-    spg(1).loss = lossall(anno, x, spg(1), params);
+    spg(1).loss = lossall2(anno, x, iclusters, spg(1), params);
     maxval = maxval + spg(1).loss;
 end
 
@@ -60,7 +60,7 @@ while(count < params.numsamples)
     lar = lkhood;
     %% loss value
     if(includeloss)
-        newgraph.loss = lossall(anno, x, newgraph, params);
+        newgraph.loss = lossall2(anno, x, iclusters, newgraph, params);
         lar = lar + params.accconst * (newgraph.loss - spg(count).loss);
     end
     %% accept or reject

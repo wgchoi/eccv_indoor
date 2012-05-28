@@ -1,4 +1,4 @@
-function [patterns, labels, hit] = latent_completion(patterns, labels, params, VERBOSE)
+function [patterns, labels, hit] = latent_completion(patterns, labels, params, updateITM, VERBOSE)
 
 model = params.model;
 
@@ -7,20 +7,25 @@ if(VERBOSE > 0)
 end
 
 parfor i = 1:length(patterns)
-    composites = graphnodes(1);
-    composites(:) = [];
-    
-    x = patterns(i).x;
-    isolated = patterns(i).isolated;
-    
-    for j = 1:length(model.itmptns)
-        [temp, x] = findITMCandidates(x, isolated, params, model.itmptns(j));
-        composites = [composites; temp];
+    if(updateITM)
+        composites = graphnodes(1);
+        composites(:) = [];
+
+        x = patterns(i).x;
+        isolated = patterns(i).isolated;
+
+        for j = 1:length(model.itmptns)
+            [temp, x] = findITMCandidates(x, isolated, params, model.itmptns(j));
+            composites = [composites; temp];
+        end
+        patterns(i).composite = composites;
+        patterns(i).iclusters = [patterns(i).isolated; patterns(i).composite];
     end
-%     patterns(i).x = x;
-    patterns(i).composite = composites;
-    patterns(i).iclusters = [patterns(i).isolated; patterns(i).composite];
+    
     labels(i).lcpg = latentITMcompletion(labels(i).pg, patterns(i).x, patterns(i).iclusters, params);
+    if(VERBOSE > 1)
+        disp(['pattern ' num2str(i) ' processed'])
+    end
 end
 
 if nargout >= 2

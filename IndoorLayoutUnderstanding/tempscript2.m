@@ -3,7 +3,7 @@ clear
 
 addPaths
 addVarshaPaths
-
+% 
 try
     matlabpool open 8
 catch em
@@ -11,6 +11,7 @@ catch em
 end
 
 params = initparam(3, 6);
+params.quicklearn = true;
 
 dataroot = 'filtereddata'; 
 datadir = fullfile(dataroot, 'data');

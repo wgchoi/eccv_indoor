@@ -1,4 +1,9 @@
-function pg = findConsistent3DObjects(pg, x, iclusters)
+function pg = findConsistent3DObjects(pg, x, iclusters, quickcomp)
+
+if nargin < 4
+    quickcomp = false;
+end
+
 if(isempty(pg.childs))
     pg.camheight = 1.5;
     pg.objscale = [];
@@ -11,7 +16,17 @@ for i = 1:length(objidx)
     bottoms(i) = -min(cube(2, :));
 end
 
-[ camh, alpha ] = optimizeObjectScales( bottoms );
+if(quickcomp)
+    camh = mean(bottoms(bottoms > 0));
+    if(isnan(camh))
+        camh = mean(bottoms(bottoms < 0));
+        alpha = camh ./ bottoms;
+    else
+        alpha = camh ./ bottoms;
+    end
+else
+    [ camh, alpha ] = optimizeObjectScales( bottoms );
+end
 
 pg.camheight = camh;
 pg.objscale = alpha; 

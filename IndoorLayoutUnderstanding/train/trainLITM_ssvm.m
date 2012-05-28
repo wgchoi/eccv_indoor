@@ -14,12 +14,23 @@ params.minITMmatch = 15;
 params = appendITMtoParams(params, itmptns);
 params.model.feattype = 'itm_v0';
 
+% make it more generous
+for  i = 1:length(params.model.itmptns)
+    params.model.itmptns(i).biases(:) = params.model.itmptns(i).numparts * 2;
+end
+
 [patterns, labels, hit2] = latent_completion(patterns, labels, params, VERBOSE);
-
-hit1
-hit2
-
-keyboard;
+for i = 1:length(patterns)
+    temp.pattern = patterns(i);
+    temp.label = labels(i);
+    temp.anno = annos(i);
+    save(fullfile('cache/initial', ['traindata' num2str(i, '%03d')]), '-struct', 'temp');
+end
+save(fullfile('cache/initial', 'params'), 'params', 'hit1', 'hit2');
+%%%%% DDMCMC not ready yet! rely on Greedy + MCMC for layout only
+params.pmove(:) = 0; params.pmove(2) = 1; params.numsamples = 200;
+params.quicklearn = true;
+[params, info] = train_ssvm_uci2(patterns, labels, annos, params, 0);
 
 end
 
@@ -36,6 +47,9 @@ labels = struct(  'idx', cell(length(data), 1), ...
                     'lcpg', cell(length(data), 1));   % idx, pg, lcpg
                 
 annos = struct('oloss', cell(length(data), 1));
+
+removecnt = 0;
+totalfp = 0;
 
 for i = 1:length(data)
     %%% start from gt labels..
@@ -81,6 +95,12 @@ for i = 1:length(data)
         nump(i) = size(GT, 1);
         
         ambids = find((annos(i).oloss(:, 1) == 0) & (annos(i).oloss(:, 2) == 0));
+        %% remove too many flase positives
+        filterids = falsepositiveNMSFilter(patterns(i).x, find((annos(i).oloss(:, 1) == 1)), 35);
+        ambids = unique(union(ambids, filterids));
+        
+        removecnt = removecnt + length(filterids);
+        totalfp = totalfp + sum(annos(i).oloss(:, 1) == 1);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         annos(i).oloss(ambids, :) = [];
         
@@ -122,7 +142,7 @@ for i = 1:length(data)
     end
 end
 if(VERBOSE > 0)
-    disp('prepare data done')
+    disp(['prepare data done, removed ' num2str(removecnt) '/' num2str(totalfp) ' for faster training'])
 end
 end
 
