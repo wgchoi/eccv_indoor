@@ -174,9 +174,53 @@ while(iter < 10)
     end
 
     pg = newgraph;
+    
+    %% layout adjustment
+    maxval = pg.lkhood;
+    if(includeloss)
+        maxval = maxval + pg.loss;
+    end
+    for i = 1:length(x.lconf)
+        newgraph = pg;
+        newgraph.layoutidx = i;
+
+        phi = features(newgraph, x, iclusters, params.model);
+        newgraph.lkhood = dot(phi, params.model.w);
+        val = newgraph.lkhood;
+        if(includeloss)
+            newgraph.loss = lossall2(anno, x, iclusters, newgraph, params);
+            val = val + newgraph.loss;
+        end
+
+        if(maxval < val)
+            pg = newgraph;
+            maxval = val;
+        end
+    end
 end
 
-
+%% layout adjustment
+maxval = pg.lkhood;
+if(includeloss)
+    maxval = maxval + pg.loss;
+end
+for i = 1:length(x.lconf)
+    newgraph = pg;
+    newgraph.layoutidx = i;
+    
+    phi = features(newgraph, x, iclusters, params.model);
+    newgraph.lkhood = dot(phi, params.model.w);
+    val = newgraph.lkhood;
+    if(includeloss)
+        newgraph.loss = lossall2(anno, x, iclusters, newgraph, params);
+        val = val + newgraph.loss;
+    end
+    
+    if(maxval < val)
+        pg = newgraph;
+        maxval = val;
+    end
+end
 end
 
 function cache = initCache(pg, x, iclusters, model)

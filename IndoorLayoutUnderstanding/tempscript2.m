@@ -79,6 +79,7 @@ for i = 1:length(names)
     [recbase{i}, precbase{i}, apbase{i}] = evalDetection(annos, xs, conf3, i, false);
 end
 %%
+fontsize = 12;
 for i = 1:length(names)
     figure(i);
     plot(rec{i}, prec{i}, 'b-', 'linewidth', 2)
@@ -87,20 +88,43 @@ for i = 1:length(names)
     plot(recbase{i}, precbase{i}, 'm-', 'linewidth', 2)
     grid on
     axis([0 1 0 1])
-    xlabel('recall');
-    ylabel('precision');
-    legend({['ours AP=' num2str(ap{i}, '%.04f')], ['greedy AP=' num2str(ap_gr{i}, '%.04f')], ['dets AP=' num2str(apbase{i}, '%.04f')]});
-    title(names{i})
+    
+    set(gca, 'fontsize', fontsize); 
+    h = xlabel('recall');
+    set(h, 'fontsize', fontsize); 
+    h = ylabel('precision');
+    set(h, 'fontsize', fontsize); 
+    legend({['ours AP=' num2str(ap{i}, '%.03f')], ['greedy AP=' num2str(ap_gr{i}, '%.03f')], ['dets AP=' num2str(apbase{i}, '%.03f')]}, 'location', 'SouthWest');
+    h = title(names{i});
+    set(h, 'fontsize', fontsize); 
     saveas(gcf, fullfile(expname, ['pr_' names{i}]), 'fig');
 end
+close all
 %% layout evaluation
 clear temp;
 
 baseline = zeros(1, length(data));
+greedy =  zeros(1, length(data));
 ours = zeros(1, length(data));
 for i = 1:length(data)
     baseline(i) = data(i).x.lerr(1);
+    
+    rid = res(i).spg(1).layoutidx;
+    greedy(i) = data(i).x.lerr(rid);
     rid = res(i).spg(res(i).maxidx).layoutidx;
     ours(i) = data(i).x.lerr(rid);
     temp(i) = res(i).maxidx;
+end
+evallayout.final = ours;
+evallayout.greedy = greedy;
+evallayout.baseline = baseline;
+
+save(fullfile(expname, 'summary'), 'evallayout');
+%%
+fontsize = 12;
+for i = 1:length(names)
+    obj = names{i}; 
+    uiopen(fullfile(expname, ['pr_' obj '.fig']),1)
+    savefig(fullfile(expname, ['pr_' obj]), 'pdf'); 
+    close;
 end
