@@ -163,9 +163,16 @@ while (iter < max_iter && trigger)
         params.model.w = getweights(params.model);
         
         numdata = min(chunksize, length(patterns) - id + 1);
+        
+        % save the memory
+        buffx = patterns(id:id+numdata-1);
+        buffy = labels(id:id+numdata-1);
+        buffa = annos(id:id+numdata-1);
         parfor did = 1:numdata
-            [yhat(did) dphi(:, did) margin(did)] = find_MVC(patterns{id + did - 1}, labels{id + did - 1}, annos{id + did - 1}, params);
+            [~, dphi(:, did), margin(did)] = find_MVC(buffx(did), buffy(did), buffa(did), params);
+            % [yhat(did) dphi(:, did) margin(did)] = find_MVC(patterns{id + did - 1}, labels{id + did - 1}, annos{id + did - 1}, params);
         end
+        
         for did = 1:numdata
             %if this constraint is the MVC for this image
             isMVC = 1;

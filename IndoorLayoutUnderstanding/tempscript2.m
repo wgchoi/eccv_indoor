@@ -40,7 +40,7 @@ parfor i = 1:length(data)
     fprintf(' => done\n')
 end
 %% evaluation
-expname = 'experiments/type6';
+expname = 'experiments/original';
 mkdir(expname);
 
 save(fullfile(expname, 'params'), 'params', 'paramsout', 'info');

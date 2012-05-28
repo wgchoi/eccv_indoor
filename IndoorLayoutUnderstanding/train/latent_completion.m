@@ -15,8 +15,11 @@ parfor i = 1:length(patterns)
         isolated = patterns(i).isolated;
 
         for j = 1:length(model.itmptns)
+            % get valid candidates
             [temp, x] = findITMCandidates(x, isolated, params, model.itmptns(j));
-            composites = [composites; temp];
+            % get random candidates as negative sets!
+            [randset] = findRandomITMCandidates(x, isolated, params, model.itmptns(j), 30);
+            composites = [composites; temp; randset];
         end
         patterns(i).composite = composites;
         patterns(i).iclusters = [patterns(i).isolated; patterns(i).composite];

@@ -1,8 +1,8 @@
-function visualizeITMcomposite(x, isolated, comp)
+function visualizeITMcomposite(x, iclusters, idx)
 
 pg = parsegraph();
-pg.childs = comp.chindices;
-pg = findConsistent3DObjects(pg, x);
-show2DGraph(pg, x, icluster);
+pg.childs = idx;
+pg = findConsistent3DObjects(pg, x, iclusters);
+show2DGraph(pg, x, iclusters);
 
 end

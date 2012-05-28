@@ -1,36 +1,61 @@
-function [params, info] = trainLITM_ssvm(data, params)
+function [params, info] = trainLITM_ssvm(data, params, expname)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 addpath('../3rdParty/ssvmqp_uci/');
 VERBOSE = 2;
+maxiter = 5;
 
 % preprocess
 [patterns, labels, annos] = preprocess_data(data, params, VERBOSE);
-
+%% ITM mining
 % find ITM patterns
 params.minITMmatch = 15;
 [itmptns, hit1] = learn_itm_patterns(patterns, labels, params, VERBOSE);
-
 % append the discovered patterns into the model
 params = appendITMtoParams(params, itmptns);
 params.model.feattype = 'itm_v0';
-
 % make it more generous
 for  i = 1:length(params.model.itmptns)
     params.model.itmptns(i).biases(:) = params.model.itmptns(i).numparts * 2;
 end
 
-[patterns, labels, hit2] = latent_completion(patterns, labels, params, VERBOSE);
-for i = 1:length(patterns)
-    temp.pattern = patterns(i);
-    temp.label = labels(i);
-    temp.anno = annos(i);
-    save(fullfile('cache/initial', ['traindata' num2str(i, '%03d')]), '-struct', 'temp');
+%% LSVM learning
+iter = 0;
+while(iter < maxiter)
+    cachedir = ['cache/' expname '/iter' num2str(iter)];
+    
+    if ~exist(cachedir, 'dir')
+        mkdir(cachedir);
+    end
+    
+    [~, ~, hit] = latent_completion(patterns, labels, params, true, VERBOSE);
+    % remove those ITM that is hit less than 5 times
+    params = filterITMpatterns(params, hit, 5);
+    
+    disp(['There are ' num2str(length(params.model.itmptns)) ' number of patterns']);
+    
+    % re-run latent completion for SVM train!
+    [patterns, labels, hit] = latent_completion(patterns, labels, params, true, VERBOSE);
+    for i = 1:length(patterns)
+        temp.pattern = patterns(i);
+        temp.label = labels(i);
+        temp.anno = annos(i);
+        save(fullfile(cachedir, ['traindata' num2str(i, '%03d')]), '-struct', 'temp');
+    end
+    iparams = params;
+    save(fullfile(cachedir, 'params'), 'iparams', 'hit');
+    
+    %%% DDMCMC not ready yet! rely on Greedy + MCMC for layout only
+    params.pmove(:) = 0; 
+    params.pmove(2) = 1; 
+    params.numsamples = 200;
+    params.quicklearn = true;
+    
+    [paramsout, info] = train_ssvm_uci2(patterns, labels, annos, params, 0);
+    save(fullfile(cachedir, 'params'), '-append', 'paramsout', 'info');
+    
+    params = paramsout;
+    iter = iter + 1;    
 end
-save(fullfile('cache/initial', 'params'), 'params', 'hit1', 'hit2');
-%%%%% DDMCMC not ready yet! rely on Greedy + MCMC for layout only
-params.pmove(:) = 0; params.pmove(2) = 1; params.numsamples = 200;
-params.quicklearn = true;
-[params, info] = train_ssvm_uci2(patterns, labels, annos, params, 0);
 
 end
 
