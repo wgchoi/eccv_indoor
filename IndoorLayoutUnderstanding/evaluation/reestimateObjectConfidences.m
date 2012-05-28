@@ -21,14 +21,14 @@ elseif(strcmp(params.objconftype, 'odd'))
             % try to remove it.
             pg2.childs(pg2.childs == i) = [];
             if(params.model.commonground)
-                pg2 = findConsistent3DObjects(pg2, x);
+                pg2 = findConsistent3DObjects(pg2, x, iclusters);
             end
             conf(i) = curconf - dot(getweights(params.model), features(pg2, x, iclusters, params.model));
         else
             % try to add it.
             pg2.childs(end+1) = i;
             if(params.model.commonground)
-                pg2 = findConsistent3DObjects(pg2, x);
+                pg2 = findConsistent3DObjects(pg2, x, iclusters);
             end
             conf(i) = dot(getweights(params.model), features(pg2, x, iclusters, params.model)) - curconf;
         end
