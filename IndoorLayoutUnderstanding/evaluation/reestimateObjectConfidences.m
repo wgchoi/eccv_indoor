@@ -11,19 +11,40 @@ elseif(strcmp(params.objconftype, 'odd'))
     pg = spg(maxidx);
     
     inset = false(size(x.dets, 1), 1);
-    inset(pg.childs) = true;
+    
+    oidx = getObjIndices(pg, iclusters);
+    inset(oidx) = true;
     
     curconf = dot(getweights(params.model), features(pg, x, iclusters, params.model));
     
     for i = 1:size(x.dets, 1)
         pg2 = pg;
         if(inset(i))
-            % try to remove it.
-            pg2.childs(pg2.childs == i) = [];
-            if(params.model.commonground)
-                pg2 = findConsistent3DObjects(pg2, x, iclusters);
+            if(sum(pg.childs == i) == 0)
+                % ITM
+                for j = 1:length(pg.childs)
+                    if(any(iclusters(pg.childs(j)).chindices == i))
+                        temp = setdiff(iclusters(pg.childs(j)).chindices, i);
+                        
+                        pg2.childs(pg2.childs == pg.childs(j)) = [];
+                        
+                        pg2.childs = [pg2.childs, temp];
+                        if(params.model.commonground)
+                            pg2 = findConsistent3DObjects(pg2, x, iclusters);
+                        end
+                        conf(i) = curconf - dot(getweights(params.model), features(pg2, x, iclusters, params.model));
+                        break;
+                    end
+                end
+                assert(conf(i) ~= 0);
+            else
+                % try to remove it.
+                pg2.childs(pg2.childs == i) = [];
+                if(params.model.commonground)
+                    pg2 = findConsistent3DObjects(pg2, x, iclusters);
+                end
+                conf(i) = curconf - dot(getweights(params.model), features(pg2, x, iclusters, params.model));
             end
-            conf(i) = curconf - dot(getweights(params.model), features(pg2, x, iclusters, params.model));
         else
             % try to add it.
             pg2.childs(end+1) = i;

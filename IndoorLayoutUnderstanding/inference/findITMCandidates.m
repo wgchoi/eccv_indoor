@@ -4,6 +4,12 @@ if(nargin < 5)
     % in case of training, gives gt detections.
     cidx = 1:length(isolated);
     x = precomputeDistances(x);
+    
+    threshold = 0;
+    maxnum = 1000;
+else
+    threshold = -1;
+    maxnum = inf;
 end
 
 %%%% due to inconsistent reference to detections...
@@ -30,7 +36,7 @@ tempnode = graphnodes(1);
 tempnode.isterminal = 0;
 tempnode.ittype = rule.type;
 w = getITMweights(rule);
-for i = 1:size(sets, 2)
+for i = 1:min(size(sets, 2), maxnum)
 %     objtypes(end + 1) = iclusters(iidx).ittype;
 %     objlocs(end + 1, :) = x.locs(iidx, 1:3) .* pg.objscale(i);
 %     objcubes{end + 1} = x.cubes{iidx} .* pg.objscale(i);
@@ -53,7 +59,7 @@ for i = 1:size(sets, 2)
     tempnode.dloc = dloc;
     tempnode.dpose = dpose;
     
-    if(-1 < dot(w, ifeat))
+    if(threshold < dot(w, ifeat))
         numclusters = numclusters + 1;
         composite(numclusters) = tempnode;
     end
