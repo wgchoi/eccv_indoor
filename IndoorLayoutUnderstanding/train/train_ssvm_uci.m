@@ -67,6 +67,9 @@ for i=1:length(data)
         patterns{i}.x.orpolys(:, ambids) = [];
         patterns{i}.x.orarea(ambids, :) = [];
         patterns{i}.x.orarea(:, ambids) = [];
+		for j = 1:length(patterns(i).isolated)
+			patterns{i}.isolated(j).chindices = j;
+		end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         %%%%%%%%%%%% find the ground truth solution

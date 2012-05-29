@@ -12,7 +12,7 @@ for i = 1:length(ptns)
         smat(i, j) = compareITM(ptns(i), ptns(j));
         smat(j, i) = smat(i, j);
         
-        if(smat(i,j) < 100)
+        if(smat(i,j) < 25)
             [a, b, imatch] = findCommonITMset(dids{i}, comps{i}, dids{j}, comps{j});
             sset(i, j) = length(a) / b;
             sset(j, i) = sset(i, j);

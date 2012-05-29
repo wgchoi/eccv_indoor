@@ -1,4 +1,9 @@
 function [conf] = reestimateObjectConfidences(spg, maxidx, x, iclusters, params)
+if(isfield(params, 'quicklearn'))
+    quickrun = params.quicklearn;
+else
+    quickrun = false;
+end
 
 conf = zeros(size(x.dets, 1), 1);
 if(strcmp(params.objconftype, 'samplesum'))
@@ -30,7 +35,7 @@ elseif(strcmp(params.objconftype, 'odd'))
                         
                         pg2.childs = [pg2.childs, temp];
                         if(params.model.commonground)
-                            pg2 = findConsistent3DObjects(pg2, x, iclusters);
+                            pg2 = findConsistent3DObjects(pg2, x, iclusters, quickrun);
                         end
                         conf(i) = curconf - dot(getweights(params.model), features(pg2, x, iclusters, params.model));
                         break;
@@ -41,7 +46,7 @@ elseif(strcmp(params.objconftype, 'odd'))
                 % try to remove it.
                 pg2.childs(pg2.childs == i) = [];
                 if(params.model.commonground)
-                    pg2 = findConsistent3DObjects(pg2, x, iclusters);
+                    pg2 = findConsistent3DObjects(pg2, x, iclusters, quickrun);
                 end
                 conf(i) = curconf - dot(getweights(params.model), features(pg2, x, iclusters, params.model));
             end
@@ -49,7 +54,7 @@ elseif(strcmp(params.objconftype, 'odd'))
             % try to add it.
             pg2.childs(end+1) = i;
             if(params.model.commonground)
-                pg2 = findConsistent3DObjects(pg2, x, iclusters);
+                pg2 = findConsistent3DObjects(pg2, x, iclusters, quickrun);
             end
             conf(i) = dot(getweights(params.model), features(pg2, x, iclusters, params.model)) - curconf;
         end

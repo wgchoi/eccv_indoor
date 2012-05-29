@@ -30,7 +30,9 @@ else
     quickrun = false;
 end
 %% initialize cache
-[moves, cache] = preprocessJumpMoves(x, iclusters, cache);
+if(strcmp(params.inference, 'greedy'))
+    [moves, cache] = preprocessJumpMoves(x, iclusters, cache);
+end
 iter = 0;
 while(iter < 10)
     iter = iter + 1;

@@ -12,15 +12,13 @@ if nargin < 5
 else
     includeloss = true;
 end
-%% consider upto 50 layouts
-% x.lconf(51:end) = [];
-% x.lpolys(51:end, :) = [];
-% x.faces(51:end) = [];
 %%
 params.model.w = getweights(params.model);
+
 %% prepare buffer
 spg = parsegraph(params.numsamples);
 count = 1;
+
 %% initialize the sample
 if (nargin < 4) || (isempty(init))
     [spg(count), cache] = initialize(spg(1), x, iclusters, params.model);
@@ -36,7 +34,7 @@ else
     end
 end
 %% initialize cache
-[moves, cache] = preprocessJumpMoves(x, iclusters, cache);
+[moves, cache] = preprocessJumpMoves(x, iclusters, cache, params);
 %%
 history = zeros(8, 2);
 %% weighting the acceptance constant
@@ -53,7 +51,7 @@ end
 
 while(count < params.numsamples)
     %% sample a new tree
-    info = MCMCproposal(spg(count), x, moves, cache, params);
+    info = MCMCproposal(spg(count), iclusters, moves, cache, params);
     if(info.move == 0), continue; end % error in sample
 	%% compute the acceptance ratio
 	[lkhood, newgraph] = computeAcceptanceRatio(spg(count), info, cache, x, iclusters, params);
@@ -69,11 +67,11 @@ while(count < params.numsamples)
         spg(count) = newgraph;
         history(info.move, 1) = history(info.move, 1) + 1;
         % update cache
-        cache = updateCache(cache, info);
-        
+        cache = updateCache(cache, info, iclusters);
         % assertion check
-        assert(isempty(setdiff(find(cache.inset), spg(count).childs)));
-        assert(length(union(find(cache.inset), spg(count).childs)) == length(spg(count).childs));
+        allset = union(spg(count).childs, getObjIndices(spg(count), iclusters));
+        assert(isempty(setdiff(find(cache.inset),allset)));
+        assert(length(union(find(cache.inset), allset)) == length(allset));
     else
         spg(count) = spg(count - 1);
         history(info.move, 2) = history(info.move, 2) + 1;
@@ -103,15 +101,35 @@ a = 1;
 
 end
 
-function cache = updateCache(cache, info)
+function cache = updateCache(cache, info, iclusters)
 switch(info.move)
     case 4 % add
-        cache.inset(info.did) = true;
+        if(iclusters(info.did).isterminal)
+            cache.inset(info.did) = true;
+        else
+            cache.inset(info.did) = true;
+            cache.inset(iclusters(info.did).chindices) = true;
+        end
     case 5 % delete
-        cache.inset(info.sid) = false;
+        if(iclusters(info.sid).isterminal)
+            cache.inset(info.sid) = false;
+        else
+            cache.inset(info.sid) = false;
+            cache.inset(iclusters(info.sid).chindices) = false;
+        end
     case 6 % switch
-        cache.inset(info.sid) = false;
-        cache.inset(info.did) = true;
+        if(iclusters(info.did).isterminal)
+            cache.inset(info.did) = true;
+        else
+            cache.inset(info.did) = true;
+            cache.inset(iclusters(info.did).chindices) = true;
+        end
+        if(iclusters(info.sid).isterminal)
+            cache.inset(info.sid) = false;
+        else
+            cache.inset(info.sid) = false;
+            cache.inset(iclusters(info.sid).chindices) = false;
+        end
 end
 end
 
@@ -151,17 +169,32 @@ cache.playout = exp(x.lconf .* model.w_or);
 cache.playout = cache.playout ./ sum(cache.playout);
 cache.clayout = cumsum(cache.playout);
 
-cache.padd = exp(x.dets(:, end) .* model.w_oo(1));
+cache.padd = exp(x.dets(:, end));
 end
 
 function cache = initCache(pg, x, iclusters, model)
-cache = mcmccache(length(iclusters), length(x.lconf));
 
+cache = mcmccache(length(iclusters), length(x.lconf));
 cache.inset(pg.childs) = true;
+for i = 1:length(pg.childs)
+    if(~iclusters(pg.childs(i)).isterminal)
+        cache.inset(iclusters(pg.childs(i)).chindices) = true;
+    end
+end
+
 %% init cache
 cache.playout = exp(x.lconf .* model.w_or);
 cache.playout = cache.playout ./ sum(cache.playout);
 cache.clayout = cumsum(cache.playout);
 
-cache.padd = exp(x.dets(:, end) .* model.w_oo(1));
+cache.padd = zeros(1, length(iclusters));
+%%  need to consider clustsers!
+for i = 1:length(iclusters)
+    if(iclusters(i).isterminal)
+        cache.padd(i) = exp(x.dets(iclusters(i).chindices, end));
+    else
+        cache.padd(i) = exp(sum(x.dets(iclusters(i).chindices, end)));
+    end
+end
+
 end

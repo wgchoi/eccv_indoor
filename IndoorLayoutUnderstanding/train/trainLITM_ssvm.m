@@ -55,10 +55,10 @@ while(iter < maxiter)
     save(fullfile(cachedir, 'params'), 'iparams', 'hit');
     
     %%% DDMCMC not ready yet! rely on Greedy + MCMC for layout only
-    params.pmove(:) = 0; 
-    params.pmove(2) = 1; 
-    params.numsamples = 200;
+    params.pmove = [0 0.2 0 0.3 0.2 0.3 0 0];
+    params.numsamples = 2000;
     params.quicklearn = true;
+    params.max_ssvm_iter = 6 + iter;
     
     [paramsout, info] = train_ssvm_uci2(patterns, labels, annos, params, 0);
     save(fullfile(cachedir, 'params'), '-append', 'paramsout', 'info');
@@ -150,6 +150,10 @@ for i = 1:length(data)
         patterns(i).x.orpolys(:, ambids) = [];
         patterns(i).x.orarea(ambids, :) = [];
         patterns(i).x.orarea(:, ambids) = [];
+        
+        for j = 1:length(patterns(i).isolated)
+            patterns(i).isolated(j).chindices = j;
+        end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         %%%%%%%%%%%% find the ground truth solution
@@ -318,9 +322,5 @@ for i = 1:length(ptns)
 end
 save('cache/itmpatterns', '-append', 'ptns', 'comps', 'indsets');
 itmptns = ptns;
-
-end
-
-function [params, info] = ssvm_train()
 
 end

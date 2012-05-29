@@ -17,7 +17,11 @@ Margins = zeros(1, 10000, 'single');
 IDS = zeros(1, 10000, 'single');
 ITER = zeros(1, 10000, 'single');
 
-max_iter = 10;
+if(isfield(params, 'max_ssvm_iter'))
+    max_iter = params.max_ssvm_iter;
+else
+    max_iter = 10;
+end
 iter = 1;
 
 C = params.C;
@@ -60,7 +64,7 @@ info.history.n = n;
 disp(['initial : all cost ' num2str(cost) ', inference error : ' num2str(sum(ls))]);
 disp(['w : ' num2str(w')]);
 
-while (iter < max_iter && trigger)
+while (iter <= max_iter && trigger)
     disp(['ssvm training iter = ' num2str(iter)])
     tic;
     trigger=0;

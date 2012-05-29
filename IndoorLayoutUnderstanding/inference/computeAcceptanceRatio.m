@@ -301,6 +301,12 @@ newgraph = graph;
 lkratio = 0.0;
 qratio = 0.0;
 
+if(isfield(params, 'quicklearn'))
+    quickrun = params.quicklearn;
+else
+    quickrun = false;
+end
+
 switch(info.move)
     case 1 % scene
         newgraph.scenetype = info.idx;
@@ -321,12 +327,13 @@ switch(info.move)
             newgraph.childs(end + 1) = info.did;
             
             p1 = cache.padd(info.did) / sum(cache.padd(~cache.inset));
-            p2 = 1 / cache.padd(info.did) / ( sum(1 ./ cache.padd(cache.inset)) + 1 / cache.padd(info.did) );
+            p2 = 1 / cache.padd(info.did) / ( sum(1 ./ cache.padd(newgraph.childs)) );
+            
             qratio = (log(params.pmove(5) * p2)) - (log(params.pmove(4) * p1));
         else % cannot add already existing cluster
             assert(0);
         end
-        newgraph = findConsistent3DObjects(newgraph, x, iclusters);
+        newgraph = findConsistent3DObjects(newgraph, x, iclusters, quickrun);
     case 5 % delete
         idx = find(graph.childs == info.sid, 1);
         if(isempty(idx)) % cannot delete not existing cluster
@@ -334,11 +341,11 @@ switch(info.move)
         else
             newgraph.childs(idx) = [];
             
-            p1 = 1 / cache.padd(info.sid) / sum(1 ./ cache.padd(cache.inset));
+            p1 = 1 / cache.padd(info.sid) / sum(1 ./ cache.padd(graph.childs));
             p2 = cache.padd(info.sid) / (sum(cache.padd(~cache.inset)) + cache.padd(info.sid));
             qratio = log(params.pmove(4) * p2) - log(params.pmove(5) * p1);
         end
-        newgraph = findConsistent3DObjects(newgraph, x, iclusters);
+        newgraph = findConsistent3DObjects(newgraph, x, iclusters, quickrun);
     case 6 % switch
         idx = find(graph.childs == info.sid, 1);
         if(isempty(idx)) % cannot switch not existing cluster
@@ -346,7 +353,7 @@ switch(info.move)
         else
             newgraph.childs(idx) = info.did;
             
-            p11 = 1 / cache.padd(info.sid) / sum(1 ./ cache.padd(cache.inset));
+            p11 = 1 / cache.padd(info.sid) / sum(1 ./ cache.padd(graph.childs));
             id2 = cache.swset{info.sid};
             id2 = id2(~cache.inset(id2)); % consider non-existing only
             p12 = cache.padd(info.did) / sum(cache.padd(id2));
@@ -354,13 +361,13 @@ switch(info.move)
             tinset = cache.inset;
             tinset(info.sid) = false;
             tinset(info.did) = true;
-            p21 = 1 / cache.padd(info.did) / sum(1 ./ cache.padd(tinset));
+            p21 = 1 / cache.padd(info.did) / sum(1 ./ cache.padd(newgraph.childs));
             id2 = cache.swset{info.did};
             id2 = id2(~tinset(id2)); % consider non-existing only
             p22 = cache.padd(info.sid) / sum(cache.padd(id2));
             qratio = log((p21*p22) / (p11*p12));
         end
-        newgraph = findConsistent3DObjects(newgraph, x, iclusters);
+        newgraph = findConsistent3DObjects(newgraph, x, iclusters, quickrun);
     case 7 % combine
     case 8 % break
     otherwise

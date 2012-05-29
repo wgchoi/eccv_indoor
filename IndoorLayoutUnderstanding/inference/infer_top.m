@@ -32,20 +32,28 @@ else
 end
 
 if(strncmp(params.model.feattype, 'itm_v', 5))
-    pg = spg(maxidx);
-    itmidx = find(pg.childs > length(isolated));
-    
+    pgi = spg(1);
+    itmidx = find(pgi.childs > length(isolated));
     if(~isempty(itmidx))
-        idx = pg.childs(itmidx);
+        idx = pgi.childs(itmidx);
 
         allclusters = [isolated; iclusters(idx)];
-        pg.childs(itmidx) = length(isolated) + (1:length(idx));
-
-        spg = pg;
-        maxidx = 1;
+        pgi.childs(itmidx) = length(isolated) + (1:length(idx));
     else
         allclusters = isolated;
     end
+    
+    pgmax = spg(maxidx);
+    itmidx = find(pgmax.childs > length(isolated));
+    if(~isempty(itmidx))
+        idx = pgmax.childs(itmidx);
+
+        pgmax.childs(itmidx) = length(allclusters) + (1:length(idx));
+        allclusters = [allclusters; iclusters(idx)];
+    end
+    
+    spg = [pgi; pgmax];
+    maxidx = 2;
 else
     allclusters = isolated;
 end
