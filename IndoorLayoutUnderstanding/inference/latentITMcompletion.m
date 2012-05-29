@@ -6,7 +6,7 @@ if(length(pg.childs) < 2)
 end
 model = params.model;
 assert(isfield(model, 'itmptns'));
-assert(strcmp(model.feattype, 'itm_v0') || 0);
+assert(strcmp(model.feattype, 'itm_v0') || strcmp(model.feattype, 'itm_v1'));
 
 %%% assume that the composite candidates are given.
 if(1)

@@ -73,7 +73,7 @@ for i = 1:length(imfiles)
             annos.obj_annos(end+1) = obj;
         end
     catch
-        continue;
+        % continue;
     end
     
     save(fullfile(annodir, annofile), '-struct', 'annos');

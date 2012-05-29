@@ -19,14 +19,17 @@ for i = 1:length(anno.objtypes)
     
     if(idx > 0)
         out.objtypes{idx} = anno.objtypes{i};
-        out.objs{idx} = anno.objs{i};
-        if length(anno.poses) >= i
-            out.poses{idx} = anno.poses{i};
-        else
-            out.poses{idx} = [];
-            assert(isempty(anno.objs{i}));
+        if isfield(anno, 'objs')
+            out.objs{idx} = anno.objs{i};
         end
-        
+        if isfield(anno, 'poses')
+            if length(anno.poses) >= i
+                out.poses{idx} = anno.poses{i};
+            else
+                out.poses{idx} = [];
+                assert(isempty(anno.objs{i}));
+            end
+        end
         
         for j = 1:length(anno.obj_annos)
             if(anno.obj_annos(j).objtype == i)

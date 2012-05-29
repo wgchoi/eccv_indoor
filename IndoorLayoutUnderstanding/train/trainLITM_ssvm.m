@@ -8,11 +8,20 @@ maxiter = 5;
 [patterns, labels, annos] = preprocess_data(data, params, VERBOSE);
 %% ITM mining
 % find ITM patterns
-params.minITMmatch = 15;
-[itmptns, hit1] = learn_itm_patterns(patterns, labels, params, VERBOSE);
+try
+    temp = load('cache/itmpatterns');
+    itmptns = temp.ptns;
+    for i = 1:length(itmptns)
+        hit1(i) = length(temp.indsets{i});
+    end
+catch ee
+    disp(ee);
+    params.minITMmatch = 15;
+    [itmptns, hit1] = learn_itm_patterns(patterns, labels, params, VERBOSE);
+end
 % append the discovered patterns into the model
 params = appendITMtoParams(params, itmptns);
-params.model.feattype = 'itm_v0';
+params.model.feattype = 'itm_v1';
 % make it more generous
 for  i = 1:length(params.model.itmptns)
     params.model.itmptns(i).biases(:) = params.model.itmptns(i).numparts * 2;
