@@ -17,23 +17,24 @@ dataroot = 'filtereddata';
 datadir = fullfile(dataroot, 'data');
 
 datafiles = dir(fullfile(datadir, '*.mat'));
-for i = 1:length(datafiles) % min(200, length(datafiles))
-    data(i) = load(fullfile(datadir, datafiles(i).name));
-end
 
 expinfo = load(fullfile(dataroot, 'info'));
 
-
-expname = 'experiments/itmv1_it0';
-cachefile = 'cache/itmv1/iter1/params';
+testidx = setdiff(1:length(datafiles), expinfo.trainsplit);
+for i = 1:length(testidx) % min(200, length(datafiles))
+    data(i) = load(fullfile(datadir, datafiles(testidx(i)).name));
+end
 %%
+expname = 'experiments/itmv0_it3';
+cachefile = 'cache/itmv0/iter3/params';
+noitmtype = 'type5';
+
+%
 load(cachefile);
-%% remove train data
-testidx = setdiff(1:length(data), expinfo.trainsplit);
-data = data(testidx);
-%% testing
+% testing
 res = struct('spg', cell(length(data), 1), 'maxidx', [], 'h', [], 'iclusters', []);
 res2 = struct('spg', cell(length(data), 1), 'maxidx', [], 'h', [], 'iclusters', []);
+tic();
 parfor i = 1:length(data)
     fprintf(['processing ' num2str(i)])
     try
@@ -44,7 +45,7 @@ parfor i = 1:length(data)
         [res(i).spg, res(i).maxidx, res(i).h, res(i).iclusters] = infer_top(data(i).x, data(i).iclusters, params, pg);
         
         params2 = params;
-        params2.model.feattype = 'type6';
+        params2.model.feattype = noitmtype;
         [res2(i).spg, res2(i).maxidx, res2(i).h, res2(i).iclusters] = infer_top(data(i).x, data(i).iclusters, params2, pg);
         
         fprintf(' => done\n')
@@ -53,7 +54,8 @@ parfor i = 1:length(data)
         disp([ num2str(i) 'th error'])
     end
 end
-%% evaluation
+toc();
+% evaluation
 mkdir(expname);
 
 save(fullfile(expname, 'params'), 'params', 'paramsout', 'info');
@@ -65,7 +67,7 @@ for i = 1:length(res)
     save(fullfile(expname, ['noitm_results' num2str(i, '%03d')]), '-struct', 'temp');
 end
 
-%% eval
+% eval
 parfor i = 1:length(data)
     params = paramsout;
     
@@ -78,7 +80,7 @@ parfor i = 1:length(data)
     [conf1{i}] = reestimateObjectConfidences(res(i).spg, res(i).maxidx, data(i).x, iclusters, params);
     
     params2 = params;
-    params2.model.feattype = 'type6';
+    params2.model.feattype = noitmtype;
     params2.objconftype = 'odd';
     [conf2{i}] = reestimateObjectConfidences(res2(i).spg, res2(i).maxidx, data(i).x, res2(i).iclusters, params2);
     
@@ -88,7 +90,7 @@ parfor i = 1:length(data)
     annos{i} = data(i).anno;
     xs{i} = data(i).x;
 end
-%%
+%
 names = {'sofa', 'table', 'chair', 'bed', 'dtable', 'stable'};
 for i = 1:length(names)
     [rec{i}, prec{i}, ap{i}] = evalDetection(annos, xs, conf1, i, false);
@@ -101,7 +103,7 @@ end
 for i = 1:length(names)
     [recbase{i}, precbase{i}, apbase{i}] = evalDetection(annos, xs, conf3, i, false);
 end
-%%
+%
 fontsize = 12;
 for i = 1:length(names)
     figure(i);
@@ -123,7 +125,7 @@ for i = 1:length(names)
     saveas(gcf, fullfile(expname, ['pr_' names{i}]), 'fig');
 end
 close all
-%% layout evaluation
+% layout evaluation
 clear temp;
 
 baseline = zeros(1, length(data));
@@ -143,7 +145,8 @@ evallayout.greedy = greedy;
 evallayout.baseline = baseline;
 
 save(fullfile(expname, 'summary'), 'evallayout');
-%%
+%
+addpath ~/codes/plottingTools/savefig/
 fontsize = 12;
 for i = 1:length(names)
     obj = names{i}; 

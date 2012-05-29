@@ -1,4 +1,4 @@
-function [patterns, labels, hit] = latent_completion(patterns, labels, params, updateITM, VERBOSE)
+function [patterns, labels, hit, ptnsets] = latent_completion(patterns, labels, params, updateITM, VERBOSE)
 
 model = params.model;
 
@@ -33,12 +33,16 @@ end
 
 if nargout >= 2
     hit = zeros(1, length(model.itmptns));
+    ptnsets = cell(1, length(model.itmptns));
     for i = 1:length(labels)
         for j = 1:length(labels(i).lcpg.childs)
             idx = labels(i).lcpg.childs(j);
             if(~patterns(i).iclusters(idx).isterminal)
-                idx = patterns(i).iclusters(idx).ittype - model.nobjs;
-                hit(idx) = hit(idx) + 1;
+                pidx = patterns(i).iclusters(idx).ittype - model.nobjs;
+                
+                hit(pidx) = hit(pidx) + 1;
+                
+                ptnsets{pidx}(end+1) = patterns(i).iclusters(idx);
             end
         end
     end

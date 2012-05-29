@@ -44,6 +44,7 @@ for i=1:length(data)
         end
         % GT(GT(:, end) > 2, :) = [];
         annos{i}.oloss = computeloss(Det, GT);
+        annos{i}.scenetype = data(i).anno.scenetype;
         
         numtp(i) = sum(annos{i}.oloss(:, 2));
         nump(i) = size(GT, 1);
@@ -169,7 +170,7 @@ while (iter < max_iter && trigger)
         buffy = labels(id:id+numdata-1);
         buffa = annos(id:id+numdata-1);
         parfor did = 1:numdata
-            [~, dphi(:, did), margin(did)] = find_MVC(buffx(did), buffy(did), buffa(did), params);
+            [~, dphi(:, did), margin(did)] = find_MVC(buffx{did}, buffy{did}, buffa{did}, params);
             % [yhat(did) dphi(:, did) margin(did)] = find_MVC(patterns{id + did - 1}, labels{id + did - 1}, annos{id + did - 1}, params);
         end
         
@@ -334,26 +335,35 @@ function [yhat dphi margin] = find_MVC(x, y, anno, params)
 % 2nd output: The constraint corresponding to that labeling (Groud
 % Truth Feature - Worst Offending feature)
 % 3rd output: the margin you want to enforce for this constraint.
-if(strcmp(params.inference, 'mcmc'))
-    init.pg = y.pg;
-    [spg, maxidx] = DDMCMCinference(x.x, x.iclusters, params, init, anno);
-elseif(strcmp(params.inference, 'greedy'))
-    initpg = y.pg;
-    [spg] = GreedyInference(x.x, x.iclusters, params, initpg, anno);
-    maxidx = 1;
-elseif(strcmp(params.inference, 'combined'))
-    init.pg = y.pg;
-    [init.pg] = GreedyInference(x.x, x.iclusters, params, init.pg, anno);
-    [spg, maxidx, ~, h] = DDMCMCinference(x.x, x.iclusters, params, init, anno);
-%     if(sum(h(:, 1)) == 0)
-%         keyboard;
-%     end
-else
-    assert(0);
+
+maxpg = y.pg;
+for i = 1:params.model.nscene
+    pg = y.pg;
+    pg.scenetype = i;
+    
+    if(strcmp(params.inference, 'mcmc'))
+        init.pg = pg;
+        [spg, maxidx] = DDMCMCinference(x.x, x.iclusters, params, init, anno);
+    elseif(strcmp(params.inference, 'greedy'))
+        initpg = pg;
+        [spg] = GreedyInference(x.x, x.iclusters, params, initpg, anno);
+        maxidx = 1;
+    elseif(strcmp(params.inference, 'combined'))
+        init.pg = pg;
+        [init.pg] = GreedyInference(x.x, x.iclusters, params, init.pg, anno);
+        [spg, maxidx, ~, h] = DDMCMCinference(x.x, x.iclusters, params, init, anno);
+    else
+        assert(0);
+    end
+    
+    pg = spg(maxidx);
+    if(maxpg.lkhood + maxpg.loss < pg.lkhood + pg.loss)
+        maxpg = pg;
+    end
 end
 
 yhat = y;
-yhat.pg = spg(maxidx);
+yhat.pg = maxpg;
 yhat.feat = features(yhat.pg, x.x, x.iclusters, params.model);
 yhat.loss = lossall(anno, x.x, yhat.pg, params);
 

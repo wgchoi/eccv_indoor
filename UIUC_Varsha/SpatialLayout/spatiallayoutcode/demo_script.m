@@ -2,9 +2,9 @@ clear;
 % Add local code directories to Matlab path
 addpaths;
 
-dataset = 'UIUC_CVPR';
+dataset = 'ECCVdata_test';
 %% prep directories
-orgdir = '../../../UIUC_CVPR_dataset/Images/'; % ['../../../Data_Collection/' dataset '/'];
+orgdir = '../../../ECCVData/test/'; % ['../../../Data_Collection/' dataset '/'];
 imdir = ['../../../Results/temp/' dataset '/resized/'];
 if ~exist(imdir,'dir')
     mkdir(imdir);
@@ -40,7 +40,7 @@ for e = 1:length(exts)
 end
 %% process all images!
 try
-    matlabpool open 8
+    matlabpool open 2
 catch ee
     ee
 end

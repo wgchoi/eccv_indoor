@@ -4,6 +4,10 @@ if isfield(x, 'lloss')
 else
     loss = layout_loss(anno.gtPolyg, x.lpolys(pg.layoutidx, :));
 end
+
+if isfield(anno, 'scenetype')
+    loss = loss + 5 * (anno.scenetype ~= pg.scenetype);
+end
 % assuming direct instantiation
 idx = pg.childs;
 %

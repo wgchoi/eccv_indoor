@@ -1,7 +1,7 @@
 function [params, info] = trainLITM_ssvm(data, params, expname)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 addpath('../3rdParty/ssvmqp_uci/');
-VERBOSE = 2;
+VERBOSE = 1;
 maxiter = 5;
 
 % preprocess
@@ -24,7 +24,7 @@ params = appendITMtoParams(params, itmptns);
 params.model.feattype = 'itm_v1';
 % make it more generous
 for  i = 1:length(params.model.itmptns)
-    params.model.itmptns(i).biases(:) = params.model.itmptns(i).numparts * 2;
+    params.model.itmptns(i).biases(:) = params.model.itmptns(i).numparts * 4;
 end
 
 %% LSVM learning
@@ -37,9 +37,9 @@ while(iter < maxiter)
         mkdir(cachedir);
     end
     
-    [~, ~, hit] = latent_completion(patterns, labels, params, true, VERBOSE);
+    [~, ~, hit, ptnsets] = latent_completion(patterns, labels, params, true, VERBOSE);
     % remove those ITM that is hit less than 5 times
-    params = filterITMpatterns(params, hit, 5);
+    params = filterITMpatterns(params, hit, ptnsets, 5);
     
     disp(['There are ' num2str(length(params.model.itmptns)) ' number of patterns']);
     

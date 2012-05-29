@@ -6,6 +6,9 @@ else
     loss = layout_loss(anno.gtPolyg, x.lpolys(pg.layoutidx, :));
 end
 
+if isfield(anno, 'scenetype')
+    loss = loss + 5 * (anno.scenetype ~= pg.scenetype);
+end
 %
 idx = getObjIndices(pg, iclusters);
 if(strcmp(params.losstype, 'exclusive'))
