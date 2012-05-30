@@ -82,7 +82,7 @@ while (iter <= max_iter && trigger)
         
         parfor did = 1:numdata
 %         for did = 1:numdata
-            [~, dphi(:, did), margin(did)] = find_MVC(buffx(did), buffy(did), buffa(did), params);
+            [~, dphi(:, did), margin(did)] = find_MVC2(buffx(did), buffy(did), buffa(did), params);
         end
         
         for did = 1:numdata
@@ -210,6 +210,54 @@ parfor id = 1:length(patterns)
     ls(id) = lossall(annos(id), patterns(id).x, spg(maxidx), params);
 end
 toc;
+
+end
+
+function [yhat dphi margin] = find_MVC2(x, y, anno, params)
+% finds the most violated constraint on image id i_id under the current
+% model in params.
+% 1st output: 0/1 labeling on all the detection windows 
+% 2nd output: The constraint corresponding to that labeling (Groud
+% Truth Feature - Worst Offending feature)
+% 3rd output: the margin you want to enforce for this constraint.
+
+maxpg = y.pg;
+for i = 1:params.model.nscene
+    pg = y.pg;
+    pg.scenetype = i;
+    
+    if(strcmp(params.inference, 'mcmc'))
+        init.pg = pg;
+        [spg, maxidx] = DDMCMCinference(x.x, x.iclusters, params, init, anno);
+    elseif(strcmp(params.inference, 'greedy'))
+        initpg = pg;
+        [spg] = GreedyInference(x.x, x.iclusters, params, initpg, anno);
+        maxidx = 1;
+    elseif(strcmp(params.inference, 'combined'))
+        init.pg = pg;
+        [init.pg] = GreedyInference(x.x, x.iclusters, params, init.pg, anno);
+        [spg, maxidx, ~, h] = DDMCMCinference(x.x, x.iclusters, params, init, anno);
+    else
+        assert(0);
+    end
+    
+    pg = spg(maxidx);
+    if(maxpg.lkhood + maxpg.loss < pg.lkhood + pg.loss)
+        maxpg = pg;
+    end
+end
+
+yhat = y;
+yhat.pg = maxpg;
+yhat.feat = features(yhat.pg, x.x, x.iclusters, params.model);
+yhat.loss = lossall(anno, x.x, yhat.pg, params);
+
+if nargout >= 2
+    dphi = y.feat  - yhat.feat;
+    if nargout >= 3
+        margin = yhat.loss - y.loss;
+    end
+end
 
 end
 
