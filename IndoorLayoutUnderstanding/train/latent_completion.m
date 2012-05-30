@@ -26,7 +26,7 @@ parfor i = 1:length(patterns)
     end
     
     labels(i).lcpg = latentITMcompletion(labels(i).pg, patterns(i).x, patterns(i).iclusters, params);
-    if(VERBOSE > 1)
+    if(VERBOSE > 2)
         disp(['pattern ' num2str(i) ' processed'])
     end
 end

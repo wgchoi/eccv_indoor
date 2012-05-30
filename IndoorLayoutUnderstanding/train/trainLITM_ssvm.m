@@ -1,7 +1,7 @@
 function [params, info] = trainLITM_ssvm(data, params, expname)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 addpath('../3rdParty/ssvmqp_uci/');
-VERBOSE = 1;
+VERBOSE = 2;
 maxiter = 5;
 
 % preprocess
@@ -40,7 +40,6 @@ while(iter < maxiter)
     [~, ~, hit, ptnsets] = latent_completion(patterns, labels, params, true, VERBOSE);
     % remove those ITM that is hit less than 5 times
     params = filterITMpatterns(params, hit, ptnsets, 5);
-    
     disp(['There are ' num2str(length(params.model.itmptns)) ' number of patterns']);
     
     % re-run latent completion for SVM train!
@@ -55,8 +54,8 @@ while(iter < maxiter)
     save(fullfile(cachedir, 'params'), 'iparams', 'hit');
     
     %%% DDMCMC not ready yet! rely on Greedy + MCMC for layout only
-    params.pmove = [0 0.2 0 0.3 0.2 0.3 0 0];
-    params.numsamples = 2000;
+    params.pmove = [0 1.0 0 0 0 0 0 0];
+    params.numsamples = 100;
     params.quicklearn = true;
     params.max_ssvm_iter = 6 + iter;
     

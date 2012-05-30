@@ -41,7 +41,11 @@ x.cubes = cell(0, 1);
 x.projs = struct('rt', cell(0,1), 'poly', cell(0,1));
 
 for i = 1:length(detfiles)
-	data = load(detfiles{i});
+    if(isempty(detfiles{i}))
+        continue;
+    end
+    
+    data = load(detfiles{i});
 	dets = parseDets(data, i);
     
     locs = zeros(size(dets, 1), 4);

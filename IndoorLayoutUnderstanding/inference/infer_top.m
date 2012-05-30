@@ -1,4 +1,5 @@
 function [spg, maxidx, h, allclusters] = infer_top(x, iclusters, params, y)
+
 h = [];
 allclusters = [];
 isolated = iclusters;
@@ -16,23 +17,41 @@ end
         
 assert(length(iclusters) < 10000);
 
-if(strcmp(params.inference, 'mcmc'))
-    init.pg = y;
-    [spg, maxidx, ~, h] = DDMCMCinference(x, iclusters, params, init);
-elseif(strcmp(params.inference, 'greedy'))
-    initpg = y;
-    [spg] = GreedyInference(x, iclusters, params, initpg);
-    maxidx = 1;
-elseif(strcmp(params.inference, 'combined'))
-    init.pg = y;
-    [init.pg] = GreedyInference(x, iclusters, params, init.pg);
-    [spg, maxidx, ~, h] = DDMCMCinference(x, iclusters, params, init);
-else
-    assert(0);
+maxipg = y;
+maxipg.lkhood = -inf;
+maxpg = y;
+maxpg.lkhood = -inf;
+
+for i = 1:params.model.nscene
+    pg = y;
+    pg.scenetype = i;
+    
+    if(strcmp(params.inference, 'mcmc'))
+        init.pg = pg;
+        [spg, maxidx, ~, h] = DDMCMCinference(x, iclusters, params, init);
+    elseif(strcmp(params.inference, 'greedy'))
+        initpg = pg;
+        [spg] = GreedyInference(x, iclusters, params, initpg);
+        maxidx = 1;
+    elseif(strcmp(params.inference, 'combined'))
+        init.pg = pg;
+        [init.pg] = GreedyInference(x, iclusters, params, init.pg);
+        [spg, maxidx, ~, h] = DDMCMCinference(x, iclusters, params, init);
+    else
+        assert(0);
+    end
+    
+    if(maxipg.lkhood < spg(1).lkhood)
+        maxipg = spg(1);
+    end
+    
+    if(maxpg.lkhood  < spg(maxidx).lkhood)
+        maxpg = spg(maxidx);
+    end
 end
 
 if(strncmp(params.model.feattype, 'itm_v', 5))
-    pgi = spg(1);
+    pgi = maxipg;
     itmidx = find(pgi.childs > length(isolated));
     if(~isempty(itmidx))
         idx = pgi.childs(itmidx);
@@ -43,7 +62,7 @@ if(strncmp(params.model.feattype, 'itm_v', 5))
         allclusters = isolated;
     end
     
-    pgmax = spg(maxidx);
+    pgmax = maxpg;
     itmidx = find(pgmax.childs > length(isolated));
     if(~isempty(itmidx))
         idx = pgmax.childs(itmidx);
@@ -55,6 +74,8 @@ if(strncmp(params.model.feattype, 'itm_v', 5))
     spg = [pgi; pgmax];
     maxidx = 2;
 else
+    spg = [maxipg; maxpg]; 
+    maxidx = 2;
     allclusters = isolated;
 end
 end

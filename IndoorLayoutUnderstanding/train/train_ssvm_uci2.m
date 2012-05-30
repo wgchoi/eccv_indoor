@@ -220,6 +220,9 @@ function [yhat dphi margin] = find_MVC(x, y, anno, params)
 % 2nd output: The constraint corresponding to that labeling (Groud
 % Truth Feature - Worst Offending feature)
 % 3rd output: the margin you want to enforce for this constraint.
+
+y = scene_MVC(x, y, anno, params);
+
 if(strcmp(params.inference, 'mcmc'))
     init.pg = y.pg;
     [spg, maxidx] = DDMCMCinference(x.x, x.iclusters, params, init, anno);
@@ -229,14 +232,17 @@ elseif(strcmp(params.inference, 'greedy'))
     maxidx = 1;
 elseif(strcmp(params.inference, 'combined'))
     init.pg = y.pg;
+    
     [init.pg] = GreedyInference(x.x, x.iclusters, params, init.pg, anno);
+    init = scene_MVC(x, init, anno, params);
     [spg, maxidx, ~, h] = DDMCMCinference(x.x, x.iclusters, params, init, anno);
+    
 else
     assert(0);
 end
 
-yhat = y;
-yhat.pg = spg(maxidx);
+y.pg = spg(maxidx);
+yhat = scene_MVC(x, y, anno, params);
 yhat.feat = features(yhat.pg, x.x, x.iclusters, params.model);
 yhat.loss = lossall2(anno, x.x, x.iclusters, yhat.pg, params);
 
@@ -248,6 +254,23 @@ if nargout >= 2
 end
 
 end
+
+function y = scene_MVC(x, y, anno, params)
+
+pg = y.pg;
+maxval = -inf;
+for i = 1:params.model.nscene
+    pg.scenetype = i;
+    val = lossall2(anno, x.x, x.iclusters, pg, params);
+    val = val + dot(getweights(params.model), features(pg, x.x, x.iclusters, params.model));
+    if(maxval < val)
+        maxval = val;
+        y.pg = pg;
+    end
+end
+
+end
+
 
 function [yhat dphi margin] = getEmpty(x, y, anno, params)
 % finds the most violated constraint on image id i_id under the current
