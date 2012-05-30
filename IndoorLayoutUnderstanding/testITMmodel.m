@@ -1,5 +1,5 @@
 %% train
-if(0)
+if(1)
     clear
 
     addPaths
@@ -22,8 +22,11 @@ if(0)
     expinfo = load(fullfile(dataroot, 'info'));
 
     testidx = setdiff(1:length(datafiles), expinfo.trainsplit);
-    for i = 1:length(testidx) % min(200, length(datafiles))
+    parfor i = 1:length(testidx) % min(200, length(datafiles))
         data(i) = load(fullfile(datadir, datafiles(testidx(i)).name));
+        data(i).x = sceneClassify(data(i).x);
+        data(i).anno.scenetype = data(i).gpg.scenetype;
+        disp(['reading ' num2str(i) 'th done'])
     end
 end
 %%
@@ -33,8 +36,8 @@ noitmtype = 'type6';
 %
 load(cachefile);
 
-paramsout.numsamples = 2000;
-paramsout.pmove = [0 0.2 0 0.3 0.2 0.3 0 0];
+paramsout.numsamples = 1000;
+paramsout.pmove = [0 0.4 0 0.3 0.3 0 0 0];
 paramsout.accconst = 3;
 % testing
 res = struct('spg', cell(length(data), 1), 'maxidx', [], 'h', [], 'iclusters', []);
@@ -100,7 +103,7 @@ parfor i = 1:length(data)
     annos{i} = data(i).anno;
     xs{i} = data(i).x;
 end
-%%
+%
 names = {'sofa', 'table', 'chair', 'bed', 'dtable', 'stable'};
 for i = 1:length(names)
     [rec{i}, prec{i}, ap{i}] = evalDetection(annos, xs, conf1, i, false);
@@ -117,7 +120,7 @@ end
 for i = 1:length(names)
     [recbase{i}, precbase{i}, apbase{i}] = evalDetection(annos, xs, conf4, i, false);
 end
-%%
+%
 fontsize = 12;
 for i = 1:length(names)
     figure(i);
@@ -144,7 +147,7 @@ for i = 1:length(names)
     saveas(gcf, fullfile(expname, ['pr_' names{i}]), 'fig');
 end
 close all
-%% layout evaluation
+% layout evaluation
 clear temp;
 
 baseline = zeros(1, length(data));
@@ -171,11 +174,35 @@ evallayout.noitm = noitm;
 
 save(fullfile(expname, 'summary'), 'evallayout');
 %
+ctable = zeros(3);
+ctable_g = zeros(3);
+ctable_mcmc = zeros(3);
+for i = 1:length(data)
+    g = data(i).anno.scenetype;
+    [~, e] = max(data(i).x.sconf);
+    
+    eg = res(i).spg(res(i).maxidx).scenetype;
+    em = res(i).spg(res(i).maxidx).scenetype;
+    
+    ctable(g, e) = ctable(g, e) + 1;
+    
+    ctable_g(g, eg) = ctable_g(g, eg) + 1;
+    ctable_mcmc(g, em) = ctable_mcmc(g, em) + 1;
+end
+
+sclass.baseline = ctable;
+sclass.greedy = ctable_g;
+sclass.mcmc = ctable_mcmc;
+save(fullfile(expname, 'summary'), '-append', 'sclass');
+
+%
 addpath ~/codes/plottingTools/savefig/
 fontsize = 12;
 for i = 1:length(names)
     obj = names{i}; 
     uiopen(fullfile(expname, ['pr_' obj '.fig']),1)
-    savefig(fullfile(expname, ['pr_' obj]), 'pdf'); 
+    try
+        savefig(fullfile(expname, ['pr_' obj]), 'pdf'); 
+    end
     close;
 end
