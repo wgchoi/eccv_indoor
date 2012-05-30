@@ -6,7 +6,7 @@ if(0)
     addVarshaPaths
     % 
     try
-        matlabpool open 8
+        matlabpool open
     catch em
         disp(em);
     end
@@ -27,13 +27,13 @@ if(0)
     end
 end
 %%
-expname = 'experiments/itmv1_mcmc';
-cachefile = 'cache/itmv1/iter1/params';
+expname = 'experiments/itmv1_scene0';
+cachefile = 'cache/itmv1_scene/iter0/params';
 noitmtype = 'type6';
 %
 load(cachefile);
 
-paramsout.numsamples = 5000;
+paramsout.numsamples = 2000;
 paramsout.pmove = [0 0.2 0 0.3 0.2 0.3 0 0];
 paramsout.accconst = 3;
 % testing

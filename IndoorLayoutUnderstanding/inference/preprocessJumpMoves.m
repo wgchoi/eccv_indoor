@@ -37,6 +37,10 @@ end
 count = 0;
 movetype = 6;
 if(params.pmove(movetype) > 0)
+    if(~isfield(x, 'cloverlap'))
+        x = preprocessClusterOverlap(x, iclusters);
+    end
+    
     moves{movetype} = mcmcmoveinfo(length(iclusters)*length(iclusters));
     for i = 1:length(iclusters)
         swset = [];
@@ -56,7 +60,7 @@ if(params.pmove(movetype) > 0)
                     swset(end + 1) = j;
                 end
             else
-                if(~isempty(intersect(iclusters(i).chindices, iclusters(j).chindices)))
+                if(x.cloverlap(i, j))
                     count = count + 1;
                     moves{movetype}(count).move = movetype;
                     moves{movetype}(count).sid = i;

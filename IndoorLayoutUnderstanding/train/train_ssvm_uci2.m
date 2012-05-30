@@ -207,7 +207,7 @@ ls = zeros(length(patterns), 1);
 tic;
 parfor id = 1:length(patterns)
     [spg, maxidx] = infer_top(patterns(id).x, patterns(id).iclusters, params, labels(id).pg);
-    ls(id) = lossall(annos(id), patterns(id).x, spg(maxidx), params);
+    ls(id) = lossall2(annos(id), patterns(id).x, patterns(id).iclusters, spg(maxidx), params);
 end
 toc;
 
@@ -250,7 +250,7 @@ end
 yhat = y;
 yhat.pg = maxpg;
 yhat.feat = features(yhat.pg, x.x, x.iclusters, params.model);
-yhat.loss = lossall(anno, x.x, yhat.pg, params);
+yhat.loss = lossall2(anno, x.x, x.iclusters, yhat.pg, params);
 
 if nargout >= 2
     dphi = y.feat  - yhat.feat;

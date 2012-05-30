@@ -22,6 +22,7 @@ maxipg.lkhood = -inf;
 maxpg = y;
 maxpg.lkhood = -inf;
 
+x = preprocessClusterOverlap(x, iclusters);
 for i = 1:params.model.nscene
     pg = y;
     pg.scenetype = i;
@@ -79,3 +80,4 @@ else
     allclusters = isolated;
 end
 end
+
