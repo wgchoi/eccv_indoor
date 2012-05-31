@@ -21,7 +21,7 @@ function [predict_label prob_estimates] = SingleImageSPM(PATHimage)
 addpath('SpatialPyramid/');
 addpath('libsvm-3.11/matlab/');
 
-PATHdictionary = 'model/dictionary_200.mat';
+PATHdictionary = 'model/dictionary_400.mat';
 PATHtrainingdata = 'model/training_data.mat';
 PATHsvmmodel = 'model/libsvm_model.mat';
 
