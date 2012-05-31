@@ -29,9 +29,9 @@ PATHsvmmodel = 'model/libsvm_model.mat';
 params.maxImageSize = 1000;
 params.gridSpacing = 8;
 params.patchSize = 16;
-params.dictionarySize = 200;
+params.dictionarySize = 400;
 params.numTextonImages = 50;
-params.pyramidLevels = 4;
+params.pyramidLevels = 3;
 params.oldSift = false;
 
 %% Generate SIFT discriptors
