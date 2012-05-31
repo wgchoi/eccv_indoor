@@ -15,13 +15,13 @@ function [predict_label prob_estimates] = SingleImageSPM(PATHimage)
 %       c. eccv_indoor/Data_Collection/diningroom/resized/
 %
 %   2. The classifier is trained using the following parameters:
-%       a. Dictionary size: 200
-%       b. Pyramid levels: 4
+%       a. Dictionary size: 400
+%       b. Pyramid levels: 3
 
 addpath('SpatialPyramid/');
 addpath('libsvm-3.11/matlab/');
 
-PATHdictionary = 'model/dictionary_200.mat';
+PATHdictionary = 'model/dictionary_400.mat';
 PATHtrainingdata = 'model/training_data.mat';
 PATHsvmmodel = 'model/libsvm_model.mat';
 
@@ -29,9 +29,9 @@ PATHsvmmodel = 'model/libsvm_model.mat';
 params.maxImageSize = 1000;
 params.gridSpacing = 8;
 params.patchSize = 16;
-params.dictionarySize = 200;
+params.dictionarySize = 400;
 params.numTextonImages = 50;
-params.pyramidLevels = 4;
+params.pyramidLevels = 3;
 params.oldSift = false;
 
 %% Generate SIFT discriptors

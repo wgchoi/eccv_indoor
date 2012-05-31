@@ -22,8 +22,9 @@ walliuerr = zeros(5, 1);
 
 % For ground and ceiling
 for i = [1 5]
-    nInter = oneFaceErr(gtPolyg, Polyg, farea1, farea2, i, i);  
-    walliuerr(i) = GetIUError(nInter, gtPolyg, Polyg, i, i, img_id);
+    nInter = oneFaceErr(gtPolyg, Polyg, farea1, farea2, i, i);
+    walliuerr(i) = GetIUError(nInter, gtPolyg, Polyg, i, i);
+    %walliuerr(i) = GetIUError(nInter, gtPolyg, Polyg, i, i, img_id);
 end
 
 % For center, right wall, and left wall
@@ -34,21 +35,24 @@ if(sum(farea1(2:4) > 0) == 2)
     % 2 : c, 3 : r, 4 : l
     for i = 2:4
         nInter = oneFaceErr(gtPolyg, Polyg, farea1, farea2, i, i);
-        temp(1, i-1) = GetIUError(nInter, gtPolyg, Polyg, i, i, img_id);
+        temp(1, i-1) = GetIUError(nInter, gtPolyg, Polyg, i, i);
+        %temp(1, i-1) = GetIUError(nInter, gtPolyg, Polyg, i, i, img_id);
     end
     
     % c => r , l => c
     match = [0 3 4 2 0];
     for i = 2:4
         nInter = oneFaceErr(gtPolyg, Polyg, farea1, farea2, i, match(i));
-        temp(2, i-1) = GetIUError(nInter, gtPolyg, Polyg, i, match(i), img_id);
+        temp(2, i-1) = GetIUError(nInter, gtPolyg, Polyg, i, match(i));
+        %temp(2, i-1) = GetIUError(nInter, gtPolyg, Polyg, i, match(i), img_id);
     end
     
     % c => l , r => c
     match = [0 4 2 3 0];
     for i = 2:4
         nInter = oneFaceErr(gtPolyg, Polyg, farea1, farea2, i, match(i));
-        temp(3, i-1) = GetIUError(nInter, gtPolyg, Polyg, i, match(i), img_id);
+        temp(3, i-1) = GetIUError(nInter, gtPolyg, Polyg, i, match(i));
+        %temp(3, i-1) = GetIUError(nInter, gtPolyg, Polyg, i, match(i), img_id);
     end
     
     [~, id] = min(sum(temp, 2));
@@ -58,7 +62,8 @@ else
     
     for i = 2:4
         nInter = oneFaceErr(gtPolyg, Polyg, farea1, farea2, i, i);
-        walliuerr(i) = GetIUError(nInter, gtPolyg, Polyg, i, i, img_id);
+        walliuerr(i) = GetIUError(nInter, gtPolyg, Polyg, i, i);
+        %walliuerr(i) = GetIUError(nInter, gtPolyg, Polyg, i, i, img_id);
     end
     
 end
@@ -113,7 +118,8 @@ end
 
 end
 
-function IUerror = GetIUError(nInter,gtPolyg,Polyg,i,j,img_id)
+function IUerror = GetIUError(nInter,gtPolyg,Polyg,i,j)
+%function IUerror = GetIUError(nInter,gtPolyg,Polyg,i,j,img_id)
 
 if nInter == -1
     IUerror = 0;
