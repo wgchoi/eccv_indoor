@@ -22,7 +22,9 @@ maxipg.lkhood = -inf;
 maxpg = y;
 maxpg.lkhood = -inf;
 
-x = preprocessClusterOverlap(x, iclusters);
+if(params.pmove(6) > 0)
+    x = preprocessClusterOverlap(x, iclusters);
+end
 for i = 1:params.model.nscene
     pg = y;
     pg.scenetype = i;

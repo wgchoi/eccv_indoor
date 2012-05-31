@@ -4,7 +4,10 @@ if(nargin < 5)
     anno = [];
 else
     anno = load(annofile);
+    try
     anno = sync_objmodel(anno);
+    catch
+    end
     btrainset = true;
 end
 %%% prepare all input informations.

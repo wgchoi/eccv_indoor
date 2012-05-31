@@ -1,5 +1,5 @@
 function x = preprocessClusterOverlap(x, iclusters)
-
+assert(0);
 x.cloverlap = sparse(length(iclusters), length(iclusters));
 for i = 1:length(iclusters)
     for j = i+1:length(iclusters)

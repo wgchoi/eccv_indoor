@@ -7,17 +7,22 @@ elseif nargin < 3
 end
 figure(figid);
 clf
+
+fontsize = 12;
 for i = 1:length(rule.parts)
-    drawpart(rule.parts(i), omodel, i);
+    drawpart(rule.parts(i), omodel, i, fontsize);
 end
 grid on;
-xlabel('x');
-ylabel('z');
+
+h = xlabel('x');
+set(h, 'fontsize', fontsize); 
+h = ylabel('z');
+set(h, 'fontsize', fontsize); 
 
 end
 
 
-function drawpart(part, omodel, idx)
+function drawpart(part, omodel, idx, fontsize)
 
 oid = part.citype;
 col = 'rgbykmcrgbykmcrgbykmcrgbykmc';
@@ -35,6 +40,6 @@ mapshow(rect(1, :), rect(2, :), 'DisplayType','polygon','Marker','.', ...
 hold on
 plot(rect(1, [1 2]), rect(2, [1 2]), 'w', 'linewidth', 2);
 hold off
-text(part.dx, part.dz, [num2str(idx) ':' omodel(oid).name], 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2);
+text(part.dx, part.dz, [num2str(idx) ':' omodel(oid).name], 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
 
 end
