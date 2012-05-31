@@ -180,6 +180,9 @@ evallayout.greedy = greedy;
 evallayout.baseline = baseline;
 evallayout.noitm = noitm;
 
+mean(evallayout.final(~isnan(evallayout.final)))
+mean(evallayout.baseline(~isnan(evallayout.baseline)))
+
 save(fullfile(expname, 'summary'), 'evallayout');
 %
 ctable = zeros(3);

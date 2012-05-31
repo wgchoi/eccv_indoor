@@ -1,5 +1,5 @@
 %% train
-if(0)
+if(1)
     clear
 
     addPaths
@@ -30,8 +30,8 @@ if(0)
     end
 end
 %%
-expname = 'experiments/itmv1_scene4';
-cachefile = 'cache/itmv1_scene/iter4/params';
+expname = 'experiments/itmv1_scene3_n9_scfix';
+cachefile = 'napoli9/cache/itmv1_scene/iter3/params';
 noitmtype = 'type6';
 %
 load(cachefile);
