@@ -15,8 +15,8 @@ function [predict_label prob_estimates] = SingleImageSPM(PATHimage)
 %       c. eccv_indoor/Data_Collection/diningroom/resized/
 %
 %   2. The classifier is trained using the following parameters:
-%       a. Dictionary size: 200
-%       b. Pyramid levels: 4
+%       a. Dictionary size: 400
+%       b. Pyramid levels: 3
 
 addpath('SpatialPyramid/');
 addpath('libsvm-3.11/matlab/');
