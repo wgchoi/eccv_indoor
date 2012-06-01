@@ -1,4 +1,4 @@
-function draw2DCube(poly, rect, fignum, name, col)
+function draw2DCube(poly, rect, fignum, name, col, fontsize)
 if (nargin < 5)
     col = 'm';
 end
@@ -20,7 +20,7 @@ plot(poly(1,1), poly(2,1), 'r.', 'MarkerSize', 40);
 rectangle('position', rect, 'edgecolor', 'c', 'linewidth', 2);
 
 if(nargin == 5)
-    text(rect(1), rect(2), name, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2);
+    text(rect(1), rect(2), name, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
 end
 hold off;
 

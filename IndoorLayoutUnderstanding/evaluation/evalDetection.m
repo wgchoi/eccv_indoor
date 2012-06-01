@@ -1,12 +1,21 @@
-function [rec, prec, ap]= evalDetection(annos, xs, confs, cls, draw)
+function [rec, prec, ap]= evalDetection(annos, xs, confs, cls, draw, overall)
+if(nargin < 6)
+    overall = false;
+end
 fprintf('%d: pr: evaluating detections\n', cls);
 % extract ground truth objects
 npos = 0;
 for i = 1:length(annos)
     gt(i).BB = [];
-    for j = 1:length(annos{i}.obj_annos)
-        if(annos{i}.obj_annos(j).objtype == cls)
+    if(overall)
+        for j = 1:length(annos{i}.obj_annos)
             gt(i).BB(:, end + 1) = [annos{i}.obj_annos(j).x1; annos{i}.obj_annos(j).y1; annos{i}.obj_annos(j).x2; annos{i}.obj_annos(j).y2; annos{i}.obj_annos(j).azimuth];
+        end
+    else
+        for j = 1:length(annos{i}.obj_annos)
+            if(annos{i}.obj_annos(j).objtype == cls)
+                gt(i).BB(:, end + 1) = [annos{i}.obj_annos(j).x1; annos{i}.obj_annos(j).y1; annos{i}.obj_annos(j).x2; annos{i}.obj_annos(j).y2; annos{i}.obj_annos(j).azimuth];
+            end
         end
     end
     gt(i).diff = false(size(gt(i).BB, 2), 1); 
@@ -19,11 +28,24 @@ ids = zeros(1, 100000);
 confidence = zeros(1, 100000);
 BB = zeros(4, 100000);
 
+
 for i = 1:length(xs)
-    clsidx = (xs{i}.dets(:, 1) == cls);
-    boxes = [xs{i}.dets(clsidx, 4:7), xs{i}.dets(clsidx, 3), confs{i}(clsidx)];
-    pick = 1:sum(clsidx); 
-    pick = nms(boxes, 0.5);
+    if(overall)
+        classes = unique(xs{i}.dets(:, 1));
+        pick = [];
+        for j = 1:length(classes)
+            clsidx = find(xs{i}.dets(:, 1) == classes(j));
+            
+            temp = [xs{i}.dets(clsidx, 4:7), xs{i}.dets(clsidx, 3), confs{i}(clsidx)];
+            tpick = nms(temp, 0.5);
+            pick = [pick; clsidx(tpick(:))];
+        end
+        boxes = [xs{i}.dets(:, 4:7), xs{i}.dets(:, 3), confs{i}(:)];
+    else
+        clsidx = (xs{i}.dets(:, 1) == cls);
+        boxes = [xs{i}.dets(clsidx, 4:7), xs{i}.dets(clsidx, 3), confs{i}(clsidx)];
+        pick = nms(boxes, 0.5);
+    end
     boxes = boxes(pick, :);
     
     confidence(ndet+1:ndet+length(pick)) = boxes(:, end);
