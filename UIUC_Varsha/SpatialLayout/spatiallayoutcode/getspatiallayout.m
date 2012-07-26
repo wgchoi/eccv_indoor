@@ -76,7 +76,7 @@ toc;
 
 [h w kk]=size(img);
 VP=vp;
-if numel(VP)<6
+if numel(VP) < 6
     return;
 end
 
@@ -98,10 +98,14 @@ vpdata.dim=[h w];
 % [s w]=system(['./segment' ' ' sigma ' '  k1  ' ' min1 ' ' inputim ' ' outputim ]);
 
 
-
 segext='pnm';
 nsegments=[5 15 25 35 40 60 80 100];
-fn=['../Imsegs/' imagename(1:end-4) '.' segext];
+
+if(~exist([workspcdir 'Imsegs/'], 'dir'))
+    mkdir([workspcdir 'Imsegs/']);
+end
+fn=[workspcdir 'Imsegs/' imagename(1:end-4) '.' segext];
+
 % preprocess superpixel segmentations
 if (1) % (~exist(fn))
     sigma = num2str(0.8);

@@ -1,10 +1,6 @@
-clear;
+function process_directory(imgbase, resbase, dataset)
 % Add local code directories to Matlab path
 addpaths;
-
-dataset = 'meeting'; % 'ECCVdata_test';
-imgbase = '~/datasets/HumanSpaceInteraction/flkr/';
-resbase = '~/datasets/HumanSpaceInteraction/cache/';
 
 %% prep directories
 orgdir = [imgbase dataset]; % '../../../ECCVData/test/'; % ['../../../Data_Collection/' dataset '/'];
@@ -57,7 +53,8 @@ for e = 1:length(exts)
     resizefactor = cell(fcnt, 1);
     fnames = cell(fcnt, 1);
 
-    parfor i = 1:length(files)
+    %par
+    for i = 1:length(files)
 		try
 			[ boxlayout{i}, surface_labels{i}, resizefactor{i}, vpdata{i}] = getspatiallayout(imdir, files(i).name, workspcdir, 0);
 			fnames{i} = fullfile(imdir, files(i).name);

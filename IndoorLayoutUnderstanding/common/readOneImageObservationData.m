@@ -5,7 +5,7 @@ if(nargin < 5)
 else
     anno = load(annofile);
     try
-    anno = sync_objmodel(anno);
+        anno = sync_objmodel(anno);
     catch
     end
     btrainset = true;
@@ -18,8 +18,10 @@ img = imread(x.imfile);
 x.imsz(1) = size(img, 1);
 x.imsz(2) = size(img, 2);
 
-%%%% fix annotation error
-anno.gtPolyg = checkLayoutAnnotation(anno.gtPolyg, x.imsz);
+if(btrainset)
+    %%%% fix annotation error
+    anno.gtPolyg = checkLayoutAnnotation(anno.gtPolyg, x.imsz);
+end
 
 rfactor = size(img, 1) ./ vpdata.dim(1);
 
