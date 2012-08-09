@@ -39,7 +39,7 @@ for e = 1:length(exts)
 end
 %% process all images!
 try
-    matlabpool open 2
+    matlabpool open 
 catch ee
     ee
 end
@@ -53,8 +53,7 @@ for e = 1:length(exts)
     resizefactor = cell(fcnt, 1);
     fnames = cell(fcnt, 1);
 
-    %par
-    for i = 1:length(files)
+    parfor i = 1:length(files)
 		try
 			[ boxlayout{i}, surface_labels{i}, resizefactor{i}, vpdata{i}] = getspatiallayout(imdir, files(i).name, workspcdir, 0);
 			fnames{i} = fullfile(imdir, files(i).name);
