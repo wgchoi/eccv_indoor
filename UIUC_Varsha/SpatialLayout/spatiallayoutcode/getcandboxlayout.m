@@ -19,7 +19,11 @@ function [ polyg, Features] = getcandboxlayout( vp,h,w, integData )
 
 numf=75;
 
-samps=10;gtexist=0;
+% original
+samps = 10;
+% samps = 20;
+gtexist = 0;
+
 [layout]=getLayouts(vp,h,w,samps);
 
 numL=size(layout,1);

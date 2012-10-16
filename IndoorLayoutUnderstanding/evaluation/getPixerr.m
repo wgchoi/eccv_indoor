@@ -1,4 +1,6 @@
 function [pixerr]=getPixerr(gtPolyg,Polyg)
+assert(0);
+
 % farea1=farea;
 farea1=zeros(1,5);
 farea2=zeros(1,5);

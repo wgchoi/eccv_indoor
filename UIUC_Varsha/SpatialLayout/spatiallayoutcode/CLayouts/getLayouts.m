@@ -167,16 +167,23 @@ corners_y(:,4) = ys;
 
 corners_x = round(corners_x);
 corners_y = round(corners_y);
-
-ind=find(corners_x >=1 & corners_x <=w & corners_y >=1 & corners_y <=h );
-in_img=zeros(size(corners_x));
-in_img(ind)=1;
-
-corners_x_temp = corners_x.*in_img;
-corners_y_temp = corners_y.*in_img;
-
-
-
+if 0
+    %%% wierd!!!
+    ind = find(corners_x >=1 & corners_x <=w & corners_y >=1 & corners_y <=h );
+    in_img=zeros(size(corners_x));
+    in_img(ind)=1;
+    
+    corners_x_temp = corners_x.*in_img;
+    corners_y_temp = corners_y.*in_img;
+else
+    corners_x_temp = corners_x;
+    corners_y_temp = corners_y;
+    
+    corners_x_temp(corners_x_temp <= 0) = 0;
+    corners_y_temp(corners_y_temp <= 0) = 0;
+    corners_x_temp(corners_x_temp > w) = w;
+    corners_y_temp(corners_y_temp > h) = h;
+end
 [unq,I,J] = unique([corners_x_temp corners_y_temp],'rows');
 
 corners_x = corners_x(I,:);

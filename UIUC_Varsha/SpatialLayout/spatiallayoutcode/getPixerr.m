@@ -74,25 +74,37 @@ else % (farea1(i) > 0 && farea2(i) > 0)
     XX2=Polyg{j}(:,1);
     YY2=Polyg{j}(:,2); %get the polygon
     
-    in1 = inpolygon(XX1,YY1,[XX2;XX2(1)],[YY2;YY2(1)]);
-    in2 = inpolygon(XX2,YY2,[XX1;XX1(1)],[YY1;YY1(1)]);
+    [XX1, YY1] = poly2cw(XX1, YY1);
+    [XX2, YY2] = poly2cw(XX2, YY2);
+    
+    [X0 Y0] = polybool('intersection',XX1,YY1,XX2,YY2); 
+    idx = isnan(X0) | isnan(Y0);
 
-    if numel(find(in1==1))==length(in1)
-        X0=XX1;Y0=YY1;
-    elseif numel(find(in2==1))==length(in2)
-        X0=XX2;Y0=YY2;
-    else
-        [in,on]=inpolygon(XX2,YY2,[XX1;XX1(1)],[YY1;YY1(1)]);
-        XX2(find(on)) = XX2(find(on))+1;
-        YY2(find(on)) = YY2(find(on))+1;
-        [in,on]=inpolygon(XX1,YY1,[XX2;XX2(1)],[YY2;YY2(1)]);;
-        XX1(find(on)) = XX1(find(on))+1;
-        YY1(find(on)) = YY1(find(on))+1;
-%             [X0 Y0 ind]=polyints(XX1,YY1,XX2,YY2); %remember to check polybool
-        [XX1, YY1] = poly2cw(XX1, YY1);
-        [XX2, YY2] = poly2cw(XX2, YY2);
-        [X0 Y0] = polybool('intersection',XX1,YY1,XX2,YY2); 
-    end
+    X0(idx) = [];
+    Y0(idx) = [];
+%     in1 = inpolygon(XX1,YY1,[XX2;XX2(1)],[YY2;YY2(1)]);
+%     in2 = inpolygon(XX2,YY2,[XX1;XX1(1)],[YY1;YY1(1)]);
+% 
+%     if numel(find(in1==1))==length(in1)
+%         X0=XX1;Y0=YY1;
+%     elseif numel(find(in2==1))==length(in2)
+%         X0=XX2;Y0=YY2;
+%     else
+%         [~, on]=inpolygon(XX2,YY2,[XX1;XX1(1)],[YY1;YY1(1)]);
+%         XX2(find(on)) = XX2(find(on))+1;
+%         YY2(find(on)) = YY2(find(on))+1;
+%         [~, on]=inpolygon(XX1,YY1,[XX2;XX2(1)],[YY2;YY2(1)]);
+%         XX1(find(on)) = XX1(find(on))+1;
+%         YY1(find(on)) = YY1(find(on))+1;
+% %             [X0 Y0 ind]=polyints(XX1,YY1,XX2,YY2); %remember to check polybool
+%         [XX1, YY1] = poly2cw(XX1, YY1);
+%         [XX2, YY2] = poly2cw(XX2, YY2);
+%         [X0 Y0] = polybool('intersection',XX1,YY1,XX2,YY2); 
+%         idx = isnan(X0) | isnan(Y0);
+%         
+%         X0(idx) = [];
+%         Y0(idx) = [];
+%     end
     
     if numel(X0)>0
         nInter=polyarea([X0; X0(1)],[Y0;Y0(1)]);
