@@ -1,10 +1,12 @@
-function [params, info] = train_feat_test(data, C, VERBOSE)
+function [params, info] = train_feat_test(data, model, C, VERBOSE)
 
-params.evaltrain = 0;
+params.model = model;
+params.evaltrain = 1;
 params.C = C;
 %%%%%%%%%%%% dimension
-params.w = zeros(3, 1);
-ndim = length(params.w);
+temp = feat_test(data(1).gpg, data(1).x, data(1).iclusters, model);
+ndim = length(temp);
+params.w = zeros(ndim, 1);
 %%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -31,17 +33,18 @@ low_bound = -inf;
 
 chunksize = 16;
 % initial evaluation
-ls = 0;
+ls = 0; le = 0;
 if(params.evaltrain)
-    ls = evaluateModel(patterns, labels, annos, params);
+    [ls, le] = evaluateModel(data, params);
 end
 
-info.err = sum(ls);
+info.loss = sum(ls);
+info.err = mean(le(~isnan(le)));
 info.cost = cost;
 info.params = params;
 info.history.w = params.w(:);
 info.history.n = n;
-disp(['initial : all cost ' num2str(cost) ', inference error : ' num2str(sum(ls))]);
+disp(['initial : all cost ' num2str(cost) ', inference error : ' num2str(sum(ls)) ', ' num2str(mean(le(~isnan(le)))) ]);
 disp(['w : ' num2str(params.w')]);
 
 while (iter <= max_iter && trigger)
@@ -69,7 +72,7 @@ while (iter <= max_iter && trigger)
 
             for ii = 1:numel(check_labels)
                 label_ii = check_labels(ii);
-                if (margin(did) - params.w' * Constraints(:, label_ii) > score)
+                if (Margins(label_ii) - params.w' * Constraints(:, label_ii) >= score - abs(score) * 1e-4)
                     isMVC = 0;
                     break;
                 end
@@ -100,7 +103,7 @@ while (iter <= max_iter && trigger)
                 end
 
                 if(VERBOSE > 0)
-                    disp(['new constraint ' num2str(id) 'th added : score ' num2str(score) ' all cost ' num2str(cost) ' LB : ' num2str(low_bound)]);
+                    disp(['new constraint ' num2str(id + did - 1) 'th added : score ' num2str(score) ' all cost ' num2str(cost) ' LB : ' num2str(low_bound)]);
                 else
                     fprintf('+');
                     if(mod(id + did - 1, 100) == 0)
@@ -131,23 +134,16 @@ while (iter <= max_iter && trigger)
                 IDS(:,1:n) = IDS(:,I);
                 ITER(:, 1:n) = ITER(:, I);
             end
-            % Update parameters
-            params.model = getmodelparam(params.model, w);
-            %reset the running estimate on upper bund
-%             cost = w'*w*0.5;
-%             cost = cost + C * sum(max(zeros(1, n), Margins(1:n) - w'*Constraints(:, 1:n)));
-%             if(abs(cost - cache.ub) > 1e-3)
-%                 keyboard;
-%             end
-%             if(dot(w, w) < 1e-5)
-%                 keyboard;
-%             end
+            
             cost = cache.ub;
             low_bound = cache.lb;
             trigger = 1;
 
 			info.history.w(:, end+1) = w(:);
 			info.history.n(end+1) = n;
+            params.w = w;
+            
+            % disp(['w : ' num2str(w')]);
         end
     end
     fprintf('done. '); toc;
@@ -155,13 +151,14 @@ while (iter <= max_iter && trigger)
     iter = iter + 1;
     ls = 0;
     if(params.evaltrain)
-        ls = evaluateModel(patterns, labels, annos, params);
+        [ls, le] = evaluateModel(data, params);
     end
     
-    disp(['all cost ' num2str(cost) ' LB : ' num2str(low_bound) ', inference error : ' num2str(sum(ls))]);
+    disp(['all cost ' num2str(cost) ' LB : ' num2str(low_bound) ', inference error : ' num2str(sum(ls)) ', ' num2str(mean(le(~isnan(le))))]);
     disp(['w : ' num2str(w')]);
     info.cost(end + 1) = cost;
-    info.err(end + 1) = sum(ls);
+    info.loss(end + 1) = sum(ls);
+    info.err(end + 1) = mean(le(~isnan(le)));
     info.params(end + 1) = params;
     
 %     if(info.cost(end) - info.cost(end - 1) < 1)
@@ -177,15 +174,27 @@ info.ITER =  ITER(1:n);
 
 end
 
-function ls = evaluateModel(patterns, labels, annos, params)
+function [ls, le] = evaluateModel(data, params)
 
-ls = zeros(length(patterns), 1);
-tic;
-parfor id = 1:length(patterns)
-    [spg, maxidx] = infer_top(patterns(id).x, patterns(id).iclusters, params, labels(id).pg);
-    ls(id) = lossall2(annos(id), patterns(id).x, patterns(id).iclusters, spg(maxidx), params);
+ls = zeros(1, length(data));
+le = zeros(1, length(data));
+
+model =  params.model;
+parfor i = 1:length(data)
+    pg = data(i).gpg;
+    maxval = -inf;
+    
+    for j = 1:length(data(i).x.lloss)
+        pg.layoutidx = j;
+        phi = feat_test(pg, data(i).x, data(i).iclusters, model);
+        
+        if(dot(phi, params.w) > maxval)
+            maxval = dot(phi, params.w);
+            ls(i) = data(i).x.lloss(j);
+            le(i) = data(i).x.lerr(j);
+        end
+    end
 end
-toc;
 
 end
 
@@ -198,16 +207,16 @@ function [yhat dphi margin] = find_MVC2(x, gpg, iclusters, params)
 % 3rd output: the margin you want to enforce for this constraint.
 pg = gpg;
 
-yphi = feat_test(pg, x, iclusters, []);
+yphi = feat_test(pg, x, iclusters, params.model);
 yloss = x.lloss(pg.layoutidx);
 
-maxval = yphi + yloss;
+maxval = dot(yphi, params.w) + yloss;
 maxfeat = yphi;
 maxloss = yloss;
 
 for i = 1:length(x.lloss)
     pg.layoutidx = i;
-    phi = feat_test(pg, x, iclusters, []);
+    phi = feat_test(pg, x, iclusters, params.model);
     if(dot(phi, params.w) + x.lloss(i) > maxval)
         maxval = dot(phi, params.w) + x.lloss(i);
         maxfeat = phi;
@@ -221,86 +230,6 @@ if nargout >= 2
     dphi = yphi  - yhat.feat;
     if nargout >= 3
         margin = yhat.loss - yloss;
-    end
-end
-
-end
-
-function [yhat dphi margin] = find_MVC(x, y, anno, params)
-% finds the most violated constraint on image id i_id under the current
-% model in params.
-% 1st output: 0/1 labeling on all the detection windows 
-% 2nd output: The constraint corresponding to that labeling (Groud
-% Truth Feature - Worst Offending feature)
-% 3rd output: the margin you want to enforce for this constraint.
-
-y = scene_MVC(x, y, anno, params);
-
-if(strcmp(params.inference, 'mcmc'))
-    init.pg = y.pg;
-    [spg, maxidx] = DDMCMCinference(x.x, x.iclusters, params, init, anno);
-elseif(strcmp(params.inference, 'greedy'))
-    initpg = y.pg;
-    [spg] = GreedyInference(x.x, x.iclusters, params, initpg, anno);
-    maxidx = 1;
-elseif(strcmp(params.inference, 'combined'))
-    init.pg = y.pg;
-    
-    [init.pg] = GreedyInference(x.x, x.iclusters, params, init.pg, anno);
-    init = scene_MVC(x, init, anno, params);
-    [spg, maxidx, ~, h] = DDMCMCinference(x.x, x.iclusters, params, init, anno);
-    
-else
-    assert(0);
-end
-
-y.pg = spg(maxidx);
-yhat = scene_MVC(x, y, anno, params);
-yhat.feat = features(yhat.pg, x.x, x.iclusters, params.model);
-yhat.loss = lossall2(anno, x.x, x.iclusters, yhat.pg, params);
-
-if nargout >= 2
-    dphi = y.feat  - yhat.feat;
-    if nargout >= 3
-        margin = yhat.loss - y.loss;
-    end
-end
-
-end
-
-function y = scene_MVC(x, y, anno, params)
-
-pg = y.pg;
-maxval = -inf;
-for i = 1:params.model.nscene
-    pg.scenetype = i;
-    val = lossall2(anno, x.x, x.iclusters, pg, params);
-    val = val + dot(getweights(params.model), features(pg, x.x, x.iclusters, params.model));
-    if(maxval < val)
-        maxval = val;
-        y.pg = pg;
-    end
-end
-
-end
-
-
-function [yhat dphi margin] = getEmpty(x, y, anno, params)
-% finds the most violated constraint on image id i_id under the current
-% model in params.
-% 1st output: 0/1 labeling on all the detection windows 
-% 2nd output: The constraint corresponding to that labeling (Groud
-% Truth Feature - Worst Offending feature)
-% 3rd output: the margin you want to enforce for this constraint.
-yhat = y;
-yhat.pg.childs = [];
-yhat.feat = features(yhat.pg, x.x, x.iclusters, params.model);
-yhat.loss = lossall(anno, x.x, yhat.pg, params);
-
-if nargout >= 2
-    dphi = y.feat  - yhat.feat;
-    if nargout >= 3
-        margin = yhat.loss - y.loss;
     end
 end
 
