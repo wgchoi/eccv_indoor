@@ -20,8 +20,13 @@ for i = 1:ndets
     isolated(numclusters).isterminal = true;
     %
     isolated(numclusters).ittype = dets(1);             % isloated interaction template, objecttype == template type
-    isolated(numclusters).angle = x.locs(i, 4);
-    isolated(numclusters).loc = x.locs(i, 1:3);
+    if(isfield(x, 'hobjs'))
+        isolated(numclusters).angle = x.hobjs(i).angle;
+        isolated(numclusters).loc = x.hobjs(i).locs;
+    else
+        isolated(numclusters).angle = x.locs(i, 4);
+        isolated(numclusters).loc = x.locs(i, 1:3);
+    end
     
     isolated(numclusters).chindices = i;               % detection index
 end

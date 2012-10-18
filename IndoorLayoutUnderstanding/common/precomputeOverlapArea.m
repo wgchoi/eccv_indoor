@@ -8,12 +8,17 @@ for i = 1:size(x.dets, 1)
         x.orarea(j, i) = inter / barea;
     end
 end
-
 assert(max(max(x.orarea)) <= 1);
 assert(min(min(x.orarea)) >= 0);
 
-assert(length(x.projs) == size(x.dets, 1));
+if(isfield(x, 'hobjs'))
+    assert(length(x.hobjs) == size(x.dets, 1));
+    x.orpolys = sparse(length(x.hobjs), length(x.hobjs));
+    % not using these...
+    return;
+end
 
+assert(length(x.projs) == size(x.dets, 1));
 x.orpolys = sparse(length(x.projs), length(x.projs));
 for i = 1:length(x.projs)
     for j = i+1:length(x.projs)

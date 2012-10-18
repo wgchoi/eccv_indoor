@@ -68,7 +68,7 @@ elseif length(idx) == 2
 elseif length(idx) == 1
     polyout{2} = gtPolyg{idx};
 else
-    assert(0);
+%    assert(0);
 end
 
 % assertLayout(gtPolyg);

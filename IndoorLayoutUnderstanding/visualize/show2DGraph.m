@@ -16,6 +16,8 @@ img = imread(x.imfile);
 ShowGTPolyg(img, x.lpolys(pg.layoutidx, :), fig2d)
 fontsize = size(img, 1) / 25;
 if(bnms)
+    assert(0);
+    
     objidx = getObjIndices(pg, icluster);
     assert(length(conf) == size(x.dets, 1));
     
@@ -59,7 +61,11 @@ else
 
         if(icluster(idx).isterminal)
             oid = icluster(idx).ittype;
-            drawObject(x, idx, oid, om, fig2d, fontsize);
+            if(isfield(pg, 'subidx') && length(pg.subidx) >= i)
+                drawObject2(x, idx, pg.subidx(i), oid, om, fig2d, fontsize);
+            else
+                drawObject(x, idx, oid, om, fig2d, fontsize);
+            end
         else
             childs = icluster(idx).chindices;
             bbs = zeros(length(childs), 4);
@@ -105,5 +111,16 @@ rectangle('position', bbox2rect(x.dets(idx, 4:7)), 'linewidth', 2, 'edgecolor', 
 draw2DCube(poly, rt, fig2d, om(x.dets(idx, 1)).name, col(oid), fontsize);
 
 bbox = x.dets(idx, 4:7);
+
+end
+
+
+function [bbox] = drawObject2(x, idx, subidx, oid, om, fig2d, fontsize)
+
+col = 'rgbykmcrgbykmcrgbykmcrgbykmc';
+% rectangle('position', bbox2rect(x.hobjs(idx).bbs(:, subidx)), 'linewidth', 2, 'edgecolor', 'm');
+% [poly, rt] = get2DCubeProjection(x.K, x.R, x.cubes{idx});
+draw2DCube(x.hobjs(idx).polys(:, :, subidx), bbox2rect(x.hobjs(idx).bbs(:, subidx)), fig2d, om(x.dets(idx, 1)).name, col(oid), fontsize);
+bbox = x.hobjs(idx).bbs(:, subidx);
 
 end
