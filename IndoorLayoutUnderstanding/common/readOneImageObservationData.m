@@ -11,7 +11,7 @@ else
     
     anno = load(annofile);
     try
-        anno = sync_objmodel(anno);
+        anno = sync_objmodel(anno, imfile);
     catch
     end
     btrainset = true;
