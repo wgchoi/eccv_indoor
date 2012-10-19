@@ -10,7 +10,7 @@ cray3 = (K * R) \ [cpt2; 1];
 aaa = atan2(-cray3(1), -cray3(3));
 
 dp = -2*pi:pi/4:2*pi;
-angle = get_closest(dp, attr(3) - yaw);
+% angle = get_closest(dp, attr(3) - yaw);
 angle = get_closest(dp, attr(3) - aaa);
 
 if(angle < 0)
@@ -19,28 +19,33 @@ end
 
 best_depth = 0;
 mindiff = 1.0;
-for depth = 0.1:0.1:10
-    loc = - cray3 .* (depth / cray3(3));
+cnt = 0;
+
+dlist = [0.01:0.1:1, logspace(0, 3, 100)];
+% for depth = 0.1:0.1:50
+for depth = dlist
+    loc = -sign(cray3(3)) * cray3 .* (depth / norm(cray3));
     [cube] = get3DObjectCube(loc, objmodel.width(mid), objmodel.height(mid), objmodel.depth(mid), angle);
     [~, pbbox] = get2DCubeProjection(K, R, cube);
     
     dheight = abs(rect(4) - pbbox(4)) / rect(4);
-    if(dheight < 0.2)
+    
+    cnt  = cnt  + 1;
+    if(any(cube(3, :) > 0))
+        continue;
+    end
+    
+    if(dheight < 0.5)
        if(mindiff > dheight)
            mindiff = dheight;
            best_depth = depth;
+       elseif(mindiff * 2 < dheight)
+           break;
        end
     end
 end
 
-dstep = dstep * best_depth;
-
-loc = -cray3 .* (best_depth / cray3(3));
-[cube] = get3DObjectCube(loc, objmodel.width(mid), objmodel.height(mid), objmodel.depth(mid), angle);
-[ppoly, pbbox] = get2DCubeProjection(K, R, cube);
-maxov = boxoverlap(rect2bbox(pbbox), rect2bbox(rect));
-
-h = struct( 'oid', 0, 'locs', zeros(3, 27), ...
+h = struct( 'oid', -1, 'locs', zeros(3, 27), ...
             'cubes', zeros(3, 8, 27), ...
             'polys', zeros(2, 8, 27), ...
             'bbs', zeros(4, 27), ...
@@ -48,6 +53,26 @@ h = struct( 'oid', 0, 'locs', zeros(3, 27), ...
             'azimuth', attr(3), ... % notice that this angle is azimuth defined in image plane!!!
             'angle', angle ); 
         
+% invalid detection will be filtered out!
+if(mindiff > 0.5)
+    return;
+end
+
+% valid!
+h.oid = attr(1);
+
+% cnt
+% if(mindiff > 0.5)
+%     keyboard;
+% end
+assert(mindiff < 0.5);
+
+dstep = dstep * best_depth;
+loc = -sign(cray3(3)) * cray3 .* (best_depth / norm(cray3));
+[cube] = get3DObjectCube(loc, objmodel.width(mid), objmodel.height(mid), objmodel.depth(mid), angle);
+[ppoly, pbbox] = get2DCubeProjection(K, R, cube);
+maxov = boxoverlap(rect2bbox(pbbox), rect2bbox(rect));
+%         
 % subplot(121);
 % imshow(imfile);
 % hold on;
@@ -56,6 +81,8 @@ h = struct( 'oid', 0, 'locs', zeros(3, 27), ...
 % idx= [1 2 4 3 1 5 6 8 7 5];
 % plot(ppoly(1, idx), ppoly(2, idx), 'w-', 'linewidth', 2);
 % hold off;
+% pause
+
 while(1)
     % dv = zeros(3, 27);
     cnt = 1;
@@ -81,7 +108,7 @@ while(1)
         break;
     end
 end
-
+% assert(maxov > 0.1);
 end
 
 

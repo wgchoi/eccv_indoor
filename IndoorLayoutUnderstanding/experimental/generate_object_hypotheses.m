@@ -1,4 +1,4 @@
-function [hypotheses] = generate_object_hypotheses(imfile, K, R, yaw, objmodels, dets)
+function [hypotheses, invalid_idx] = generate_object_hypotheses(imfile, K, R, yaw, objmodels, dets)
 
 cnt = 0;
 for o = 1:length(objmodels)
@@ -7,6 +7,13 @@ for o = 1:length(objmodels)
     
     hypotheses(cnt+1:cnt+length(h)) = h;
     cnt = cnt + length(h);
+end
+
+invalid_idx = [];
+for i = 1:length(hypotheses)
+    if(hypotheses(i).oid < 0)
+        invalid_idx(end+1) = i;
+    end
 end
 
 end
@@ -22,7 +29,6 @@ h = struct( 'oid', cell(size(dets, 1), 1), 'locs', cell(size(dets, 1), 1), ...
 
 for i = 1:size(dets, 1)
     h(i) = get_hypo_iprojections(imfile, K, R, yaw, objmodel, bbox2rect(dets(i, 4:7)), dets(i, 1:3));
-    h(i).oid = dets(i, 1);
 end
 
 end

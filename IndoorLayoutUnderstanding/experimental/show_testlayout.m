@@ -30,6 +30,10 @@ elseif(show_mode == 2)
     [vv, idx] = sort(gain, 'ascend');
     idx(vv >= 0) = [];
     prefix = 'worse';
+elseif(show_mode == 3)
+    % no ordering
+    idx = 1:length(gain);
+    prefix = 'noordering';
 else
     idx = find(gain == 0);
     prefix = 'equal';
@@ -46,7 +50,11 @@ for ii = 1:length(idx)
     hold on;
     objidx = getObjIndices(data(i).gpg, data(i).iclusters);
     for obj = 1:length(objidx)
-        objpoly = data(i).x.projs(objidx(obj)).poly(:, btm_idx);
+        if(isfield(data(i).x, 'hobjs'))
+            objpoly = data(i).x.hobjs(objidx(obj)).polys(:, btm_idx, data(i).gpg.subidx(obj));
+        else
+            objpoly = data(i).x.projs(objidx(obj)).poly(:, btm_idx);
+        end        
         plot(objpoly(1, :), objpoly(2, :), 'b.--', 'linewidth', 3);
         
         [ipoly, opoly] = get_inner_outer_polys(objpoly);

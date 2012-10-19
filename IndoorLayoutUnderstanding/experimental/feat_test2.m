@@ -41,7 +41,11 @@ else
 end
 
 for i = 1:length(objidx)
-    poly = x.projs(objidx(i)).poly(:, btm_idx);
+    if(isfield(x, 'hobjs'))
+        poly = x.hobjs(objidx(i)).polys(:, btm_idx, pg.subidx(i));
+    else
+        poly = x.projs(objidx(i)).poly(:, btm_idx);
+    end
     [poly(1, :), poly(2, :)] = poly2cw(poly(1, :), poly(2, :));
     [ipoly, opoly] = get_inner_outer_polys(poly);
 
@@ -55,6 +59,8 @@ for i = 1:length(objidx)
         phi(ibase + objbase) = phi(ibase + objbase) + (a1i - a2i) / a1i;
     elseif(strcmp(model.feattype, 'new5'))
         phi(ibase) = phi(ibase) + (a1i - a2i) / a1i;
+    elseif(strcmp(model.feattype, 'new6'))
+        phi(ibase + objbase) = phi(ibase + objbase) + 4 * (a1i - a2i) / a1i;
     end
     
 
@@ -66,6 +72,8 @@ for i = 1:length(objidx)
         phi(ibase + objbase + 1) = phi(ibase + objbase + 1) + (a1 - a2) / a1;
     elseif(strcmp(model.feattype, 'new5'))
         phi(ibase + 1) = phi(ibase + 1) + (a1 - a2) / a1;
+    elseif(strcmp(model.feattype, 'new6'))
+        phi(ibase + objbase) = phi(ibase + objbase) + 2 * (a1 - a2) / a1;
     end    
 
     [xi, yi] = polybool('intersection', opoly(1, :), opoly(2, :), xfloor, yfloor);
@@ -76,6 +84,8 @@ for i = 1:length(objidx)
         phi(ibase + objbase + 2) = phi(ibase + objbase + 2) + (a1o - a2o) / a1o;
     elseif(strcmp(model.feattype, 'new5'))
         phi(ibase + 2) = phi(ibase + 2) + (a1o - a2o) / a1o;
+    elseif(strcmp(model.feattype, 'new6'))
+        phi(ibase + objbase) = phi(ibase + objbase) + (a1o - a2o) / a1o;
     end
 end
 ibase = ibase + model.nobjs * 3;
@@ -84,6 +94,17 @@ phi(ibase) = polyarea(xfloor, yfloor) / prod(x.imsz);
 ibase = ibase + 1;
 
 assert(featlen == ibase - 1);
+% if(any(isnan(phi)))
+%     x.imfile
+%     find(isnan(phi))
+%     phi(isnan(phi)) = 0;
+% end
+% 
+% if(any(isinf(phi)))
+%     x.imfile
+%     find(isinf(phi))
+%     phi(isinf(phi)) = 0;
+% end
 assert(~(any(isnan(phi)) || any(isinf(phi))));
 
 end

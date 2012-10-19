@@ -15,6 +15,7 @@ om = objmodels();
 img = imread(x.imfile);
 ShowGTPolyg(img, x.lpolys(pg.layoutidx, :), fig2d)
 fontsize = size(img, 1) / 25;
+
 if(bnms)
     assert(0);
     
@@ -118,9 +119,14 @@ end
 function [bbox] = drawObject2(x, idx, subidx, oid, om, fig2d, fontsize)
 
 col = 'rgbykmcrgbykmcrgbykmcrgbykmc';
+poses = {'F' 'LF', 'L', 'LB' 'B' 'RB' 'R' 'RF'};
+pidx = mod(x.dets(idx, 3) * 4 / pi, 8) + 1;
 % rectangle('position', bbox2rect(x.hobjs(idx).bbs(:, subidx)), 'linewidth', 2, 'edgecolor', 'm');
 % [poly, rt] = get2DCubeProjection(x.K, x.R, x.cubes{idx});
 draw2DCube(x.hobjs(idx).polys(:, :, subidx), bbox2rect(x.hobjs(idx).bbs(:, subidx)), fig2d, om(x.dets(idx, 1)).name, col(oid), fontsize);
+text(x.hobjs(idx).bbs(1, subidx)+10, x.hobjs(idx).bbs(4, subidx) - 10, ...
+     poses{pidx}, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
+
 bbox = x.hobjs(idx).bbs(:, subidx);
 
 end

@@ -77,18 +77,20 @@ if(useoldver)
     x.cubes = cell(0, 1);
     x.projs = struct('rt', cell(0,1), 'poly', cell(0,1));
 end
+
 for i = 1:length(detfiles)
     if(isempty(detfiles{i}))
         continue;
     end
-    
     data = load(detfiles{i});
 	dets = parseDets(data, i);
-%     fprintf('estimating 3D info of detections, took '); 
-%     tic();
+    
     if(~useoldver)
-        hobjs = generate_object_hypotheses(x.imfile, x.K, x.R, x.yaw, objmodels(), dets);
+        [hobjs, invalid_idx] = generate_object_hypotheses(x.imfile, x.K, x.R, x.yaw, objmodels(), dets);
+        hobjs(invalid_idx) = []; dets(invalid_idx, :) = [];
+        
         x.hobjs(ocnt+1:ocnt+length(hobjs)) = hobjs;
+        
         ocnt = ocnt + length(hobjs);
     else
         locs = zeros(size(dets, 1), 4);
@@ -114,7 +116,6 @@ for i = 1:length(detfiles)
         x.cubes = [x.cubes; cubes]; 
         x.projs = [x.projs; projs];
     end
-%     toc();
     
 	x.dets = [x.dets; dets];    
 end
@@ -152,12 +153,7 @@ if(btrainset)
         end
     end
 end
-
-% tic();
 x = precomputeOverlapArea(x);
-% fprintf('overlap computation '); 
-% toc;
-
 end
 
 % [obj type, subtype, pose, x, y, w, h, confidence]
