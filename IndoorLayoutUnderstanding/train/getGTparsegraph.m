@@ -56,6 +56,45 @@ for i = 1:length(anno.obj_annos)
     end
 end
 
+if(isfield(anno, 'hmn_annos'))
+    assert(length(anno.hmns{1}) + length(anno.hmns{2}) == length(anno.hmn_annos));
+    
+	for i = 1:length(anno.hmn_annos)
+        if(i <= length(anno.hmns{1}))
+            x1 = anno.hmns{1}(i).head_bbs(1) - anno.hmns{1}(i).head_bbs(3);
+            x2 = anno.hmns{1}(i).head_bbs(1) + 2 * anno.hmns{1}(i).head_bbs(3);
+        else
+            idx = i - length(anno.hmns{1});
+            x1 = anno.hmns{2}(idx).head_bbs(1) - anno.hmns{2}(idx).head_bbs(3);
+            x2 = anno.hmns{2}(idx).head_bbs(1) + 2 * anno.hmns{2}(idx).head_bbs(3);
+        end
+        gtbb = [x1 anno.hmn_annos(i).y1 x2 anno.hmn_annos(i).y2];
+        % gtbb = [anno.hmn_annos(i).x1 anno.hmn_annos(i).y1 anno.hmn_annos(i).x2 anno.hmn_annos(i).y2];
+        
+        maxov = 0;
+        maxidx = [0, 0];
+        
+        for j = 1:length(x.hobjs)
+            if(x.hobjs(j).oid == 7) % anno.hmn_annos(i).objtype)
+				or = boxoverlap(x.dets(j, 4:7), gtbb);
+				
+				if(or > maxov)
+					maxov = or;
+					or = boxoverlap(x.hobjs(j).bbs', gtbb);
+					[~, idx] = max(or);
+					maxidx(1) = j;
+					maxidx(2) = idx;                        
+				end
+            end
+        end
+        
+        if(maxov > ovth)
+            gpg.childs(end+1) = maxidx(1);
+            gpg.subidx(end+1) = maxidx(2);
+        end
+	end
+end
+
 if(isfield(x, 'hobjs'))
     if(length(unique(gpg.childs)) ~= length(gpg.childs))
         [gpg.childs, idx] = unique(gpg.childs);

@@ -8,7 +8,7 @@ gain = zeros(1, length(data));
 oracle_gain = zeros(1, length(data));
 
 roomtype = zeros(1, length(data));
-numobjs= zeros(6, length(data));
+numobjs= zeros(7, length(data));
 
 for i = 1:length(data)
     % data(i).x.lerr(length(data(i).x.lconf)+1:end) = [];

@@ -46,7 +46,11 @@ assert(isfield(pg, 'objscale'));
 cubes = cell(1, length(objidx));
 for i = 1:length(objidx)
     idx = objidx(i);
-    cubes{i} = x.cubes{idx} .* pg.objscale(i);
+    if(isfield(x, 'hobjs'))
+        cubes{i} = x.hobjs(idx).cubes(:,:,pg.subidx(i)) .* pg.objscale(i);
+    else
+        cubes{i} = x.cubes{idx} .* pg.objscale(i);
+    end
 end
 
 %% scene classification
@@ -105,9 +109,13 @@ for i = 1:length(pg.childs)
         locs = zeros(length(iclusters(i1).chindices), 4);
         for j = 1:length(iclusters(i1).chindices)
             idx = find(objidx == iclusters(i1).chindices(j), 1);
-            
-            locs(j, 1:3) = x.locs(iclusters(i1).chindices(j), 1:3) * pg.objscale(idx);
-            locs(j, 4) = x.locs(iclusters(i1).chindices(j), 4);
+            if(isfield(x, 'hobjs'))
+                locs(j, 1:3) = x.hobjs(iclusters(i1).chindices(j)).locs(1:3, pg.subidx(idx)) * pg.objscale(idx);
+                locs(j, 4) = x.hobjs(iclusters(i1).chindices(j)).angle;
+            else
+                locs(j, 1:3) = x.locs(iclusters(i1).chindices(j), 1:3) * pg.objscale(idx);
+                locs(j, 4) = x.locs(iclusters(i1).chindices(j), 4);
+            end
         end
         % 
         itmfeat = getITMfeat(model.itmptns(itmid), locs, model);

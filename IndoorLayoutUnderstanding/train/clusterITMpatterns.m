@@ -93,7 +93,10 @@ itmnode = graphnodes(1);
 itmnode.isterminal = 0;
 itmnode.ittype = ptn.type;
 
-[ifeat, cloc, theta, dloc, dpose] = computeITMfeature(x, ptn, idx, params, true);
+% temp
+sidx = 14 * ones(1, length(idx));
+
+[ifeat, cloc, theta, dloc, dpose] = computeITMfeature(x, ptn, idx, sidx, params, true);
 assert(~isempty(dloc));
 
 itmnode.chindices = idx;

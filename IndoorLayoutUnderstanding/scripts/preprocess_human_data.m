@@ -3,7 +3,7 @@ function preprocess_human_data(imbase, resbase, annobase, dataset)
 addPaths
 addVarshaPaths
 
-params = initparam(3, 6);
+params = initparam(3, 7);
 
 load(fullfile([resbase '/layout/' dataset], '/res_set_jpg.mat'));
 
@@ -37,18 +37,16 @@ for idx = 1:csize:length(imfiles)
     vpdata2 = vpdata(idx:idx+setsize-1);
     models = params.model;
     
-    for i = 1:setsize 
-    % parfor i = 1:setsize 
+    % for i = 1:setsize 
+    parfor i = 1:setsize 
         try
             annofile = [imfiles2(i).name(1:find(imfiles2(i).name == '.', 1, 'last')-1) '_labels.mat'];
             [data(i).x, data(i).anno] = readOneImageObservationData(fullfile(imdir, imfiles2(i).name), ...
-                                                    {fullfile([detdir '/sofa'], detfiles2(i).name), fullfile([detdir '/table'], detfiles2(i).name), fullfile([detdir '/chair'], detfiles2(i).name), fullfile([detdir '/diningtable'], detfiles2(i).name)}, ...
+                                                    {fullfile([detdir '/sofa'], detfiles2(i).name), fullfile([detdir '/table'], detfiles2(i).name), fullfile([detdir '/chair'], detfiles2(i).name), [], fullfile([detdir '/diningtable'], detfiles2(i).name), []}, ...
                                                     boxlayout2{i}, vpdata2{i}, fullfile(annodir, annofile), 0);
             
-
             hmnfile = [imfiles2(i).name(1:find(imfiles2(i).name == '.', 1, 'last')-1) '.mat'];
-            data(i).x = readHuamnObservationData(data(i).imfile, fullfile(hmndir, hmnfile), data(i).x);
-                                                
+            data(i).x = readHuamnObservationData(data(i).x.imfile, fullfile(hmndir, hmnfile), data(i).x);
             % get human data as well..
             data(i).iclusters = clusterInteractionTemplates(data(i).x, models);
             data(i).gpg = get_GT_human_parsegraph(data(i).x, data(i).iclusters, data(i).anno, models);

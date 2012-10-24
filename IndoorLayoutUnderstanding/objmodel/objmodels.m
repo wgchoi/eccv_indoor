@@ -2,7 +2,9 @@ function model = objmodels()
 
 model = struct('name', cell(1, 0), 'type', cell(1, 0), ...
                 'width', cell(1, 0), 'height', cell(1, 0), 'depth', cell(1, 0), ...
-                'grounded', cell(1, 0), 'ori_sensitive', cell(1, 0));
+                'grounded', cell(1, 0), ...
+                'ori_sensitive', cell(1, 0), ...
+                'submodel_sensitive', cell(1, 0));
 
 idx = 1;
 model(idx).name = 'Sofa';
@@ -12,6 +14,7 @@ model(idx).height = [0.8 0.8];
 model(idx).depth = [0.8 0.8];
 model(idx).grounded = 1;
 model(idx).ori_sensitive = 1;
+model(idx).submodel_sensitive = 0;
 
 idx = idx + 1;
 model(idx).name = 'Table';
@@ -21,6 +24,8 @@ model(idx).height = [0.4 0.4];
 model(idx).depth = [0.75 0.8];
 model(idx).grounded = 1;
 model(idx).ori_sensitive = 0;
+model(idx).submodel_sensitive = 0;
+
 % idx = idx + 1;
 % model(idx).name = 'TV';
 % model(idx).type = {'Flat' 'CRT'};
@@ -37,6 +42,7 @@ model(idx).height = [1.0];
 model(idx).depth = [0.5];
 model(idx).grounded = 1;
 model(idx).ori_sensitive = 1;
+model(idx).submodel_sensitive = 0;
 
 idx = idx + 1;
 model(idx).name = 'Bed';
@@ -46,6 +52,7 @@ model(idx).height = [1.3, 1.3, 1.3];
 model(idx).depth = [2.0, 2.1, 2.2];
 model(idx).grounded = 1;
 model(idx).ori_sensitive = 1;
+model(idx).submodel_sensitive = 0;
 
 idx = idx + 1;
 model(idx).name = 'Dining Table';
@@ -55,6 +62,7 @@ model(idx).height = [0.75 0.75];
 model(idx).depth = [0.75 0.8];
 model(idx).grounded = 1;
 model(idx).ori_sensitive = 0;
+model(idx).submodel_sensitive = 0;
 
 idx = idx + 1;
 model(idx).name = 'Side Table';
@@ -64,5 +72,17 @@ model(idx).height = [0.6 0.6];
 model(idx).depth = [0.4 0.35];
 model(idx).grounded = 1;
 model(idx).ori_sensitive = 1;
+model(idx).submodel_sensitive = 0;
+
+% human !
+idx = idx + 1;
+model(idx).name = 'Human';
+model(idx).type = {'Standing' 'Sitting'};
+model(idx).width = [0.5 0.5];
+model(idx).height = [1.7 1.2];
+model(idx).depth = [0.3 0.3];
+model(idx).grounded = 1;
+model(idx).ori_sensitive = 0;
+model(idx).submodel_sensitive = 1;
 
 end

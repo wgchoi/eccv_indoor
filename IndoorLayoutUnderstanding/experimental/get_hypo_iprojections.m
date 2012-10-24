@@ -1,7 +1,10 @@
-function h = get_hypo_iprojections(imfile, K, R, yaw, objmodel, rect, attr)
-     
+function h = get_hypo_iprojections(imfile, K, R, yaw, objmodel, rect, attr, option)
+if(nargin < 8)
+	option = 0;
+end
+
 mid = attr(2);
-dstep = 0.05; % 5 cm at 1m distance
+dstep = 0.1; 
 
 obj.bbs = rect;
 cpt2 = [obj.bbs(1) + obj.bbs(3) / 2; obj.bbs(2) + obj.bbs(4) / 2];
@@ -50,6 +53,7 @@ h = struct( 'oid', -1, 'locs', zeros(3, 27), ...
             'polys', zeros(2, 8, 27), ...
             'bbs', zeros(4, 27), ...
             'ovs', zeros(1, 27), ...
+            'diff', zeros(1, 27), ...
             'azimuth', attr(3), ... % notice that this angle is azimuth defined in image plane!!!
             'angle', angle ); 
         
@@ -67,52 +71,77 @@ h.oid = attr(1);
 % end
 assert(mindiff < 0.5);
 
-dstep = dstep * best_depth;
-loc = -sign(cray3(3)) * cray3 .* (best_depth / norm(cray3));
-[cube] = get3DObjectCube(loc, objmodel.width(mid), objmodel.height(mid), objmodel.depth(mid), angle);
-[ppoly, pbbox] = get2DCubeProjection(K, R, cube);
-maxov = boxoverlap(rect2bbox(pbbox), rect2bbox(rect));
-%         
-% subplot(121);
-% imshow(imfile);
-% hold on;
-% rectangle('position', rect, 'edgecolor', 'k', 'LineStyle', '--', 'linewidth', 3);
-% rectangle('position', pbbox, 'edgecolor', 'r', 'LineStyle', '-.', 'linewidth', 4);
-% idx= [1 2 4 3 1 5 6 8 7 5];
-% plot(ppoly(1, idx), ppoly(2, idx), 'w-', 'linewidth', 2);
-% hold off;
-% pause
+if(option == 0)
+	loc = -sign(cray3(3)) * cray3 .* (best_depth / norm(cray3));
+	[cube] = get3DObjectCube(loc, objmodel.width(mid), objmodel.height(mid), objmodel.depth(mid), angle);
+	[ppoly, pbbox] = get2DCubeProjection(K, R, cube);
+	maxov = boxoverlap(rect2bbox(pbbox), rect2bbox(rect));
+	% subplot(121);
+	% imshow(imfile);
+	% hold on;
+	% rectangle('position', rect, 'edgecolor', 'k', 'LineStyle', '--', 'linewidth', 3);
+	% rectangle('position', pbbox, 'edgecolor', 'r', 'LineStyle', '-.', 'linewidth', 4);
+	% idx= [1 2 4 3 1 5 6 8 7 5];
+	% plot(ppoly(1, idx), ppoly(2, idx), 'w-', 'linewidth', 2);
+	% hold off;
+	% pause
+	while(1)
+		% dv = zeros(3, 27);
+		cnt = 1;
+		for dx = [-1 0 1]
+			for dy = [-1 0 1]
+				for dz = [-1 0 1]
+					h.locs(:, cnt) = loc + [dx; dy; dz] .* dstep;
+					h.cubes(:, :, cnt) = get3DObjectCube(h.locs(:, cnt), objmodel.width(mid), objmodel.height(mid), objmodel.depth(mid), angle);
+					[h.polys(:, :, cnt), h.bbs(:, cnt)] = get2DCubeProjection(K, R, h.cubes(:, :, cnt));
+					% dv(:, cnt) = [dx; dy; dz];
+					cnt = cnt + 1;
+				end
+			end
+		end
+		h.bbs(3:4, :) = h.bbs(3:4, :) + h.bbs(1:2, :) - 1;
+		h.ovs = boxoverlap(h.bbs', rect2bbox(rect));
+		
+		[val, idx] = max(h.ovs);
+		if(maxov < val)
+			loc = h.locs(:, idx);
+			maxov = val;
+		else
+			break;
+		end
+	end
+elseif(option == 1)
+	loc = -sign(cray3(3)) * cray3 .* (best_depth / norm(cray3));
+	[cube] = get3DObjectCube(loc, objmodel.width(mid), objmodel.height(mid), objmodel.depth(mid), angle);
+	[ppoly, pbbox] = get2DCubeProjection(K, R, cube);
+	mindiff = sum((rect2btm(pbbox(:)) - rect2btm(rect(:))) .^ 2 );
 
-while(1)
-    % dv = zeros(3, 27);
-    cnt = 1;
-    for dx = [-1 0 1]
-        for dy = [-1 0 1]
-            for dz = [-1 0 1]
-                h.locs(:, cnt) = loc + [dx; dy; dz] .* dstep;
-                h.cubes(:, :, cnt) = get3DObjectCube(h.locs(:, cnt), objmodel.width(mid), objmodel.height(mid), objmodel.depth(mid), angle);
-                [h.polys(:, :, cnt), h.bbs(:, cnt)] = get2DCubeProjection(K, R, h.cubes(:, :, cnt));
-                % dv(:, cnt) = [dx; dy; dz];
-                cnt = cnt + 1;
-            end
-        end
-    end
-    h.bbs(3:4, :) = h.bbs(3:4, :) + h.bbs(1:2, :) - 1;
-    h.ovs = boxoverlap(h.bbs', rect2bbox(rect));
-    
-    [val, idx] = max(h.ovs);
-    if(maxov < val)
-        loc = h.locs(:, idx);
-        maxov = val;
-    else
-        break;
-    end
+	while(1)
+		% dv = zeros(3, 27);
+		cnt = 1;
+		for dx = [-1 0 1]
+			for dy = [-1 0 1]
+				for dz = [-1 0 1]
+					h.locs(:, cnt) = loc + [dx; dy; dz] .* dstep;
+					h.cubes(:, :, cnt) = get3DObjectCube(h.locs(:, cnt), objmodel.width(mid), objmodel.height(mid), objmodel.depth(mid), angle);
+					[h.polys(:, :, cnt), h.bbs(:, cnt)] = get2DCubeProjection(K, R, h.cubes(:, :, cnt));
+					cnt = cnt + 1;
+				end
+			end
+		end
+		
+		h.diff = sum((rect2btm(h.bbs) - repmat(rect2btm(rect(:)), 1, 27)) .^ 2, 1);
+		h.bbs(3:4, :) = h.bbs(3:4, :) + h.bbs(1:2, :) - 1;
+
+		[val, idx] = min(h.diff);
+		if(mindiff < val)
+			loc = h.locs(:, idx);
+			mindiff = val;
+		else
+			break;
+		end
+	end
+
 end
-% assert(maxov > 0.1);
-end
 
-
-function val = get_closest(list, v)
-[~, idx] = min(abs(list-v));
-val = list(idx);
 end

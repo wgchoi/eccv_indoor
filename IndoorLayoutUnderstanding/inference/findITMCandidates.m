@@ -1,8 +1,10 @@
-function [composite, x] = findITMCandidates(x, isolated, params, rule, cidx)
+function [composite, x] = findITMCandidates(x, isolated, params, rule, cidx, sidx)
 if(nargin < 5)
     % candidate childs
     % in case of training, gives gt detections.
     cidx = 1:length(isolated);
+    sidx = 14 * ones(1, length(isolated));
+    
     x = precomputeDistances(x);
     
     threshold = 0;
@@ -41,11 +43,28 @@ for i = 1:min(size(sets, 2), maxnum)
 %     objlocs(end + 1, :) = x.locs(iidx, 1:3) .* pg.objscale(i);
 %     objcubes{end + 1} = x.cubes{iidx} .* pg.objscale(i);
 %     objpose(end + 1) = x.locs(iidx, 4) ;
-    if(any(any(isnan(x.locs(cidx(sets(:, i)), :)))))
+    if(isfield(x, 'locs') && any(any(isnan(x.locs(cidx(sets(:, i)), :)))))
         continue;
     end
     
-    [ifeat, cloc, theta, dloc, dpose] = computeITMfeature(x, rule, cidx(sets(:, i)), params, true);
+    if(isfield(rule.parts(1), 'subtype'))
+        matched = true;
+        
+        for j = 1:length(rule.parts)
+            if(rule.parts(j).subtype > 0)
+                if(x.dets(cidx(sets(j, i)), 2) ~= rule.parts(j).subtype)
+                    matched = false;
+                    break;
+                end
+            end
+        end
+        
+        if(~matched)
+            continue;
+        end
+    end
+    
+    [ifeat, cloc, theta, dloc, dpose] = computeITMfeature(x, rule, cidx(sets(:, i)), sidx(sets(:, i)), params, true);
     
     if(isempty(dloc))
         % non-valid
@@ -58,6 +77,9 @@ for i = 1:min(size(sets, 2), maxnum)
     tempnode.feats = ifeat;
     tempnode.dloc = dloc;
     tempnode.dpose = dpose;
+
+    camangle = atan2(-cloc(2), -cloc(1)); 
+    tempnode.azimuth = camangle - theta;
     
     if(threshold < dot(w, ifeat))
         numclusters = numclusters + 1;

@@ -13,7 +13,7 @@ clf;
 
 om = objmodels();
 img = imread(x.imfile);
-ShowGTPolyg(img, x.lpolys(pg.layoutidx, :), fig2d)
+ShowGTPolyg2(img, x.lpolys(pg.layoutidx, :), fig2d)
 fontsize = size(img, 1) / 25;
 
 if(bnms)
