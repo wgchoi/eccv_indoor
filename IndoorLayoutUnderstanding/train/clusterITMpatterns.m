@@ -9,10 +9,9 @@ res = false;
 
 for i = 1:length(ptns)
     for j = i+1:length(ptns)
-        smat(i, j) = compareITM(ptns(i), ptns(j));
-        smat(j, i) = smat(i, j);
-        
-        if(smat(i,j) < 25)
+        % smat(i, j) = compareITM(ptns(i), ptns(j));
+        % smat(j, i) = smat(i, j);
+        % if(smat(i,j) < 25)
             [a, b, imatch] = findCommonITMset(dids{i}, comps{i}, dids{j}, comps{j});
             sset(i, j) = length(a) / b;
             sset(j, i) = sset(i, j);
@@ -22,7 +21,7 @@ for i = 1:length(ptns)
                 maxc = temp;
                 maxsim = length(a) / b;
             end
-        end
+        % end
     end
 end
 
@@ -63,6 +62,9 @@ if(~isempty(maxc))
         for j = 1:length(imatch)
             cidx(imatch(j)) = comps{maxc.i}(idx(i)).chindices(j);
         end
+        
+        assert(length(cidx) == ptn.numparts);
+        
         if(iscell(data))
             setcomps(end + 1) = createITMnode(ptn, data{setid(end)}.x, cidx, params);
         elseif(isstruct(data))
@@ -96,7 +98,7 @@ itmnode.ittype = ptn.type;
 % temp
 sidx = 14 * ones(1, length(idx));
 
-[ifeat, cloc, theta, dloc, dpose] = computeITMfeature(x, ptn, idx, sidx, params, true);
+[ifeat, cloc, theta, dloc, dpose, locs] = computeITMfeature(x, ptn, idx, sidx, params, true);
 assert(~isempty(dloc));
 
 itmnode.chindices = idx;
@@ -106,4 +108,7 @@ itmnode.feats = ifeat;
 itmnode.dloc = dloc;
 itmnode.dpose = dpose;
 
+camangle = atan2(-locs(1, 3), -locs(1, 1));
+itmnode.azimuth = camangle - theta;
+    
 end

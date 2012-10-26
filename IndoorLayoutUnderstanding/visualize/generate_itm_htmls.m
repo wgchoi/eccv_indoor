@@ -1,20 +1,22 @@
-function generate_itm_htmls(ptn, itm_examples, modelfile, htmlfile)
+function generate_itm_htmls(ptn, itm_examples, modelfile, htmlfile, imgdir)
 
-cachedir = fullfile(pwd(), 'html/temp/');
-mkdir(cachedir);
+maximages = 60;
+
+fulldir = fullfile(pwd(), fullfile('htmls/', imgdir));
+mkdir(fulldir);
 
 visualizeITM(ptn, objmodels(), 1)
-print('-djpeg', fullfile(cachedir, 'a_ptn.jpg'));
+print('-djpeg', fullfile(fulldir, 'a_ptn.jpg'));
 close();
 
 addpath ../Detector/dpm_detector/
 load(modelfile)
 visualizemodel(model);
-print('-djpeg', fullfile(cachedir, 'b_dpm.jpg'));
+print('-djpeg', fullfile(fulldir, 'b_dpm.jpg'));
 close();
 rmpath ../Detector/dpm_detector/
 
-for i = 1:length(itm_examples)
+for i = 1:min(maximages, length(itm_examples))
     figure(1); clf();
     imshow(itm_examples(i).imfile);
     rectangle('position', bbox2rect(itm_examples(i).bbox), 'linewidth', 2, 'edgecolor', 'w');
@@ -30,16 +32,16 @@ for i = 1:length(itm_examples)
     plot(cts(1,1), cts(2, 1), 'c.', 'MarkerSize', 30);
     plot(cts(1, 1:2), cts(2, 1:2), 'r-', 'linewidth', 3)
     hold off
-    title(['angle: ' num2str(itm_examples(i).angles / pi * 180, '%.02f') ' azimuth: ' num2str(examples(i).azimuth / pi * 180, '%.02f')]);
+    title(['angle: ' num2str(itm_examples(i).angles / pi * 180, '%.02f') ' azimuth: ' num2str(itm_examples(i).azimuth / pi * 180, '%.02f')]);
     
     drawnow;
-    print('-djpeg', fullfile(cachedir, ['c_example' num2str(i, '%03d') '.jpg']));
+    print('-djpeg', fullfile(fulldir, ['c_example' num2str(i, '%03d') '.jpg']));
 end
 
-cd html;
-addpath ~/Codes/thumbnailImageHTML;
-createThumbnailTable(cachedir, htmlfile, 400, 5)
-
-rmpath ~/Codes/thumbnailImageHTML;
+cd htmls;
+addpath ~/codes/thumbnailImageHTML;
+createThumbnailTable(imgdir, htmlfile, 400, 5, maximages)
+rmpath ~/codes/thumbnailImageHTML;
+cd ..
 
 end

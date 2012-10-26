@@ -1,5 +1,5 @@
 clear
-
+%%
 addPaths
 addVarshaPaths
 addpath ../3rdParty/ssvmqp_uci/
@@ -23,12 +23,6 @@ for d = 1:length(datasets)
     end
 end
 %% 
-baseline = zeros(1, length(data));
-merr = zeros(1, length(data));
-for i = 1:length(data)
-    baseline(i) = data(i).x.lerr(1);
-    merr(i) = min(data(i).x.lerr);
-end
 % %% reestimate detections and gt
 % params = initparam(3, 7);
 % for i = 1:length(data)
@@ -46,6 +40,35 @@ for i = 1:length(data)
     [data(i).x, data(i).iclusters] = get_ground_truth_observations(data(i).x, data(i).anno, params.model);
     data(i).gpg = get_GT_human_parsegraph(data(i).x, data(i).iclusters, data(i).anno, params.model);
 end
+%%
+params.model.feattype = 'itm_v1';
+params.model.humancentric = 1;
+params.minITMmatch = 15;
+
+%% 
+[patterns, labels, annos] = preprocess_train_data(data, params, 2);
+for i = 1:length(labels)
+    labels(i).pg.childs = 1:length(patterns(i).x.hobjs);
+    labels(i).pg.subidx = 14 * ones(1, length(patterns(i).x.hobjs));
+end
+
+%%
+[ptns, comps, indsets] = learn_itm_patterns(patterns, labels, params, 2, 'human_itm_fixed');
+%%
+[ps, is, cs] = filter_itms(ptns, indsets, comps, params);
+save('cache/human_itm_fixed', '-append', 'ps', 'is', 'cs');
+%%
+try
+    matlabpool open 8
+catch
+end
+
+for i = 1:length(ptns)
+    [itm_examples] = get_itm_examples(data, is{i}, cs{i});
+    train_dpm_for_itms(itm_examples, ['human_filtered_itm' num2str(i, '%03d')]);
+end
+
+return;
 %%
 % for i = 1:length(data)
 %     show2DGraph(data(i).gpg, data(i).x, data(i).iclusters);

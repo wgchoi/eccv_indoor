@@ -1,4 +1,4 @@
-function [itmptns, hit] = learn_itm_patterns(patterns, labels, params, VERBOSE, cachefile)
+function [ptns, comps, indsets] = learn_itm_patterns(patterns, labels, params, VERBOSE, cachefile)
 if nargin < 5
     cachefile = 'itmpatterns';
 end
@@ -20,7 +20,11 @@ allcomposites = {};
 alldidx = {};
 
 % lets ignore..... way to expensive....
-cand_data(numobjs > 6) = false;
+if(isfield(params.model, 'humancentric') && params.model.humancentric)
+    cand_data(numobjs > 10) = false;
+else
+    cand_data(numobjs > 6) = false;
+end
 
 rid = 100;
 
@@ -155,6 +159,5 @@ for i = 1:length(ptns)
     hit(i) = length(indsets{i});
 end
 save(fullfile('cache/', cachefile), '-append', 'ptns', 'comps', 'indsets');
-itmptns = ptns;
 
 end

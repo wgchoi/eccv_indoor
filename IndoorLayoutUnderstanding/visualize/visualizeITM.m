@@ -1,12 +1,11 @@
 function visualizeITM(rule, omodel, figid)
 if nargin < 2
     omodel = objmodels();
-    figid = 2000;
-elseif nargin < 3
-    figid = 2000;
+    cla
+else
+    figure(figid);
+    clf
 end
-figure(figid);
-clf
 
 fontsize = 12;
 for i = 1:length(rule.parts)

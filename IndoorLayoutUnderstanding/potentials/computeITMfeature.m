@@ -1,4 +1,4 @@
-function [ifeat, cloc, theta, dloc, dpose] = computeITMfeature(x, rule, idx, sidx, params, quickrun)
+function [ifeat, cloc, theta, dloc, dpose, locs] = computeITMfeature(x, rule, idx, sidx, params, quickrun)
 % (dx^2, dz^2, da^2) * n + view dependent biases
 if nargin < 5
     quickrun = 0;
@@ -29,6 +29,7 @@ if(quickrun)
         theta = 0;
         dloc = [];
         dpose = [];
+        locs = [];
         return;
     end
 else

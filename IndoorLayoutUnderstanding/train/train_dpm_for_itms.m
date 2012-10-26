@@ -6,12 +6,10 @@ if ~exist(cache_dir, 'dir')
 end
 
 cd ../Detector/dpm_detector/
-
 % model = pascal_train(cls, n, note)
 % Train a model with 2*n components using the PASCAL dataset.
 % note allows you to save a note with the trained model
 % example: note = 'testing FRHOG (FRobnicated HOG)
-
 % At every "checkpoint" in the training process we reset the 
 % RNG's seed to a fixed value so that experimental results are 
 % reproducible.
@@ -26,12 +24,17 @@ globals;
 % split data by aspect ratio into n groups
 [spos, index_pose] = view_split(pos, 8);
 
+if(isempty(index_pose))
+    cd(curpwd);
+    return;
+end
+
 cachesize = 10*numel(pos);
 maxneg = min(800, numel(pos));
 
 % train root filters using warped positives & random negatives
 try
-  load([cache_dir name '_root']);
+  load([cache_dir '/' name '_root']);
 catch
   initrand();
   for i = 1:numel(index_pose)
@@ -42,12 +45,12 @@ catch
 						5, ... % negiter
                       cachesize, true, 0.7, false, ['root_' num2str(i)]);
   end
-  save([cache_dir name '_root'], 'models');
+  save([cache_dir '/' name '_root'], 'models', 'index_pose');
 end
 
 % merge models and train using hard negatives
 try 
-  load([cache_dir name '_mix']);
+  load([cache_dir '/' name '_mix']);
 catch
   initrand();
   model = mergemodels(models);
@@ -55,9 +58,8 @@ catch
                 1, ...
                 5, ...
                 cachesize, true, 0.7, false, 'mix');
-  save([cache_dir name '_mix'], 'model');
+  save([cache_dir '/' name '_mix'], 'model', 'index_pose');
 end
-
 % % add parts and update models using hard negatives.
 % try 
 %   load([cache_dir cls '_parts']);
@@ -95,13 +97,18 @@ globals;
 VOC2006 = false;
 pascal_init;
 
-classes = {'sofa' 'chair' 'table' };
 try
-  load([cache_dir name '_train_pose']);
+  load([cache_dir '/' name '_train_pos_set']);
 catch
   % positive examples from train+val
   pos = parse_positives(itm_examples);
   
+  save([cache_dir '/' name '_train_pos_set'], 'pos');
+end
+
+try
+  load([cache_dir '/train_neg_set']);
+catch
   % negative examples from train (this seems enough!)
   ids = textread(sprintf(VOCopts.imgsetpath, 'train'), '%s');
   neg = [];
@@ -121,7 +128,7 @@ catch
     end
   end
   
-  save([cache_dir name '_train_pose'], 'pos', 'neg');
+  save([cache_dir '/train_neg_set'], 'neg');
 end
 
 end
@@ -144,6 +151,9 @@ for i = 1:N
     pos(count).mirrored = false;
     pos(count).subid = 1;
     
+    continue;
+    % not working!!!!
+    
     %%% mirrored example
     count = count + 1;
     pos(count).im = itm_examples(i).imfile;
@@ -153,7 +163,7 @@ for i = 1:N
     pos(count).y2 = itm_examples(i).bbox(4);
     pos(count).flip = false;
     pos(count).trunc = 0;
-    pos(count).azimuth = 360 - itm_examples(i).azimuth;
+    pos(count).azimuth = 2 * pi - itm_examples(i).azimuth;
     %%% wongun added
     pos(count).mirrored = true;
     pos(count).subid = 1;

@@ -44,7 +44,7 @@ if(isfield(params.model, 'humancentric') && params.model.humancentric)
     removeidx = [];
     for i = 1:size(comb, 1)
         idx = find(comb(i, :) > 0);
-        if(sum(objtypes(idx) == 7) >= 2)
+        if(sum(objtypes(idx) == 7) >= 2 || sum(objtypes(idx) == 7) == 0)
             removeidx(end+1) = i;
         end
     end
