@@ -72,7 +72,15 @@ else
             bbs = zeros(length(childs), 4);
             for j = 1:length(childs)
                 oid = icluster(childs(j)).ittype;
-                bbs(j, :) = drawObject(x, childs(j), oid, om, fig2d, fontsize);
+                
+                if(isfield(pg, 'subidx') && length(pg.subidx) >= i)
+                    id1 = icluster(childs(j)).chindices;
+                    id2 = icluster(childs(j)).subidx;
+                    
+                    bbs(j, :) = drawObject2(x, id1, id2, oid, om, fig2d, fontsize);
+                else
+                    bbs(j, :) = drawObject(x, childs(j), oid, om, fig2d, fontsize);
+                end
             end
             drawITMLink(bbs);
         end
@@ -117,7 +125,6 @@ end
 
 
 function [bbox] = drawObject2(x, idx, subidx, oid, om, fig2d, fontsize)
-
 col = 'rgbykmcrgbykmcrgbykmcrgbykmc';
 poses = {'F' 'LF', 'L', 'LB' 'B' 'RB' 'R' 'RF'};
 pidx = mod(x.dets(idx, 3) * 4 / pi, 8) + 1;
@@ -126,7 +133,5 @@ pidx = mod(x.dets(idx, 3) * 4 / pi, 8) + 1;
 draw2DCube(x.hobjs(idx).polys(:, :, subidx), bbox2rect(x.hobjs(idx).bbs(:, subidx)), fig2d, om(x.dets(idx, 1)).name, col(oid), fontsize);
 text(x.hobjs(idx).bbs(1, subidx)+10, x.hobjs(idx).bbs(4, subidx) - 10, ...
      poses{pidx}, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
-
 bbox = x.hobjs(idx).bbs(:, subidx);
-
 end

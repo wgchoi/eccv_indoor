@@ -1,8 +1,11 @@
-function [ifeat, cloc, theta, dloc, dpose, locs] = computeITMfeature(x, rule, idx, sidx, params, quickrun)
+function [ifeat, cloc, theta, azimuth, dloc, dpose] = computeITMfeature(x, rule, idx, sidx, params, quickrun)
 % (dx^2, dz^2, da^2) * n + view dependent biases
 if nargin < 5
     quickrun = 0;
 end
+
+assert(nargout == 6);
+
 ifeat = zeros(rule.numparts * 3 + 8, 1);
 
 pg.childs = idx;
@@ -29,7 +32,7 @@ if(quickrun)
         theta = 0;
         dloc = [];
         dpose = [];
-        locs = [];
+        azimuth = [];
         return;
     end
 else
@@ -38,13 +41,24 @@ end
 
 if(isfield(x, 'hobjs'))
     locs = zeros(length(idx), 4);
+    bboxes = zeros(length(idx), 4);
+    
     for i = 1:length(idx)
         locs(i, :) = [x.hobjs(idx(i)).locs(:,sidx(i))' .* pg.objscale(i), x.hobjs(idx(i)).angle];
+        bboxes(i, :) = x.hobjs(idx(i)).bbs(:, sidx(i))';
     end
 else
     locs = [x.locs(idx, 1:3) .* repmat(pg.objscale', 1, 3), x.locs(idx, 4)];
 end
-[ifeat, cloc, theta, dloc, dpose] = getITMfeat(rule, locs, params.model);
+
+if(isfield(x, 'itms'))
+    xs = [bboxes(:, 1); bboxes(:, 3)];
+    ys = [bboxes(:, 2); bboxes(:, 4)];
+    
+    [ifeat, cloc, theta, azimuth, dloc, dpose] = getITMfeat(rule, x.itms, [min(xs), min(ys), max(xs), max(ys)], locs, params.model);
+else
+    [ifeat, cloc, theta, azimuth, dloc, dpose] = getITMfeat(rule, [], [], locs, params.model);
+end
 
 end
 

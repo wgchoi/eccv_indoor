@@ -47,7 +47,11 @@ cubes = cell(1, length(objidx));
 for i = 1:length(objidx)
     idx = objidx(i);
     if(isfield(x, 'hobjs'))
-        cubes{i} = x.hobjs(idx).cubes(:,:,pg.subidx(i)) .* pg.objscale(i);
+        oid = iclusters(idx).chindices;
+        sid = iclusters(idx).subidx;
+        assert(length(oid) == 1);
+        
+        cubes{i} = x.hobjs(oid).cubes(:,:,sid) .* pg.objscale(i);
     else
         cubes{i} = x.cubes{idx} .* pg.objscale(i);
     end
@@ -103,22 +107,41 @@ ibase = ibase + model.nobjs * model.nscene;
 for i = 1:length(pg.childs)
     i1 = pg.childs(i);
     if(~iclusters(i1).isterminal)
-        itmid = iclusters(i1).ittype - model.nobjs;
+        itmid = model.itm_map(iclusters(i1).ittype);
+        assert(itmid > 0);
+        % itmid = iclusters(i1).ittype - model.nobjs;
         % compute itm features
         temp = ibase + model.itmbase(itmid);
         locs = zeros(length(iclusters(i1).chindices), 4);
+        bboxes = zeros(length(iclusters(i1).chindices), 4);
+        
         for j = 1:length(iclusters(i1).chindices)
             idx = find(objidx == iclusters(i1).chindices(j), 1);
             if(isfield(x, 'hobjs'))
-                locs(j, 1:3) = x.hobjs(iclusters(i1).chindices(j)).locs(1:3, pg.subidx(idx)) * pg.objscale(idx);
-                locs(j, 4) = x.hobjs(iclusters(i1).chindices(j)).angle;
+                oid = iclusters(iclusters(i1).chindices(j)).chindices;
+                sid = iclusters(iclusters(i1).chindices(j)).subidx;
+                
+                assert(length(oid) == 1);
+        
+                locs(j, 1:3) = x.hobjs(oid).locs(1:3, sid) * pg.objscale(idx);
+                locs(j, 4) = x.hobjs(oid).angle;
+                
+                
+                bboxes(j, :) = x.hobjs(oid).bbs(:, sid)';
             else
                 locs(j, 1:3) = x.locs(iclusters(i1).chindices(j), 1:3) * pg.objscale(idx);
                 locs(j, 4) = x.locs(iclusters(i1).chindices(j), 4);
             end
         end
         % 
-        itmfeat = getITMfeat(model.itmptns(itmid), locs, model);
+        if(isfield(x, 'itms'))
+            xs = [bboxes(:, 1); bboxes(:, 3)];
+            ys = [bboxes(:, 2); bboxes(:, 4)];
+            itmfeat = getITMfeat(model.itmptns(itmid), x.itms, [min(xs), min(ys), max(xs), max(ys)], locs, model);
+        else
+            itmfeat = getITMfeat(model.itmptns(itmid), [], [], locs, model);
+        end
+        
         phi(temp:temp+model.itmfeatlen(itmid)-1) = itmfeat;
     end
 end

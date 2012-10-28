@@ -93,7 +93,8 @@ while (iter <= max_iter && trigger)
 
             for ii = 1:numel(check_labels)
                 label_ii = check_labels(ii);
-                if (margin(did) - params.model.w' * Constraints(:, label_ii) > score)
+				if (Margins(label_ii) - params.model.w' * Constraints(:, label_ii) >= score - abs(score) * 1e-4)
+                % if (margin(did) - params.model.w' * Constraints(:, label_ii) > score)
                     isMVC = 0;
                     break;
                 end
@@ -124,7 +125,7 @@ while (iter <= max_iter && trigger)
                 end
 
                 if(VERBOSE > 0)
-                    disp(['new constraint ' num2str(id) 'th added : score ' num2str(score) ' all cost ' num2str(cost) ' LB : ' num2str(low_bound)]);
+                    disp(['new constraint ' num2str(id + did - 1) 'th added : score ' num2str(score) ' all cost ' num2str(cost) ' LB : ' num2str(low_bound)]);
                 else
                     fprintf('+');
                     if(mod(id + did - 1, 100) == 0)
@@ -187,10 +188,6 @@ while (iter <= max_iter && trigger)
     info.cost(end + 1) = cost;
     info.err(end + 1) = sum(ls);
     info.params(end + 1) = params;
-    
-%     if(info.cost(end) - info.cost(end - 1) < 1)
-%         break;
-%     end
 end
 % matlabpool close;
 

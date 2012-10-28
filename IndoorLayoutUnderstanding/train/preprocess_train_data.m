@@ -63,7 +63,9 @@ for i = 1:length(data)
         
         numtp(i) = sum(annos(i).oloss(:, 2));
         nump(i) = size(GT, 1);
-        
+        if(numtp(i) < nump(i))
+            disp([num2str(nump(i) - numtp(i)) ' missing object in ' num2str(i)])
+        end
         ambids = find((annos(i).oloss(:, 1) == 0) & (annos(i).oloss(:, 2) == 0));
         %% remove too many flase positives
         filterids = falsepositiveNMSFilter(patterns(i).x, find((annos(i).oloss(:, 1) == 1)), 35);
@@ -98,6 +100,8 @@ for i = 1:length(data)
         %%%%%%%%%%%% find the ground truth solution
         labels(i).pg = data(i).gpg;
         labels(i).pg.childs = find(annos(i).oloss(:, 2));
+        labels(i).pg.subidx = 14 .* ones(1, length(labels(i).pg.childs));
+        
         if(isfield(params.model, 'commonground') && params.model.commonground)
             labels(i).pg = findConsistent3DObjects(labels(i).pg, patterns(i).x, patterns(i).isolated);
         else

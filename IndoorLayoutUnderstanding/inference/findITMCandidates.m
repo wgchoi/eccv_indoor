@@ -64,7 +64,7 @@ for i = 1:min(size(sets, 2), maxnum)
         end
     end
     
-    [ifeat, cloc, theta, dloc, dpose, locs] = computeITMfeature(x, rule, cidx(sets(:, i)), sidx(sets(:, i)), params, true);
+    [ifeat, cloc, theta, azimuth, dloc, dpose] = computeITMfeature(x, rule, cidx(sets(:, i)), sidx(sets(:, i)), params, true);
     
     if(isempty(dloc))
         % non-valid
@@ -73,14 +73,17 @@ for i = 1:min(size(sets, 2), maxnum)
     
     tempnode.chindices = cidx(sets(:, i));
     tempnode.angle = theta;
+    tempnode.azimuth = azimuth;
     tempnode.loc = cloc; 
+    
     tempnode.feats = ifeat;
     tempnode.dloc = dloc;
     tempnode.dpose = dpose;
-
+    
+    
     % assert(0); % make sure it is correct!!!!!
-    camangle = atan2(-locs(1, 3), -locs(1, 1)); 
-    tempnode.azimuth = camangle - theta;
+%     camangle = atan2(-locs(1, 3), -locs(1, 1)); 
+%     tempnode.azimuth = camangle - theta;
     
     if(threshold < dot(w, ifeat))
         numclusters = numclusters + 1;

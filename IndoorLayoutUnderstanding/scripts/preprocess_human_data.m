@@ -25,6 +25,9 @@ csize = 16;
 assert(length(imfiles) == length(detfiles));
 % assert(length(imfiles) == length(hmnfiles));
 
+params.posletmodel = load('./model/poselet_model');
+addpath ../3rdParty/libsvm-3.12/
+
 for idx = 1:csize:length(imfiles)
     setsize = min(length(imfiles) - idx + 1, csize);
     
@@ -46,7 +49,7 @@ for idx = 1:csize:length(imfiles)
                                                     boxlayout2{i}, vpdata2{i}, fullfile(annodir, annofile), 0);
             
             hmnfile = [imfiles2(i).name(1:find(imfiles2(i).name == '.', 1, 'last')-1) '.mat'];
-            data(i).x = readHuamnObservationData(data(i).x.imfile, fullfile(hmndir, hmnfile), data(i).x);
+            data(i).x = readHuamnObservationData(data(i).x.imfile, fullfile(hmndir, hmnfile), data(i).x, params.posletmodel);
             % get human data as well..
             data(i).iclusters = clusterInteractionTemplates(data(i).x, models);
             data(i).gpg = get_GT_human_parsegraph(data(i).x, data(i).iclusters, data(i).anno, models);

@@ -14,7 +14,11 @@ bottoms = zeros(1, length(objidx));
 for i = 1:length(objidx)
     if(isfield(x, 'hobjs'))
         % x.hobjs(idx).cubes(:, :, pg.subidx(i))
-        cube =  x.hobjs(objidx(i)).cubes(:,:,pg.subidx(i));
+        oid = iclusters(objidx(i)).chindices;
+        sid = iclusters(objidx(i)).subidx;
+        assert(length(oid) == 1);
+        
+        cube =  x.hobjs(oid).cubes(:,:,sid);
         bottoms(i) = -min(cube(2, :));
     else
         cube = x.cubes{objidx(i)};

@@ -178,9 +178,6 @@ N = numel(pos);
 view = zeros(N, 1);
 for i = 1:N
     az = pos(i).azimuth / pi * 180;
-    if az < 0
-        az = az + 360;
-    end
     view(i) = find_interval(az, n);
 end
 
@@ -192,24 +189,5 @@ for i = 1:n
     if numel(spos{idx}) >= 10
         index_pose = [index_pose idx];
     end
-end
-end
-
-function ind = find_interval(azimuth, num)
-
-if num == 8
-    a = 22.5:45:337.5;
-elseif num == 24
-    a = 7.5:15:352.5;
-end
-
-for i = 1:numel(a)
-    if azimuth < a(i)
-        break;
-    end
-end
-ind = i;
-if azimuth > a(end)
-    ind = 1;
 end
 end

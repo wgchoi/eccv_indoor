@@ -1,4 +1,9 @@
 clear
+
+imbase='~/codes/human_interaction/DataCollection/MainDataset/';
+resbase='~/codes/human_interaction/cache/';
+annobase='~/codes/human_interaction/DataAnnotation/MainDataset/';
+dataset='dancing';
 %%
 addPaths
 addVarshaPaths
@@ -21,6 +26,56 @@ for d = 1:length(datasets)
             cnt = cnt + 1;
         end
     end
+end
+%%
+poseletbase = '~/codes/human_interaction/cache/poselet/converted/';
+erridx = [];
+posletmodel = load('./model/poselet_model');
+
+addpath ../3rdParty/libsvm-3.12/
+
+for i = 1:10:length(data)
+    [datadir, datafile] = fileparts(data(i).x.imfile);
+    [~, datadir] = fileparts(datadir);
+    
+    poselet = load(fullfile(fullfile(poseletbase, datadir), datafile));
+    % poselet.bodies.scores(6:end) = [];
+    % data(i).gpg.camheight = 0.01;
+    % get camera height voting...
+    % show2DGraph(data(i).gpg, data(i).x, data(i).iclusters);
+    
+    features = get_poselet_feature(poselet);
+    [labels, p] = classify_poselet(posletmodel.model, posletmodel.DATAtrain, features);
+    poselet.pose_prob = p;
+    try
+        [locs, reporjs, heights, maxh] = get_human_iprojections(data(i).x.K, data(i).x.R, poselet);
+        poselet.pose_prob(:) = 0;
+        [locs2, reporjs2, heights2, maxh2] = get_human_iprojections(data(i).x.K, data(i).x.R, poselet);
+    catch ee
+        erridx(end+1) = i;
+        keyboard;
+        continue;
+    end
+
+    ShowGTPolyg2(imread(data(i).x.imfile), data(i).x.lpolys(data(i).gpg.layoutidx, :), 1);
+    for j = 1:5 % length(poselet.bodies.scores)
+        if(poselet.bodies.scores(j) > 1)
+            rectangle('position', poselet.torsos.rts(:, j), 'edgecolor', 'r', 'linewidth', 2);
+            rectangle('position', poselet.bodies.rts(:, j), 'edgecolor', 'g', 'linewidth', 4);
+            rectangle('position', reporjs(:, j), 'edgecolor', 'w', 'linewidth', 3, 'linestyle', '--');
+            rectangle('position', reporjs2(:, j), 'edgecolor', 'm', 'linewidth', 2, 'linestyle', '--');
+            
+            text(reporjs(1, j), reporjs(2, j), num2str(heights(j), '%.02f'), 'backgroundcolor', 'w');
+            text(reporjs2(1, j), reporjs2(2, j)+20, num2str(heights2(j), '%.02f'), 'backgroundcolor', 'w');
+            
+            if(p(j, 1) > 0.5)
+                text(reporjs2(1, j), reporjs2(2, j)+40, 'stand', 'backgroundcolor', 'w');
+            else
+                text(reporjs2(1, j), reporjs2(2, j)+40, 'sit', 'backgroundcolor', 'w');
+            end
+        end
+    end
+    pause;
 end
 %% 
 % %% reestimate detections and gt

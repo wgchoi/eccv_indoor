@@ -98,17 +98,15 @@ itmnode.ittype = ptn.type;
 % temp
 sidx = 14 * ones(1, length(idx));
 
-[ifeat, cloc, theta, dloc, dpose, locs] = computeITMfeature(x, ptn, idx, sidx, params, true);
+[ifeat, cloc, theta, azimuth, dloc, dpose] = computeITMfeature(x, ptn, idx, sidx, params, true);
 assert(~isempty(dloc));
 
 itmnode.chindices = idx;
 itmnode.angle = theta;
+itmnode.azimuth = azimuth;
 itmnode.loc = cloc; 
 itmnode.feats = ifeat;
 itmnode.dloc = dloc;
 itmnode.dpose = dpose;
-
-camangle = atan2(-locs(1, 3), -locs(1, 1));
-itmnode.azimuth = camangle - theta;
     
 end

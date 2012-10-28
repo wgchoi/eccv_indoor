@@ -38,10 +38,9 @@ if nargout >= 2
         for j = 1:length(labels(i).lcpg.childs)
             idx = labels(i).lcpg.childs(j);
             if(~patterns(i).iclusters(idx).isterminal)
-                pidx = patterns(i).iclusters(idx).ittype - model.nobjs;
-                
-                hit(pidx) = hit(pidx) + 1;
-                
+                pidx = params.model.itm_map(patterns(i).iclusters(idx).ittype);
+                % pidx = patterns(i).iclusters(idx).ittype - model.nobjs;                
+                hit(pidx) = hit(pidx) + 1;                
                 ptnsets{pidx}(end+1) = patterns(i).iclusters(idx);
             end
         end
