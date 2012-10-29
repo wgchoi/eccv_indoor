@@ -5,6 +5,7 @@ params.model.itmptns = ptns;
 params.model.itmbase = zeros(1, length(ptns));
 params.model.itmfeatlen = zeros(1, length(ptns));
 
+params.model.itm_map = [];
 for i = 1:length(ptns)
     params.model.itm_map(params.model.itmptns(i).type) = i;
     %params.model.itmptns(i).type = params.model.nobjs + i;

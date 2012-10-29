@@ -7,6 +7,8 @@ if(VERBOSE > 0)
 end
 
 parfor i = 1:length(patterns)
+    initrand();
+    
     if(updateITM)
         composites = graphnodes(1);
         composites(:) = [];
