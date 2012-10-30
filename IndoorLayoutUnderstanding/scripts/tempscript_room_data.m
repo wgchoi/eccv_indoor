@@ -101,6 +101,7 @@ for i = 1:length(data)
     data(i).gpg = get_GT_human_parsegraph(data(i).x, data(i).iclusters, data(i).anno, params.model);
 end
 %%
+params = initparam(3, 7);
 params.model.feattype = 'itm_v1';
 params.minITMmatch = 15;
 %% preprocessing training data
@@ -119,13 +120,10 @@ for i = 1:length(ptns)
     train_dpm_for_itms(itm_examples, ['room_itm' num2str(i, '%03d')]);
 end
 matlabpool close
-
 %% process images with trained DPM detector
 [data, ptns] = process_ITM_detector(data, dpm_prefix, ptns, 'cache/itm/room/');
-
 %% append ITM detections
 data = append_ITM_detections(data, ptns, 'cache/itm/room/', expinfo.trainfiles);
-
 %% add scene classification
 parfor i = 1:length(data)
     data(i).x = sceneClassify(data(i).x);
@@ -156,3 +154,4 @@ for  i = 1:length(params.model.itmptns)
 end
 %% preprocessing training data
 [patterns, labels, annos] = preprocess_train_data(data, params, 2);
+clear data;

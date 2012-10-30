@@ -62,8 +62,11 @@ else
 
         if(icluster(idx).isterminal)
             oid = icluster(idx).ittype;
-            if(isfield(pg, 'subidx') && length(pg.subidx) >= i)
-                drawObject2(x, idx, pg.subidx(i), oid, om, fig2d, fontsize);
+            if(isfield(x, 'hobjs'))
+                id1 = icluster(idx).chindices;
+                id2 = icluster(idx).subidx;
+                    
+                drawObject2(x, id1, id2, oid, om, fig2d, fontsize);
             else
                 drawObject(x, idx, oid, om, fig2d, fontsize);
             end
@@ -73,7 +76,7 @@ else
             for j = 1:length(childs)
                 oid = icluster(childs(j)).ittype;
                 
-                if(isfield(pg, 'subidx') && length(pg.subidx) >= i)
+                if(isfield(x, 'hobjs'))
                     id1 = icluster(childs(j)).chindices;
                     id2 = icluster(childs(j)).subidx;
                     
