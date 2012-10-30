@@ -73,7 +73,7 @@
 %     end
 %     disp(['done ' num2str(i)]);
 % end
-if(0)
+if(1)
     %% load test data
     clear
 
@@ -100,7 +100,7 @@ if(0)
     data = append_ITM_detections(data, ptns, 'cache/itm/room/', expinfo.testfiles);
 end
 %% testing
-load('cache/itmobs/iter1/params.mat')
+load('cache/itmobs/iter4/params.mat')
 %%
 % res = struct('spg', cell(length(data), 1), 'maxidx', [], 'h', []);
 paramsout.numsamples = 1000;
@@ -157,3 +157,4 @@ for idx = 1:csize:length(data)
     end
     fprintf(' => done\n')
 end
+save('./cache/itmobs/testres4', '-v7.3', 'res', 'conf1', 'conf2'); 
