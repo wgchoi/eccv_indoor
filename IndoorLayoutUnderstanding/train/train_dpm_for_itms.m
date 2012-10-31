@@ -1,4 +1,4 @@
-function [] = train_dpm_for_itms(itm_examples, name)
+function [] = train_dpm_for_itms(itm_examples, name, allimlists)
 curpwd = pwd();
 cache_dir = fullfile(curpwd, 'cache/dpm/');
 if ~exist(cache_dir, 'dir')
@@ -20,9 +20,10 @@ if nargin < 3
 end
 
 globals; 
-[pos, neg] = itm_data(itm_examples, name, cache_dir);
+[pos, neg] = itm_data(itm_examples, name, cache_dir, allimlists);
 % split data by aspect ratio into n groups
-[spos, index_pose] = view_split(pos, 8);
+[spos, index_pose, removeidx] = view_split(pos, 8);
+pos(removeidx) = [];
 
 if(isempty(index_pose))
     cd(curpwd);
@@ -30,7 +31,7 @@ if(isempty(index_pose))
 end
 
 cachesize = 10*numel(pos);
-maxneg = min(800, numel(pos));
+maxneg = min(1500, numel(pos));
 
 % train root filters using warped positives & random negatives
 try
@@ -58,6 +59,12 @@ catch
                 1, ...
                 5, ...
                 cachesize, true, 0.7, false, 'mix');
+            
+  model = train(name, model, pos, neg, 0, 0, ...
+                1, ...
+                5, ...
+                cachesize, true, 0.7, true, 'mix_2');
+            
   save([cache_dir '/' name '_mix'], 'model', 'index_pose');
 end
 % % add parts and update models using hard negatives.
@@ -90,7 +97,7 @@ cd(curpwd);
 
 end
 
-function [pos, neg] = itm_data(itm_examples, name, cache_dir)
+function [pos, neg] = itm_data(itm_examples, name, cache_dir, allimlist)
 % Get training data from the PASCAL dataset.
 
 globals;
@@ -107,12 +114,30 @@ catch
 end
 
 try
-  load([cache_dir '/train_neg_set']);
+  load([cache_dir '/' name '_train_neg_set']);
 catch
   % negative examples from train (this seems enough!)
-  ids = textread(sprintf(VOCopts.imgsetpath, 'train'), '%s');
   neg = [];
   numneg = 0;
+  
+  removelist = [];
+  for i = 1:length(itm_examples)
+      [bin, idx] = inlist(allimlist, itm_examples(i).imfile);
+      if bin
+          removelist(end+1) = idx;
+      end
+  end
+  
+  removelist = unique(removelist);
+  allimlist(removelist) = [];
+  
+  for i = 1:length(allimlist)
+      numneg = numneg+1;
+      neg(numneg).im = allimlist{i};
+      neg(numneg).flip = false;
+  end
+  
+  ids = textread(sprintf(VOCopts.imgsetpath, 'train'), '%s');
   for i = 1:length(ids);
     if(mod(i, 50) == 0)
         fprintf('%s: parsing negatives: %d/%d\n', name, i, length(ids));
@@ -127,8 +152,7 @@ catch
       neg(numneg).flip = false;
     end
   end
-  
-  save([cache_dir '/train_neg_set'], 'neg');
+  save([cache_dir '/' name '_train_neg_set'], 'neg');
 end
 
 end
@@ -173,7 +197,7 @@ end
 
 
 % split positive training samples according to viewpoints
-function [spos, index_pose] = view_split(pos, n)
+function [spos, index_pose, removeidx] = view_split(pos, n)
 N = numel(pos);
 view = zeros(N, 1);
 for i = 1:N
@@ -183,11 +207,61 @@ end
 
 spos = cell(n, 1);
 index_pose = [];
+
+removeidx = [];
+maxperview = 150;
 for i = 1:n
     idx = i;
-    spos{idx} = pos(view == i);
+    sets = find(view == i);
+    
+    if(length(sets) > maxperview)
+        temp = randperm(length(sets));
+        spos{idx} = pos(sets(temp(1:maxperview)));
+        removeidx = [removeidx; sets(temp(maxperview+1:end))];
+    else
+        spos{idx} = pos(sets);
+    end
+    
     if numel(spos{idx}) >= 10
         index_pose = [index_pose idx];
     end
+end
+
+end
+
+function [in, idx] = inlist(list, string)
+idx = -1;
+for i = 1:length(list)
+    if(strcmp(list{i}, string))
+        in = true;
+        idx = i;
+        return
+    end
+end
+in = false;
+end
+
+function ind = find_interval(azimuth, num)
+
+if azimuth < 0
+    azimuth = azimuth + 360;
+end
+
+assert(azimuth >= 0 && azimuth <= 360);
+
+if num == 8
+    a = 22.5:45:337.5;
+elseif num == 24
+    a = 7.5:15:352.5;
+end
+
+for i = 1:numel(a)
+    if azimuth < a(i)
+        break;
+    end
+end
+ind = i;
+if azimuth > a(end)
+    ind = 1;
 end
 end

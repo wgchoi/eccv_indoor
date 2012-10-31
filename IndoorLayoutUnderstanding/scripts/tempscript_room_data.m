@@ -28,7 +28,7 @@ files = dir(fullfile(resdir, '*.mat'));
 trainfiles = [];
 testfiles = [];
 
-for i = expinfo.trainfiles % 1:length(files)
+for i = 1:length(files) % expinfo.trainfiles % 1:length(files)
     data(cnt) = load(fullfile(resdir, files(i).name));
     if(isempty(data(cnt).x))
         i
@@ -97,7 +97,14 @@ end
 %% use real gt (only for ITM generation)
 params = initparam(3, 7);
 for i = 1:length(data)
-    [data(i).x, data(i).iclusters] = get_ground_truth_observations(data(i).x, data(i).anno, params.model);
+    data(i).x.hobjs(:) = [];
+    data(i).x.dets(:) = [];
+    [gtx] = get_ground_truth_observations(data(i).x, data(i).anno);
+    data(i).x.hobjs = gtx.hobjs;
+    data(i).x.dets = gtx.dets;
+    data(i).x = precomputeOverlapArea(data(i).x);
+    
+    data(i).iclusters = clusterInteractionTemplates(data(i).x, params.model);
     data(i).gpg = get_GT_human_parsegraph(data(i).x, data(i).iclusters, data(i).anno, params.model);
 end
 %%
@@ -114,10 +121,13 @@ params.minITMmatch = 15;
 [ptns, comps, indsets] = learn_itm_patterns(patterns, labels, params, 2, 'room_itm_fixed');
 % if human use itm-filtering 
 %% train DPM for ITMs
-matlabpool open 8
+for i = 1:length(data)
+    imlist{i} = fullfile(pwd(), data(i).x.imfile);
+end
+matlabpool open 4
 for i = 1:length(ptns)
     [itm_examples] = get_itm_examples(data, indsets{i}, comps{i});
-    train_dpm_for_itms(itm_examples, ['room_itm' num2str(i, '%03d')]);
+    train_dpm_for_itms(itm_examples, ['room_itm' num2str(i, '%03d')], imlist);
 end
 matlabpool close
 %% process images with trained DPM detector
