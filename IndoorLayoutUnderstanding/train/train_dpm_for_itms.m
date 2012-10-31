@@ -15,9 +15,7 @@ cd ../Detector/dpm_detector/
 % reproducible.
 initrand();
 
-if nargin < 3
-  note = '';
-end
+note = '';
 
 globals; 
 [pos, neg] = itm_data(itm_examples, name, cache_dir, allimlists);
