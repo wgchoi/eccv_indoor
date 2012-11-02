@@ -1,6 +1,17 @@
 function show_itm_examples(ptn, examples)
+
+warning('OFF');
 for i = 1:length(examples)
-    imshow(examples(i).imfile);
+    if(mod(i, 16) == 1 && i ~= 1)
+        pause();
+        clf();
+    end
+    subplot(4,4,mod(i-1, 16)+1);
+    im=imread(examples(i).imfile);
+    if(examples(i).flip)
+        im = flipimage(im);
+    end
+    imshow(im);
     rectangle('position', bbox2rect(examples(i).bbox), 'linewidth', 2, 'edgecolor', 'w');
     
     cols = {'r' 'g' 'b' 'k' 'm' 'r' 'c'};
@@ -24,7 +35,17 @@ for i = 1:length(examples)
         text(examples(i).objboxes(1, j)+5, examples(i).objboxes(2, j)+5, num2str(j), 'fontsize', 20, 'backgroundcolor', 'w');
     end
     
-    title([num2str(i) 'th angle: ' num2str(examples(i).angles / pi * 180, '%.02f') ' azimuth: ' num2str(examples(i).azimuth / pi * 180, '%.02f')]);
-    pause
+    title([num2str(i) 'th angle: ' num2str(examples(i).angle / pi * 180, '%.02f') ' azimuth: ' num2str(examples(i).azimuth / pi * 180, '%.02f')]);
+%     pause
 end
+
+warning('ON');
+end
+
+function im = flipimage(im)
+% im = flipimage(im)
+% Horizontal-flip image.
+% Used for learning symmetric pose.
+w = size(im, 2);
+im = im(:, w:-1:1, :);
 end

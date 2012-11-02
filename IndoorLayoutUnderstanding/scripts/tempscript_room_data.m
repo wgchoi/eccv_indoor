@@ -28,7 +28,7 @@ files = dir(fullfile(resdir, '*.mat'));
 trainfiles = [];
 testfiles = [];
 
-for i = 1:length(files) % expinfo.trainfiles % 1:length(files)
+for i = expinfo.trainfiles % 1:length(files)
     data(cnt) = load(fullfile(resdir, files(i).name));
     if(isempty(data(cnt).x))
         i
@@ -42,6 +42,7 @@ try
     matlabpool open 8
 end
 
+params = initparam(3, 7);
 csize = 16;
 for idx = 1:csize:length(data)
     setsize = min(length(data) - idx + 1, csize);
@@ -69,6 +70,22 @@ for idx = 1:csize:length(data)
         tdata(i).iclusters = clusterInteractionTemplates(tdata(i).x, params.model);
         tdata(i).gpg = getGTparsegraph(tdata(i).x, tdata(i).iclusters, tdata(i).anno, params.model);
         
+        % scene classification
+        tdata(i).x = sceneClassify(tdata(i).x);
+        [~, dataset] = fileparts(fileparts(tdata(i).x.imfile));
+        if(strcmp(dataset, 'bedroom'))
+            tdata(i).anno.scenetype = 1;
+            tdata(i).gpg.scenetype = 1;
+        elseif(strcmp(dataset, 'livingroom'))
+            tdata(i).anno.scenetype = 2;
+            tdata(i).gpg.scenetype = 2;
+        elseif(strcmp(dataset, 'diningroom'))
+            tdata(i).anno.scenetype = 3;
+            tdata(i).gpg.scenetype = 3;
+        else
+            disp(dataset);
+            assert(0);
+        end
         disp([num2str(i) ' done'])
     end
     

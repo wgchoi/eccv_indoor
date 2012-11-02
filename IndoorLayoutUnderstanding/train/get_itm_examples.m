@@ -1,15 +1,19 @@
-function [itm_examples] = get_itm_examples(data, didx, composites)
+function [itm_examples] = get_itm_examples(patterns, labels, didx, composites)
 
-itm_examples = struct('imfile', cell(1, length(didx)), 'bbox', [], 'angle', [], 'azimuth', [], 'objboxes', []);
+itm_examples = struct(  'imfile', cell(1, length(didx)), ...
+                        'flip', false, ...
+                        'bbox', [], 'angle', [], 'azimuth', [], ...
+                        'objtypes', [], 'objboxes', [], 'objangs', [], 'objazs', []);
+
 for i = 1:length(didx)
-    x = data(didx(i)).x;
+    x = patterns(didx(i)).x;
     
     if(x.imfile(1) == '/' || x.imfile(1) == '~')
         itm_examples(i).imfile = x.imfile; 
     else
         itm_examples(i).imfile = fullfile(pwd(), x.imfile); 
     end
-    itm_examples(i).angles = composites(i).angle;
+    itm_examples(i).angle = composites(i).angle;
     
     if(isfield(x, 'hobjs'))
         oidx = composites(i).chindices;
@@ -18,7 +22,11 @@ for i = 1:length(didx)
         ally = [];
         
         for j = 1:length(oidx)
+            itm_examples(i).objtypes(j) = x.hobjs(oidx(j)).oid;
             itm_examples(i).objboxes(:, j) = x.hobjs(oidx(j)).bbs(:, 14);
+            itm_examples(i).objangs(j) = x.hobjs(oidx(j)).angle;
+            itm_examples(i).objazs(j) = x.hobjs(oidx(j)).azimuth;
+            
             allx = [allx, x.hobjs(oidx(j)).bbs([1 3], 14)'];
             ally = [ally, x.hobjs(oidx(j)).bbs([2 4], 14)'];
         end
@@ -30,10 +38,10 @@ for i = 1:length(didx)
     itm_examples(i).azimuth = composites(i).azimuth;
     
     %
-    pg = data(didx(i)).gpg;
+    pg = labels(didx(i)).pg;
     pg.childs= oidx;
     pg.subidx(:) = 14;
-    pg = findConsistent3DObjects(pg, data(didx(i)).x, data(didx(i)).iclusters);
+    pg = findConsistent3DObjects(pg, patterns(didx(i)).x, patterns(didx(i)).isolated);
     
     loc1 = x.hobjs(oidx(1)).locs(:, 14) * pg.objscale(1);
     loc2 = x.hobjs(oidx(2)).locs(:, 14) * pg.objscale(2);
@@ -49,8 +57,8 @@ for i = 1:length(didx)
     continue;
     
     
-    show2DGraph(pg, data(didx(i)).x, data(didx(i)).iclusters);
-    show3DGraph(pg, data(didx(i)).x, data(didx(i)).iclusters);
+    show2DGraph(pg, patterns(didx(i)).x, patterns(didx(i)).isolated);
+    show3DGraph(pg, patterns(didx(i)).x, patterns(didx(i)).isolated);
     hold on;
     plot3(loc1(1), loc1(2), loc1(3), 'co', 'markersize', 30);
     plot3([loc1(1) loc2(1)], [loc1(2) loc2(2)], [loc1(3) loc2(3)], ...

@@ -1,4 +1,4 @@
-function [composite, x] = findITMCandidates(x, isolated, params, rule, cidx, sidx)
+function [composite, x] = findITMCandidates(x, isolated, params, rule, cidx, sidx, threshold)
 if(nargin < 5)
     % candidate childs
     % in case of training, gives gt detections.
@@ -9,8 +9,10 @@ if(nargin < 5)
     
     threshold = 0;
     maxnum = 1000;
-else
+elseif(nargin < 6)
     threshold = -1;
+    maxnum = inf;
+else
     maxnum = inf;
 end
 
@@ -34,6 +36,16 @@ else
     sets = recFindSets(indices);
 end
 tempnode = graphnodes(1);
+
+if(~isempty(sets))
+    for i = 1:size(sets, 2)
+        for j = i+1:size(sets, 2)
+            if(all(sets(:, i) == sets(:, j)))
+                keyboard;
+            end
+        end
+    end
+end
 
 tempnode.isterminal = 0;
 tempnode.ittype = rule.type;
@@ -157,9 +169,9 @@ for i = 1:length(indices{1})
             % about 1 meter
             temp(:, dists(newidx, temp(k, :)) < md(k) - 1) = [];
             temp(:, dists(newidx, temp(k, :)) > md(k) + 1) = [];
-            % abour 60 degree
-            temp(:, angdiff(newidx, temp(k, :)) < ma(k) - 1) = [];
-            temp(:, angdiff(newidx, temp(k, :)) > ma(k) + 1) = [];
+            % about 90 degree
+            temp(:, angdiff(newidx, temp(k, :)) < ma(k) - 1.6) = [];
+            temp(:, angdiff(newidx, temp(k, :)) > ma(k) + 1.6) = [];
         end
         temp(:, any(temp == newidx, 1)) = [];
     end

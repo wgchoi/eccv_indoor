@@ -1,84 +1,95 @@
-function [clusters] = cluster_itm_examples(itm_examples)
+function [itm_examples, clusters, viewset] = cluster_itm_examples(itm_examples)
 
-if(1)
-    clusters = 1:length(itm_examples);
-    for i = 1:length(itm_examples)
-        azimuth = get_closest(-2*pi:pi/4:7*pi/4, itm_examples(i).azimuth);
-        if(azimuth < 0)
-            azimuth = azimuth + 2 * pi;
-        end
-        assert(azimuth < 2 * pi);
-        clusters(i) = (azimuth * 4 / pi) + 1;
+distmap = inf(length(itm_examples), length(itm_examples));
+for i = 1:length(itm_examples)
+    for j = i+1:length(itm_examples)
+        distmap(i, j) = get_itm_example_dist(itm_examples(i), itm_examples(j));
+        distmap(j, i) = distmap(i, j);
+        %pdist(cnt) = get_layout_dist(itm_examples(i), itm_examples(j));
+        %cnt = cnt + 1;
     end
-else
-    %cnt = 1;
-    % pdist = zeros(1, length(itm_examples) * (length(itm_examples) - 1) / 2);
-    % pdist = zeros(length(itm_examples), length(itm_examples));
-    pdist = inf(length(itm_examples), length(itm_examples));
-    for i = 1:length(itm_examples)
-        for j = i+1:length(itm_examples)
-            pdist(i, j) = get_layout_dist(itm_examples(i), itm_examples(j));
-            % pdist(j, i) = pdist(i, j);
-            %pdist(cnt) = get_layout_dist(itm_examples(i), itm_examples(j));
-            %cnt = cnt + 1;
-        end
-    end
+end
+% find duplication..
+[itm_examples, ~, distmap] = remove_duplicate_itm_examples(itm_examples, distmap);
 
-    nparts = size(itm_examples(1).objboxes, 2);
-    clusters = 1:length(itm_examples);
-    for i = 2:length(itm_examples)
-        [val, idx] = min(pdist(1:i, i));
-        if(val < 1 * nparts)
-            clusters(i) = clusters(idx);
-        end
-    %     for j = i+1:length(itm_examples)
-    %         if(pdist(i, j) < 0.7 * nparts)
-    %             idx = find(clusters == )
-    %         end
-    %     end
-    end
-
+% initialize with view point - 8 views
+viewset = cell(1, 8);
+for i = 1:length(viewset)
+    viewset{i} = i;
 end
 
+clusters = 1:length(itm_examples);
+for i = 1:length(itm_examples)
+    clusters(i) = find_interval(itm_examples(i).azimuth / pi * 180, 8);
 end
 
-function [dist] = get_layout_dist(e1, e2)
-
-dist = 0;
-
-diag1 = sqrt( (e1.bbox(3) - e1.bbox(1) + 1).^2 + (e1.bbox(4) - e1.bbox(2) + 1).^2);
-diag2 = sqrt( (e2.bbox(3) - e2.bbox(1) + 1).^2 + (e2.bbox(4) - e2.bbox(2) + 1).^2);
-
-for i = 1:size(e1.objboxes, 2)
-    bbox1 = e1.objboxes(:, i);
-    bbox2 = e2.objboxes(:, i);
-    
-    bbox1(1) = (bbox1(1) - e1.bbox(1)) / diag1;
-    bbox1(3) = (bbox1(3) - e1.bbox(1)) / diag1;
-    bbox1(2) = (bbox1(2) - e1.bbox(2)) / diag1;
-    bbox1(4) = (bbox1(4) - e1.bbox(2)) / diag1;
-    
-    
-    bbox2(1) = (bbox2(1) - e2.bbox(1)) / diag2;
-    bbox2(3) = (bbox2(3) - e2.bbox(1)) / diag2;
-    bbox2(2) = (bbox2(2) - e2.bbox(2)) / diag2;
-    bbox2(4) = (bbox2(4) - e2.bbox(2)) / diag2;
-    
-    dist = dist - log(boxoverlap(bbox1' .* 100, bbox2'  .* 100));
+nparts = size(itm_examples(1).objboxes, 2);
+res = true;
+while(res)
+    [res, clusters, viewset] = agglomerative_clustering(clusters, viewset, distmap, 1.5 * nparts);
 end
 
-% if(dist < 0.7 * size(e1.objboxes, 2))
-%     cols = {'r' 'g' 'b' 'k' 'm'};
-%     subplot(121);
-%     imshow(e1.imfile);
-%     for i = 1:size(e1.objboxes, 2)
-%         rectangle('position', bbox2rect(e1.objboxes(:, i)), 'linewidth', 2, 'edgecolor', cols{i});
-%     end
-%     subplot(122);
-%     imshow(e2.imfile);
-%     for i = 1:size(e2.objboxes, 2)
-%         rectangle('position', bbox2rect(e2.objboxes(:, i)), 'linewidth', 2, 'edgecolor', cols{i});
+% idx = unique(clusters);
+% for i = 1:length(idx)
+%     clusters(clusters == idx(i)) = i;
+% end
+% 
+% return;
+% 
+% for i = 2:length(itm_examples)
+%     call = unique(clusters);
+%     for j = 1:length(call)
+%         if(call(j) == clusters(i))
+%             continue;
+%         end
+%         tidx = clusters == call(j);
+%         alldist = distmap(i, tidx);
+% 
+%         if(sum(alldist < nparts) > length(alldist) * 0.8)
+% %             if(all(alldist < 2 * nparts))
+%             clusters(i) = call(j);
+%             break;
+%         end
 %     end
 % end
+
+end
+
+
+function [res, clusters, viewset] = agglomerative_clustering(clusters, viewset, distmap, maxdist)
+
+cidx = unique(clusters);
+maxsim = 0.7; % at least 75% of clsuters should be similar
+maxidx = [];
+
+res = false;
+
+for i = 1:length(cidx)
+    for j = i+1:length(cidx)
+        cid1 = clusters == cidx(i);
+        cid2 = clusters == cidx(j);
+        
+        % mindist1 = min(distmap(cid1, cid2), [], 1);
+        mindist2 = min(distmap(cid1, cid2), [], 2);
+        %sim = (sum(mindist1 < maxdist) + sum(mindist2 < maxdist)) / (length(mindist1) + length(mindist2));
+        sim = sum(mindist2 < maxdist) / length(mindist2);
+        
+        mindist1 = min(distmap(cid1, cid2), [], 1);
+        sim = min(sim, sum(mindist1 < maxdist) / length(mindist1));
+        
+        if(sim > maxsim)
+            maxsim = sim;
+            maxidx = [cidx(i), cidx(j)];
+            
+            res = true;
+        end
+    end
+end
+
+if(res)
+    clusters(clusters == maxidx(2)) = maxidx(1);
+    viewset{maxidx(1)} = [viewset{maxidx(1)}, viewset{maxidx(2)}];
+    viewset{maxidx(2)} = [];
+end
 
 end
