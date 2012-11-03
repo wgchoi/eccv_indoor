@@ -7,6 +7,7 @@ if(VERBOSE > 0)
 end
 
 parfor i = 1:length(patterns)
+% for i = [45 90]
     initrand();
     
     if(updateITM)
@@ -15,19 +16,35 @@ parfor i = 1:length(patterns)
 
         x = patterns(i).x;
         isolated = patterns(i).isolated;
-
+        pg = labels(i).pg;
+        
         for j = 1:length(model.itmptns)
+            % get candidates from gt..
+            gtcand = findITMCandidates(x, isolated, params, model.itmptns(j), pg.childs, pg.subidx, 0);
             % get valid candidates
-            [temp, x] = findITMCandidates(x, isolated, params, model.itmptns(j));
+            [cand, x] = findITMCandidates(x, isolated, params, model.itmptns(j));
             % get random candidates as negative sets!
-            [randset] = findRandomITMCandidates(x, isolated, params, model.itmptns(j), 30);
-            composites = [composites; temp; randset];
+            [randcand] = findRandomITMCandidates(x, isolated, params, model.itmptns(j), 30);
+            %%%%%% duplicate check! %%%%%%%%%%%%%%%%%
+            [idx1] = find_common_idx(gtcand, cand);
+            gtcand(idx1) = [];
+            cand = [gtcand; cand];
+            [idx1] = find_common_idx(randcand, cand);
+            randcand(idx1) = [];
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            composites = [composites; cand; randcand];
         end
         patterns(i).composite = composites;
         patterns(i).iclusters = [patterns(i).isolated; patterns(i).composite];
     end
     
-    labels(i).lcpg = latentITMcompletion(labels(i).pg, patterns(i).x, patterns(i).iclusters, params);
+    try
+        labels(i).lcpg = latentITMcompletion(labels(i).pg, patterns(i).x, patterns(i).iclusters, params);
+    catch em
+        i
+        em
+        assert(0);
+    end
     if(VERBOSE > 2)
         disp(['pattern ' num2str(i) ' processed'])
     end
@@ -51,6 +68,24 @@ end
 
 if(VERBOSE > 0)
     fprintf(' done! '); toc();
+end
+
+end
+
+function [idx1, idx2] = find_common_idx(candset1, candset2)
+
+idx1 = [];
+idx2 = [];
+
+for i = 1:length(candset1)
+    for j = 1:length(candset2)
+        if(candset1(i).ittype == candset2(j).ittype && ...
+                all(candset1(i).chindices(:) == candset2(j).chindices(:)))
+            idx1(end+1) = i;
+            idx2(end+1) = j;
+            break;
+        end
+    end
 end
 
 end

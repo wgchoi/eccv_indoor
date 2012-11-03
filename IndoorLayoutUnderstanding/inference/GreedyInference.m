@@ -134,7 +134,7 @@ while(iter < 10)
         if(iclusters(addidx).isterminal)
             cache.inset(addidx) = true;
         else
-            cache.inset([iclusters(addidx).chindices, addidx]) = true;
+            cache.inset([iclusters(addidx).chindices(:)', addidx]) = true;
         end
     elseif(temp(1, select) == 2)
         delidx = temp(3, select);
@@ -175,14 +175,13 @@ while(iter < 10)
         newgraph.loss = lossall2(anno, x, iclusters, newgraph, params);
     end
 
-    pg = newgraph;
-    
+    pg = newgraph;    
     %% layout adjustment
     maxval = pg.lkhood;
     if(includeloss)
         maxval = maxval + pg.loss;
     end
-    for i = 1:length(x.lconf)
+    for i = 1:min(50, length(x.lconf))
         newgraph = pg;
         newgraph.layoutidx = i;
 

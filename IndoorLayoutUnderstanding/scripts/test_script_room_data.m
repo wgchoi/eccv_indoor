@@ -73,10 +73,18 @@
 %     end
 %     disp(['done ' num2str(i)]);
 % end
-if(1)
-    %% load test data
-    clear
+assert(exist('paramfile', 'var') > 0);
+assert(exist('loadfile', 'var') > 0);
 
+disp(['run testing experiment for ' paramfile]);
+
+try
+    matlabpool open
+end
+
+if(loadfile)
+    %% load test data
+    % clear
     addPaths
     addVarshaPaths
     addpath ../3rdParty/ssvmqp_uci/
@@ -100,7 +108,7 @@ if(1)
     data = append_ITM_detections(data, ptns, 'cache/itm/room/', expinfo.testfiles);
 end
 %% testing
-load('cache/tempexp2/iter1/params.mat')
+load(paramfile); % './cache/itm_noobs_test/iter3/params.mat')
 %%
 % res = struct('spg', cell(length(data), 1), 'maxidx', [], 'h', []);
 paramsout.numsamples = 1000;
@@ -108,6 +116,8 @@ paramsout.pmove = [0 0.4 0 0.3 0.3 0 0 0];
 paramsout.accconst = 3;
 
 res = cell(1, length(data));
+annos = cell(1, length(data));
+xs = cell(1, length(data));
 conf1 = cell(1, length(data));
 conf2 = cell(1, length(data));
 
@@ -133,6 +143,9 @@ for idx = 1:csize:length(data)
             params = paramsout;
             pg = findConsistent3DObjects(tdata(i).gpg, tdata(i).x, tdata(i).iclusters, true);
             pg.layoutidx = 1; % initialization
+            
+            
+            [tdata(i).iclusters] = clusterInteractionTemplates(tdata(i).x, params.model);
             [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params, pg);
 
             params.objconftype = 'odd';
@@ -157,6 +170,7 @@ for idx = 1:csize:length(data)
     end
     fprintf(' => done\n')
 end
-
 summary = evalAllResults(xs, annos, conf2, conf1, res);
-save('./cache/tempexp2/testres1', '-v7.3', 'res', 'conf1', 'conf2', 'summary'); 
+
+resdir = filepart(paramfile);
+save(fullfile(resdir, 'testres'), '-v7.3', 'res', 'conf1', 'conf2', 'summary'); 

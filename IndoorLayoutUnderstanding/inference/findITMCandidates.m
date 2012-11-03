@@ -4,9 +4,9 @@ if(nargin < 5)
     % in case of training, gives gt detections.
     cidx = 1:length(isolated);
     sidx = 14 * ones(1, length(isolated));
-    
-    x = precomputeDistances(x);
-    
+    if(~isfield(x, 'dists') || size(x.dists, 1) ~= size(x.dets, 1))
+        x = precomputeDistances(x);
+    end
     threshold = 0;
     maxnum = 1000;
 elseif(nargin < 6)

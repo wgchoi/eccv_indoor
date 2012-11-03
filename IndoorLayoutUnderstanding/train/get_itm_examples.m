@@ -38,7 +38,7 @@ for i = 1:length(didx)
     itm_examples(i).azimuth = composites(i).azimuth;
     
     %
-    pg = labels(didx(i)).pg;
+    pg = parsegraph(1); % labels(didx(i)).pg;
     pg.childs= oidx;
     pg.subidx(:) = 14;
     pg = findConsistent3DObjects(pg, patterns(didx(i)).x, patterns(didx(i)).isolated);

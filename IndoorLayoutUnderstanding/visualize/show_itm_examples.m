@@ -1,4 +1,11 @@
-function show_itm_examples(ptn, examples)
+function show_itm_examples(ptn, examples, responses)
+if (nargin < 3)
+    responses = [];
+else
+    [~, idx] = sort(responses, 'descend');
+    examples = examples(idx);
+    responses = responses(idx);
+end
 
 warning('OFF');
 for i = 1:length(examples)
@@ -35,7 +42,11 @@ for i = 1:length(examples)
         text(examples(i).objboxes(1, j)+5, examples(i).objboxes(2, j)+5, num2str(j), 'fontsize', 20, 'backgroundcolor', 'w');
     end
     
-    title([num2str(i) 'th angle: ' num2str(examples(i).angle / pi * 180, '%.02f') ' azimuth: ' num2str(examples(i).azimuth / pi * 180, '%.02f')]);
+    if(~isempty(responses))
+        title(['response: ' num2str(responses(i), '%.02f')]);
+    else
+        title([num2str(i) 'th angle: ' num2str(examples(i).angle / pi * 180, '%.02f') ' azimuth: ' num2str(examples(i).azimuth / pi * 180, '%.02f')]);
+    end
 %     pause
 end
 

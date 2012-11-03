@@ -54,6 +54,8 @@ while(update)
             continue;
         end
         
+        % not allowing obj-sharing.. need to fix when it comes to allowing
+        % sharing!
         temp = pg;
         temp.childs = setdiff(temp.childs, iset);
         temp.childs(end+1) = comp_idx(i);
