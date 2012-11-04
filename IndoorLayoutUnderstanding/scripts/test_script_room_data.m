@@ -1,78 +1,33 @@
-% %% 
-% addPaths
-% addVarshaPaths
-% addpath ../3rdParty/ssvmqp_uci/
-% addpath experimental/
-% 
-% resdir = 'cvpr13data/data.v2.bk';
-% 
-% expinfo = load(fullfile('cvpr13data/', 'info'));
-% 
-% cnt = 1; 
-% files = dir(fullfile(resdir, '*.mat'));
-% 
-% valididx = [];
-% for i = expinfo.testfiles % 1:length(files)
-%     data(cnt) = load(fullfile(resdir, files(i).name));
-%     if(isempty(data(cnt).x))
-%         i
-%     else
-%         valididx(end+1) = i;
-%         cnt = cnt + 1;
-%     end
-% end
-% %% regenerate testing data
-% params = initparam(3, 7);
-% resdir = 'cvpr13data/test';
-% try
-%     matlabpool open 8
-% end
-% csize = 16;
-% for idx = 1:csize:length(data)
-%     setsize = min(length(data) - idx + 1, csize);
-%     
-%     for i = 1:setsize
-%         tdata(i) = data(idx+i-1);
-%     end    
-%     
-%     parfor i = 1:setsize
-%         disp([num2str(i) ' proc'])
-%         [hobjs, inv_list] = generate_object_hypotheses(tdata(i).x.imfile, tdata(i).x.K, tdata(i).x.R, tdata(i).x.yaw, objmodels(), tdata(i).x.dets, 0);
-%         assert(isempty(inv_list));
-%         tdata(i).x.hobjs = hobjs;
-%         tdata(i).x = precomputeOverlapArea(tdata(i).x);
-%         tdata(i).iclusters = clusterInteractionTemplates(tdata(i).x, params.model);
-%         tdata(i).gpg = getGTparsegraph(tdata(i).x, tdata(i).iclusters, tdata(i).anno, params.model);
-%         disp([num2str(i) ' done'])
-%     end
-%     
-%     for i = 1:setsize
-%         temp = tdata(i);
-%         save(fullfile(resdir, ['data' num2str(idx+i-1, '%03d')]), '-struct', 'temp');
-%     end
-% end
-% matlabpool close
+%%
+clear
+addPaths
+addVarshaPaths
+
+try
+matlabpool open
+end
+load('./cvpr13data/fulltrainset.mat');
+
+for i = 1:length(patterns)
+	patterns(i).x.lloss = 5 .* patterns(i).x.lloss;
+end
+
+expname = 'noitm_itmv2_5lloss';
+niter = 15;
+params = initparam(3, 7);
+params.model.feattype = 'itm_v2';
+params.model.w_ior = zeros(7+1, 1);
+
+disp(['train: '  expname ]);
+[params, info] = trainLITM_ssvm_iter(patterns, labels, annos, params, niter, expname, false);
+
+%% testing
+clear patterns labels annos;
+
+paramfile = ['cache/' expname '/iter' num2str(niter) '/params'];
+loadfile = true;
 
 %%
-% %% add scene classification
-% parfor i = 1:length(data)
-%     data(i).x = sceneClassify(data(i).x);
-%     [~, dataset] = fileparts(fileparts(data(i).x.imfile));
-%     if(strcmp(dataset, 'bedroom'))
-%         data(i).anno.scenetype = 1;
-%         data(i).gpg.scenetype = 1;
-%     elseif(strcmp(dataset, 'livingroom'))
-%         data(i).anno.scenetype = 2;
-%         data(i).gpg.scenetype = 2;
-%     elseif(strcmp(dataset, 'diningroom'))
-%         data(i).anno.scenetype = 3;
-%         data(i).gpg.scenetype = 3;
-%     else
-%         disp(dataset);
-%         assert(0);
-%     end
-%     disp(['done ' num2str(i)]);
-% end
 assert(exist('paramfile', 'var') > 0);
 assert(exist('loadfile', 'var') > 0);
 
@@ -172,5 +127,5 @@ for idx = 1:csize:length(data)
 end
 summary = evalAllResults(xs, annos, conf2, conf1, res);
 
-resdir = filepart(paramfile);
+resdir = fileparts(paramfile);
 save(fullfile(resdir, 'testres'), '-v7.3', 'res', 'conf1', 'conf2', 'summary'); 

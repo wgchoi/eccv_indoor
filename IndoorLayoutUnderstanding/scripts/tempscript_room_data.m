@@ -127,6 +127,8 @@ end
 %%
 params = initparam(3, 7);
 params.model.feattype = 'itm_v1';
+params.model.feattype = 'itm_v2';
+params.model.w_ior = zeros(7+1, 1);
 params.minITMmatch = 15;
 %% preprocessing training data
 [patterns, labels, annos] = preprocess_train_data(data, params, 2);
