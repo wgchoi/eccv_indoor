@@ -6,20 +6,28 @@ addVarshaPaths
 try
 matlabpool open
 end
-load('./cvpr13data/fulltrainset.mat');
+load('./cvpr13data/room/fulltrainset.mat');
 
-for i = 1:length(patterns)
-	patterns(i).x.lloss = 5 .* patterns(i).x.lloss;
-end
+%for i = 1:length(patterns)
+%	patterns(i).x.lloss = 5 .* patterns(i).x.lloss;
+%end
 
-expname = 'noitm_itmv2_5lloss';
+%expname = 'noitm_itmv2_5lloss';
+%niter = 15;
+%params = initparam(3, 7);
+%params.model.feattype = 'itm_v2';
+%params.model.w_ior = zeros(7+1, 1);
+
+load ./cache/itmobs_iter2_params.mat
+
+expname = 'itmobs_itmv2';
 niter = 15;
-params = initparam(3, 7);
+params = appendITMtoParams(paramsout, paramsout.model.itmptns);
 params.model.feattype = 'itm_v2';
 params.model.w_ior = zeros(7+1, 1);
 
 disp(['train: '  expname ]);
-[params, info] = trainLITM_ssvm_iter(patterns, labels, annos, params, niter, expname, false);
+[params, info] = trainLITM_ssvm_iter(patterns, labels, annos, params, niter, expname, true);
 
 %% testing
 clear patterns labels annos;
@@ -45,7 +53,7 @@ if(loadfile)
     addpath ../3rdParty/ssvmqp_uci/
     addpath experimental/
 
-    resdir = 'cvpr13data/test';
+    resdir = 'cvpr13data/room/test';
     cnt = 1; 
     files = dir(fullfile(resdir, '*.mat'));
     trainfiles = [];
@@ -59,7 +67,7 @@ if(loadfile)
     end
     %% append ITM detections
     load('cache/room_itm_fixed.mat')
-    expinfo = load(fullfile('cvpr13data/', 'info'));
+    expinfo = load(fullfile('cvpr13data/room/', 'info'));
     data = append_ITM_detections(data, ptns, 'cache/itm/room/', expinfo.testfiles);
 end
 %% testing

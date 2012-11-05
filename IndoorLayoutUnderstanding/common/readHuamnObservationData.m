@@ -12,10 +12,26 @@ end
 function dets = parseDets(data)
 % do 
 dets = zeros(length(data.bodies.scores), 8);
-dets(:, end) = data.bodies.scores;
-dets(:, 4:7) = data.bodies.rts';
-dets(:, 6:7) = dets(:, 4:5) + dets(:, 6:7) - 1;
-dets(:, 2) = 1; % standing humans
+if(1)
+    posletmodel = load('./model/poselet_model');
+    
+    dets(:, end) = log(data.bodies.scores) / 3;    
+    w = data.torsos.rts(3, :)';
+    cx = data.torsos.rts(1, :)' + data.torsos.rts(3, :)' ./ 2;
+    dets(:, 4) = cx - w;
+    dets(:, 6) = cx + w;
+    dets(:, 5) = data.bodies.rts(2, :)';
+    dets(:, 7) = data.bodies.rts(2, :)' + data.bodies.rts(4, :)';
+    
+    features = get_poselet_feature(data);
+    [labels, p] = classify_poselet(posletmodel.model, posletmodel.DATAtrain, features);
+    dets(:, 2) = labels;
+else
+    dets(:, end) = data.bodies.scores;
+    dets(:, 4:7) = data.bodies.rts';
+    dets(:, 6:7) = dets(:, 4:5) + dets(:, 6:7) - 1;
+    dets(:, 2) = 1; % standing humans
+end
 dets(:, 1) = 7;
 
 end

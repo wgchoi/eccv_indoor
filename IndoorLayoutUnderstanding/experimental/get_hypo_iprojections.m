@@ -134,7 +134,7 @@ elseif(option == 1)
 		h.bbs(3:4, :) = h.bbs(3:4, :) + h.bbs(1:2, :) - 1;
 
 		[val, idx] = min(h.diff);
-		if(mindiff < val)
+		if(mindiff > val)
 			loc = h.locs(:, idx);
 			mindiff = val;
 		else

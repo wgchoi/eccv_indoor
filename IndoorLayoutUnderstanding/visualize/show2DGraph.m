@@ -87,14 +87,14 @@ else
             end
             drawITMLink(bbs);
         end
-    %     rectangle('position', bbox2rect(x.dets(idx, 4:7)), 'linewidth', 2, 'edgecolor', 'm');
+        rectangle('position', bbox2rect(x.dets(idx, 4:7)), 'linewidth', 2, 'edgecolor', 'w');
     %     [poly, rt] = get2DCubeProjection(x.K, x.R, x.cubes{idx});
     %     draw2DCube(poly, rt, fig2d, om(x.dets(idx, 1)).name, col(oid));
     end
 end
 roomtype = {'bedroom' 'livingroom' 'diningroom'};
-str = roomtype{pg.scenetype};
-text(10, 20, str, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
+%str = roomtype{pg.scenetype};
+%text(10, 20, str, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
 
 end
 

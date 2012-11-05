@@ -46,6 +46,9 @@ if(isfield(model, 'itmhogs') && model.itmhogs)
     [viewidx] = itm_view_idx(ptn, azimuth);
     ifeat(ibase + viewidx) = 1;
     ibase = ibase + 8;
+	if(isnan(robs) || isinf(robs)) % why?
+		robs = -10;
+	end
     ifeat(ibase + viewidx) = robs;
     ibase = ibase + 8;
 else
