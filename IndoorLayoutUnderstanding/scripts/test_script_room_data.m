@@ -70,7 +70,7 @@ conf1 = cell(1, length(data));
 conf2 = cell(1, length(data));
 
 erroridx = false(1, length(data));
-csize = 16;
+csize = 32;
 
 tdata = data(1);
 for idx = 1:csize:length(data)

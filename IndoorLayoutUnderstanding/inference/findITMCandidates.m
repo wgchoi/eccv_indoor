@@ -1,4 +1,4 @@
-function [composite, x] = findITMCandidates(x, isolated, params, rule, cidx, sidx, threshold)
+function [composite, x] = findITMCandidates(x, isolated, params, rule, cidx, sidx, threshold, angcut)
 if(nargin < 5)
     % candidate childs
     % in case of training, gives gt detections.
@@ -9,9 +9,15 @@ if(nargin < 5)
     end
     threshold = 0;
     maxnum = 1000;
-elseif(nargin < 6)
+    
+    angcut = 1.6;
+elseif(nargin < 7)
     threshold = -1;
     maxnum = inf;
+    angcut = 1.6;
+elseif (nargin < 8)
+    maxnum = inf;
+    angcut = 1.6;
 else
     maxnum = inf;
 end
@@ -31,20 +37,20 @@ end
 
 %%% find all possible sets of combinations.
 if(isfield(x, 'dists'))
-    sets = recFindSets2(indices, x.dists, x.angdiff, rule.parts);
+    sets = recFindSets2(indices, x.dists, x.angdiff, rule.parts, angcut);
 else
     sets = recFindSets(indices);
 end
 tempnode = graphnodes(1);
 
 if(~isempty(sets))
-    for i = 1:size(sets, 2)
-        for j = i+1:size(sets, 2)
-            if(all(sets(:, i) == sets(:, j)))
-                keyboard;
-            end
-        end
-    end
+%     for i = 1:size(sets, 2)
+%         for j = i+1:size(sets, 2)
+%             if(all(sets(:, i) == sets(:, j)))
+%                 keyboard;
+%             end
+%         end
+%     end
 end
 
 tempnode.isterminal = 0;
@@ -143,13 +149,17 @@ sets(:, cnt+1:end) = [];
 end
 
 
-function [ sets ] = recFindSets2(indices, dists, angdiff, parts)
+function [ sets ] = recFindSets2(indices, dists, angdiff, parts, angcut)
+if nargin < 5
+    angcut = 1.6;
+end
+
 if(isempty(indices))
     sets = zeros(0, 1);
     return;
 end
 
-subsets = recFindSets2(indices(2:end), dists, angdiff, parts(2:end));
+subsets = recFindSets2(indices(2:end), dists, angdiff, parts(2:end), angcut);
 sets = zeros(length(indices), length(indices{1}) * size(subsets, 2));
 
 md = zeros(length(parts)-1, 1);
@@ -170,8 +180,8 @@ for i = 1:length(indices{1})
             temp(:, dists(newidx, temp(k, :)) < md(k) - 1) = [];
             temp(:, dists(newidx, temp(k, :)) > md(k) + 1) = [];
             % about 90 degree
-            temp(:, angdiff(newidx, temp(k, :)) < ma(k) - 1.6) = [];
-            temp(:, angdiff(newidx, temp(k, :)) > ma(k) + 1.6) = [];
+            temp(:, angdiff(newidx, temp(k, :)) < ma(k) - angcut) = [];
+            temp(:, angdiff(newidx, temp(k, :)) > ma(k) + angcut) = [];
         end
         temp(:, any(temp == newidx, 1)) = [];
     end
