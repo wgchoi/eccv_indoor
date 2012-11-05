@@ -107,7 +107,7 @@ for i = 1:length(data)
     
     [data(i).iclusters] = clusterInteractionTemplates(data(i).x, params.model);
     data(i).gpg = get_GT_human_parsegraph(data(i).x, data(i).iclusters, data(i).anno, params.model);
-    
+   
     fprintf('%d done\n', i);
 end
 %% reestimate detections and gt

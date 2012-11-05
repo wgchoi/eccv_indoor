@@ -1,4 +1,3 @@
-%%
 clear
 addPaths
 addVarshaPaths
@@ -40,13 +39,11 @@ assert(exist('paramfile', 'var') > 0);
 assert(exist('loadfile', 'var') > 0);
 
 disp(['run testing experiment for ' paramfile]);
-
 try
     matlabpool open
 end
 
 if(loadfile)
-    %% load test data
     % clear
     addPaths
     addVarshaPaths
@@ -65,10 +62,6 @@ if(loadfile)
             cnt = cnt + 1;
         end
     end
-    %% append ITM detections
-    load('cache/room_itm_fixed.mat')
-    expinfo = load(fullfile('cvpr13data/room/', 'info'));
-    data = append_ITM_detections(data, ptns, 'cache/itm/room/', expinfo.testfiles);
 end
 %% testing
 load(paramfile); % './cache/itm_noobs_test/iter3/params.mat')

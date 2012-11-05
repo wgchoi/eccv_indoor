@@ -13,7 +13,7 @@ for i = 1:length(anno.obj_annos)
     ov = boxoverlap(bbox, gtbox);
     
     [val, idx] = max(ov);
-    if(val > 0.5 && anglediff(anno.obj_annos(i).azimuth, x.hobjs(idx).azimuth) < pi / 6)
+    if(val > 0.5) % && anglediff(anno.obj_annos(i).azimuth, x.hobjs(idx).azimuth) < pi / 6)
         continue;
     end
     
