@@ -24,12 +24,20 @@ parfor i = 1:length(patterns)
             [~, ~, r] = featwarp(ptn.hogmodel{mid}, itm_examples(j));
             % scale it properly
             responses(j) = 10 * r;
+            if(isnan(responses(j)) || isinf(responses(j)))
+                responses(j) = -3;
+                fprintf('error in response\n');
+            end
         end
     end
     
     for j = 1:length(itm_examples)
         patterns(i).composite(j).robs = responses(j);
     end
+end
+
+for i = 1:length(patterns)
+    patterns(i).iclusters = [patterns(i).isolated; patterns(i).composite];
 end
 % 
 % for m = 1:length(temp.index_pose)

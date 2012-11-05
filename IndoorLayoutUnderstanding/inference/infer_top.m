@@ -13,6 +13,22 @@ if(strncmp(params.model.feattype, 'itm_v', 5))
         composites = [composites; temp;];
     end
     iclusters = [isolated; composites];
+    
+    if(isfield(params.model, 'itmhogs') && params.model.itmhogs)
+        %%% append hog observations
+        pattern.x = x;
+        pattern.iclusters = iclusters;
+        pattern.isolated = isolated;
+        pattern.composite = composites;
+
+        pattern = itm_observation_response(pattern, params.model);
+
+        iclusters = pattern.iclusters;
+        isolated = pattern.isolated;
+        composites = pattern.composite;
+
+        clear pattern;
+    end
 end
         
 assert(length(iclusters) < 10000);

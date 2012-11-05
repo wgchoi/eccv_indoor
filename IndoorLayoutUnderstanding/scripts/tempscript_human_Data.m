@@ -1,94 +1,121 @@
-clear
-
-imbase='~/codes/human_interaction/DataCollection/MainDataset/';
-resbase='~/codes/human_interaction/cache/';
-annobase='~/codes/human_interaction/DataAnnotation/MainDataset/';
-dataset='dancing';
-%%
-addPaths
-addVarshaPaths
-addpath ../3rdParty/ssvmqp_uci/
-addpath experimental/
-
-resbase = '~/codes/human_interaction/cache/data.v2';
-datasets = dir(resbase);
-datasets(1:2) = [];
-
-cnt = 1; 
-for d = 1:length(datasets)
-    resdir = fullfile(resbase, datasets(d).name);
-    files = dir(fullfile(resdir, '*.mat'));
-    for i = 1:length(files)
-        data(cnt) = load(fullfile(resdir, files(i).name));
-        if(isempty(data(cnt).x))
-            i
-        else
-            cnt = cnt + 1;
-        end
-    end
-end
-%%
-poseletbase = '~/codes/human_interaction/cache/poselet/converted/';
-erridx = [];
-posletmodel = load('./model/poselet_model');
-
-addpath ../3rdParty/libsvm-3.12/
-
-for i = 1:10:length(data)
-    [datadir, datafile] = fileparts(data(i).x.imfile);
-    [~, datadir] = fileparts(datadir);
-    
-    poselet = load(fullfile(fullfile(poseletbase, datadir), datafile));
-    % poselet.bodies.scores(6:end) = [];
-    % data(i).gpg.camheight = 0.01;
-    % get camera height voting...
-    % show2DGraph(data(i).gpg, data(i).x, data(i).iclusters);
-    
-    features = get_poselet_feature(poselet);
-    [labels, p] = classify_poselet(posletmodel.model, posletmodel.DATAtrain, features);
-    poselet.pose_prob = p;
-    try
-        [locs, reporjs, heights, maxh] = get_human_iprojections(data(i).x.K, data(i).x.R, poselet);
-        poselet.pose_prob(:) = 0;
-        [locs2, reporjs2, heights2, maxh2] = get_human_iprojections(data(i).x.K, data(i).x.R, poselet);
-    catch ee
-        erridx(end+1) = i;
-        keyboard;
-        continue;
-    end
-
-    ShowGTPolyg2(imread(data(i).x.imfile), data(i).x.lpolys(data(i).gpg.layoutidx, :), 1);
-    for j = 1:5 % length(poselet.bodies.scores)
-        if(poselet.bodies.scores(j) > 1)
-            rectangle('position', poselet.torsos.rts(:, j), 'edgecolor', 'r', 'linewidth', 2);
-            rectangle('position', poselet.bodies.rts(:, j), 'edgecolor', 'g', 'linewidth', 4);
-            rectangle('position', reporjs(:, j), 'edgecolor', 'w', 'linewidth', 3, 'linestyle', '--');
-            rectangle('position', reporjs2(:, j), 'edgecolor', 'm', 'linewidth', 2, 'linestyle', '--');
-            
-            text(reporjs(1, j), reporjs(2, j), num2str(heights(j), '%.02f'), 'backgroundcolor', 'w');
-            text(reporjs2(1, j), reporjs2(2, j)+20, num2str(heights2(j), '%.02f'), 'backgroundcolor', 'w');
-            
-            if(p(j, 1) > 0.5)
-                text(reporjs2(1, j), reporjs2(2, j)+40, 'stand', 'backgroundcolor', 'w');
-            else
-                text(reporjs2(1, j), reporjs2(2, j)+40, 'sit', 'backgroundcolor', 'w');
-            end
-        end
-    end
-    pause;
-end
-%% 
-% %% reestimate detections and gt
+% clear
+% 
+% imbase='~/codes/human_interaction/DataCollection/MainDataset/';
+% resbase='~/codes/human_interaction/cache/';
+% annobase='~/codes/human_interaction/DataAnnotation/MainDataset/';
+% dataset='dancing';
+% %%
+% addPaths
+% addVarshaPaths
+% addpath ../3rdParty/ssvmqp_uci/
+% addpath experimental/
+% 
+% resbase = '~/codes/human_interaction/cache/data.v2';
+% datasets = dir(resbase);
+% datasets(1:2) = [];
+% 
+% cnt = 1; 
+% for d = 1:length(datasets)
+%     resdir = fullfile(resbase, datasets(d).name);
+%     files = dir(fullfile(resdir, '*.mat'));
+%     for i = 1:length(files)
+%         data(cnt) = load(fullfile(resdir, files(i).name));
+%         if(isempty(data(cnt).x))
+%             i
+%         else
+%             cnt = cnt + 1;
+%         end
+%     end
+% end
+% %%
 % params = initparam(3, 7);
 % for i = 1:length(data)
-%     hidx = find(data(i).x.dets(:, 1) == 7);
-%     data(i).x.dets(hidx, 2) = 1;
-%     [a, b] = generate_object_hypotheses(data(i).x.imfile, data(i).x.K, data(i).x.R, data(i).x.yaw, objmodels(), data(i).x.dets(hidx, :), 1);
-%     data(i).x.hobjs(hidx) = a;
-%     
-%     data(i).iclusters = clusterInteractionTemplates(data(i).x, params.model);
-% 	data(i).gpg = get_GT_human_parsegraph(data(i).x, data(i).iclusters, data(i).anno, params.model);
+%     [data(i).iclusters] = clusterInteractionTemplates(data(i).x, params.model);
 % end
+% %%
+% poseletbase = '~/codes/human_interaction/cache/poselet/converted/';
+% erridx = [];
+% posletmodel = load('./model/poselet_model');
+% 
+% addpath ../3rdParty/libsvm-3.12/
+% 
+% for i = 1:10:length(data)
+%     [datadir, datafile] = fileparts(data(i).x.imfile);
+%     [~, datadir] = fileparts(datadir);
+%     
+%     poselet = load(fullfile(fullfile(poseletbase, datadir), datafile));
+%     % poselet.bodies.scores(6:end) = [];
+%     % data(i).gpg.camheight = 0.01;
+%     % get camera height voting...
+%     % show2DGraph(data(i).gpg, data(i).x, data(i).iclusters);
+%     
+%     features = get_poselet_feature(poselet);
+%     [labels, p] = classify_poselet(posletmodel.model, posletmodel.DATAtrain, features);
+%     poselet.pose_prob = p;
+%     try
+%         [locs, reporjs, heights, maxh] = get_human_iprojections(data(i).x.K, data(i).x.R, poselet);
+%         poselet.pose_prob(:) = 0;
+%         [locs2, reporjs2, heights2, maxh2] = get_human_iprojections(data(i).x.K, data(i).x.R, poselet);
+%     catch ee
+%         erridx(end+1) = i;
+%         keyboard;
+%         continue;
+%     end
+% 
+%     ShowGTPolyg2(imread(data(i).x.imfile), data(i).x.lpolys(data(i).gpg.layoutidx, :), 1);
+%     for j = 1:5 % length(poselet.bodies.scores)
+%         if(poselet.bodies.scores(j) > 1)
+%             rectangle('position', poselet.torsos.rts(:, j), 'edgecolor', 'r', 'linewidth', 2);
+%             rectangle('position', poselet.bodies.rts(:, j), 'edgecolor', 'g', 'linewidth', 4);
+%             rectangle('position', reporjs(:, j), 'edgecolor', 'w', 'linewidth', 3, 'linestyle', '--');
+%             rectangle('position', reporjs2(:, j), 'edgecolor', 'm', 'linewidth', 2, 'linestyle', '--');
+%             
+%             text(reporjs(1, j), reporjs(2, j), num2str(heights(j), '%.02f'), 'backgroundcolor', 'w');
+%             text(reporjs2(1, j), reporjs2(2, j)+20, num2str(heights2(j), '%.02f'), 'backgroundcolor', 'w');
+%             
+%             if(p(j, 1) > 0.5)
+%                 text(reporjs2(1, j), reporjs2(2, j)+40, 'stand', 'backgroundcolor', 'w');
+%             else
+%                 text(reporjs2(1, j), reporjs2(2, j)+40, 'sit', 'backgroundcolor', 'w');
+%             end
+%         end
+%     end
+%     % pause;
+% end
+%% 
+
+
+for i = 1:length(data)
+    hdetidx = find(data(i).x.dets(:, 1) == 7);
+    data(i).x.dets(hdetidx, :) = [];
+    data(i).x.hobjs(hdetidx) = [];
+    assert(length(data(i).x.hobjs) == size( data(i).x.dets, 1));
+    data(i).x.sconf = zeros(1, 5);
+
+    [imdir, imname] = fileparts(data(i).x.imfile);
+    [~, dataset] = fileparts(imdir);
+    
+    hmnfile = [imname '.mat'];
+    
+    hmndir = fullfile(['~/codes/human_interaction/cache/' '/poselet/converted/'], dataset);
+    
+    data(i).x = readHuamnObservationData(data(i).x.imfile, fullfile(hmndir, hmnfile), data(i).x);
+    data(i).x = precomputeOverlapArea(data(i).x);
+    
+    [data(i).iclusters] = clusterInteractionTemplates(data(i).x, params.model);
+    data(i).gpg = get_GT_human_parsegraph(data(i).x, data(i).iclusters, data(i).anno, params.model);
+end
+%% reestimate detections and gt
+params = initparam(3, 7);
+for i = 1:length(data)
+    hidx = find(data(i).x.dets(:, 1) == 7);
+    data(i).x.dets(hidx, 2) = 1;
+    [a, b] = generate_object_hypotheses(data(i).x.imfile, data(i).x.K, data(i).x.R, data(i).x.yaw, objmodels(), data(i).x.dets(hidx, :), 1);
+    data(i).x.hobjs(hidx) = a;
+    
+    data(i).iclusters = clusterInteractionTemplates(data(i).x, params.model);
+	data(i).gpg = get_GT_human_parsegraph(data(i).x, data(i).iclusters, data(i).anno, params.model);
+end
 %% use real gt
 params = initparam(3, 7);
 for i = 1:length(data)
