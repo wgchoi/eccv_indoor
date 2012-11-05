@@ -19,7 +19,8 @@ elseif (nargin < 8)
     maxnum = inf;
     angcut = 1.6;
 else
-    maxnum = inf;
+    % testing scenario....
+    maxnum = 1000;
 end
 
 %%%% due to inconsistent reference to detections...
