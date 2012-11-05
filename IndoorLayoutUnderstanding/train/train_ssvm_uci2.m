@@ -176,6 +176,7 @@ while (iter <= max_iter && trigger)
         end
     end
     fprintf('done. '); toc;
+    disp(['w_ior : ' num2str(params.model.w_ior')]);
     
     iter = iter + 1;
     ls = 0;
