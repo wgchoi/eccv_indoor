@@ -9,7 +9,8 @@ if(strncmp(params.model.feattype, 'itm_v', 5))
     composites(:) = [];
     for j = 1:length(params.model.itmptns)
         % get valid candidates
-        [temp, x] = findITMCandidates(x, isolated, params, params.model.itmptns(j));
+        % [temp, x] = findITMCandidates(x, isolated, params, params.model.itmptns(j));
+        [temp, x] = findITMCandidates(x, isolated, params, params.model.itmptns(j), 1:length(isolated), 14 * ones(1, length(isolated)), 0, 1.0);
         composites = [composites; temp;];
     end
     iclusters = [isolated; composites];
