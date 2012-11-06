@@ -9,7 +9,7 @@ datadir = './cache/itmobs/iter3';
 load('./cache/itmobs/iter3/params.mat');
 params = iparams;
 
-option = 3;
+option = 7;
 iter = 5;
 if(option == 1)
 	params.C = 1
@@ -31,14 +31,24 @@ elseif(option == 4)
 	params.model.feattype = 'itm_v1';
 	params.C = 10
 	expname = 'noitm_test_v1_C10'
-	params.model.feattype = 'itm_v1';
 	params.model.itmhogs = false;
 elseif(option == 5)
 	params = initparam(3, 7);
 	params.model.feattype = 'itm_v1';
 	params.C = 100
 	expname = 'noitm_test_v1_C100'
-	params.model.feattype = 'itm_v1';
+	params.model.itmhogs = false;
+elseif(option == 6)
+	params = initparam(3, 7);
+	params.model.feattype = 'itm_v2';
+	params.C = 10
+	expname = 'noitm_test_v2_C10'
+	params.model.itmhogs = false;
+elseif(option == 7)
+	params = initparam(3, 7);
+	params.model.feattype = 'itm_v2';
+	params.C = 100
+	expname = 'noitm_test_v2_C100'
 	params.model.itmhogs = false;
 end
 
@@ -84,6 +94,7 @@ params.max_ssvm_iter = 6 + iter;
 [paramsout, info] = train_ssvm_uci2(patterns, labels, annos, params, 0);
 save(fullfile(cachedir, 'params'), '-append', 'paramsout', 'info');
 %% testing
+niter = iter;
 clear patterns labels annos;
 
 paramfile = ['cache/' expname '/iter' num2str(niter) '/params'];
