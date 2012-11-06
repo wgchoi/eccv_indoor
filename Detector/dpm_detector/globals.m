@@ -1,4 +1,5 @@
 % Set up global variables used throughout the code
+setVOCyear='2012';
 
 % setup svm mex for context rescoring (if it's installed)
 if exist('./svm_mex601') > 0

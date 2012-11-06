@@ -48,9 +48,16 @@ function [itm_examples, clusters, viewset] = generate_positive_itm_trainset(patt
 [didx, composite] = collect_itm_instances(patterns, labels, params, ptn);
 [itm_examples] = get_itm_examples(patterns, labels, didx, composite);
 [itm_examples, clusters, viewset] = cluster_itm_examples(itm_examples);
-
 disp([num2str(length(itm_examples)) ' positives exists']);
+% data-mining from PASCAL
+pascal_examples = find_itm_from_pascal(itm_examples, ptn);
+[pascal_clusters] = test_flipped_example(itm_examples, clusters, pascal_examples);
+pascal_examples(pascal_clusters < 0) = [];
+pascal_clusters(pascal_clusters < 0) = [];
 
+itm_examples = [itm_examples, pascal_examples];
+clusters = [clusters, pascal_clusters];
+% mining
 [flipped_examples] = get_flipped_itm_examples(itm_examples);
 [flipped_clusters] = test_flipped_example(itm_examples, clusters, flipped_examples);
 
@@ -59,7 +66,6 @@ flipped_clusters(flipped_clusters < 0) = [];
 
 itm_examples = [itm_examples, flipped_examples];
 clusters = [clusters, flipped_clusters];
-
 end
 
 function [flipped_clusters] = test_flipped_example(itm_examples, clusters, flipped_examples)

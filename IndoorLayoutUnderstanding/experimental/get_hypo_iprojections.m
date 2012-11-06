@@ -85,7 +85,9 @@ if(option == 0)
 	% plot(ppoly(1, idx), ppoly(2, idx), 'w-', 'linewidth', 2);
 	% hold off;
 	% pause
-	while(1)
+	iter = 0;
+	while(iter < 50)
+        iter = iter + 1;
 		% dv = zeros(3, 27);
 		cnt = 1;
 		for dx = [-1 0 1]
@@ -116,7 +118,9 @@ elseif(option == 1)
 	[ppoly, pbbox] = get2DCubeProjection(K, R, cube);
 	mindiff = sum((rect2btm(pbbox(:)) - rect2btm(rect(:))) .^ 2 );
 
-	while(1)
+    iter = 0;
+	while(iter < 50)
+        iter = iter + 1;
 		% dv = zeros(3, 27);
 		cnt = 1;
 		for dx = [-1 0 1]
@@ -143,5 +147,4 @@ elseif(option == 1)
 	end
 
 end
-
 end

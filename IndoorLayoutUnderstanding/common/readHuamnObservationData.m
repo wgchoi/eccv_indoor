@@ -15,7 +15,7 @@ dets = zeros(length(data.bodies.scores), 8);
 if(1)
     posletmodel = load('./model/poselet_model');
     
-    dets(:, end) = log(data.bodies.scores) / 3;    
+    dets(:, end) = log(data.bodies.scores) / 3; % arbitrary normalization -_-;;
     w = data.torsos.rts(3, :)';
     cx = data.torsos.rts(1, :)' + data.torsos.rts(3, :)' ./ 2;
     dets(:, 4) = cx - w;

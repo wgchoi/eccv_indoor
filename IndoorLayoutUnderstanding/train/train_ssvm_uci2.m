@@ -3,7 +3,9 @@ function [params, info] = train_ssvm_uci2(patterns, labels, annos, params, VERBO
 for i = 1:length(labels)
     labels(i).feat = features(labels(i).lcpg, patterns(i).x, patterns(i).iclusters, params.model);
     labels(i).loss = lossall2(annos(i), patterns(i).x, patterns(i).iclusters, labels(i).lcpg, params);
+	% temp(:, i) = labels(i).feat;
 end
+%save('cache/gtfeats', 'temp');
 
 %%%%%%%%%%%% dimension
 params.model.w = getweights(params.model);
@@ -147,6 +149,7 @@ while (iter <= max_iter && trigger)
             % [cost low_bound]
             %end
             [w, cache]= lsvmopt(Constraints(:,1:n),Margins(1:n), IDS(1:n) ,C, 0.0001,[]);
+            % [w, cache]= lsvmopt(Constraints(:,1:n),Margins(1:n), IDS(1:n) ,C, 0.01,[]);
             % Prune working set
             if 0 % don't use this!!
                 I = find(cache.sv > 0);
@@ -220,7 +223,14 @@ function [yhat dphi margin] = find_MVC2(x, y, anno, params)
 % 3rd output: the margin you want to enforce for this constraint.
 
 maxpg = y.pg;
-for i = 1:params.model.nscene
+
+if(isfield(params, 'ignorescene') && params.ignorescene) 
+	sidx = maxpg.scenetype;
+else
+	sidx = 1:params.model.nscene;
+end
+
+for i = sidx % 1:params.model.nscene
     pg = y.pg;
     pg.scenetype = i;
     

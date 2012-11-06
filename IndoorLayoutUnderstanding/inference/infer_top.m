@@ -42,7 +42,14 @@ maxpg.lkhood = -inf;
 if(params.pmove(6) > 0)
     x = preprocessClusterOverlap(x, iclusters);
 end
-for i = 1:params.model.nscene
+
+if(isfield(params, 'ignorescene') && params.ignorescene)
+    sidx = y.scenetype;
+else
+    sidx = 1:params.model.nscene;
+end
+
+for i = sidx
     pg = y;
     pg.scenetype = i;
     

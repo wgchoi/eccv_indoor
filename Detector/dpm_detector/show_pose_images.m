@@ -7,7 +7,7 @@ fullim = uint8(zeros(h * ny, w * nx, 3));
 
 for i = 1:ny
     for j = 1:nx
-        idx = (i - 1) * nx + j;
+        idx = (i - 1) * floor(length(spos) / ny) + j;
         
         if(idx > length(spos))
             continue;

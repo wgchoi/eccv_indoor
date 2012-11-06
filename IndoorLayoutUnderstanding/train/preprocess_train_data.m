@@ -55,7 +55,7 @@ for i = 1:length(data)
         if(isfield(data(i).anno, 'hmn_annos'))
             for j = 1:length(data(i).anno.hmn_annos)
                 anno = data(i).anno.hmn_annos(j);
-                GT(j, :) = [anno.x1 anno.y1 anno.x2 anno.y2 7];
+                GT(length(data(i).anno.obj_annos)+j, :) = [anno.x1 anno.y1 anno.x2 anno.y2 7];
             end
         end
         % GT(GT(:, end) > 2, :) = [];

@@ -3,7 +3,7 @@ addPaths
 addVarshaPaths
 
 try
-matlabpool open
+    matlabpool open
 end
 load('./cvpr13data/room/fulltrainset.mat');
 
