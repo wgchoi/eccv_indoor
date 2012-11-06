@@ -19,7 +19,7 @@ end
 
 [~, ~, hit, ptnsets] = latent_completion(patterns, labels, params, true, VERBOSE);
 % remove those ITM that is hit less than 5 times
-params = filterITMpatterns(params, hit, ptnsets, 5);
+params = filterITMpatterns(params, hit, ptnsets, 10);
 disp(['There are ' num2str(length(params.model.itmptns)) ' number of patterns']);
 % re-run latent completion for SVM train!
 [patterns, labels, hit] = latent_completion(patterns, labels, params, true, VERBOSE);

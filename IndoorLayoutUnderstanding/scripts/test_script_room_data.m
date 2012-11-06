@@ -3,17 +3,19 @@ addPaths
 addVarshaPaths
 
 try
-matlabpool open
+    matlabpool open
 end
 load('./cvpr13data/fulltrainset.mat');
 
-for i = 1:length(patterns)
-	patterns(i).x.lloss = 5 .* patterns(i).x.lloss;
-end
-
-expname = 'noitm_itmv2_5lloss';
+% for i = 1:length(patterns)
+% 	patterns(i).x.lloss = 5 .* patterns(i).x.lloss;
+% end
+expname = 'itmnoobs_itmcut10_v2';
 niter = 15;
-params = initparam(3, 7);
+%params = initparam(3, 7);
+
+load('cache/itmobs/iter3/params.mat')
+params = appendITMtoParams(paramsout, paramsout.model.itmptns);
 params.model.feattype = 'itm_v2';
 params.model.w_ior = zeros(7+1, 1);
 
