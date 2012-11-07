@@ -46,21 +46,21 @@ catch
 end
 % add parts and update models using hard negatives.
 try 
-  load([cache_dir cls '_parts']);
+  load([cache_dir name '_parts']);
 catch
   initrand();
   for i = 1:numel(index_pose)
     model = model_addparts(model, model.start, i, i, 8, [6 6]);
   end
-  model = train(cls, model, pos, neg(1:maxneg), 0, 0, 8, 10, ...
+  model = train(name, model, pos, neg(1:maxneg), 0, 0, 8, 10, ...
                 cachesize, true, 0.7, false, 'parts_1');
-  model = train(cls, model, pos, neg, 0, 0, 1, 5, ...
+  model = train(name, model, pos, neg, 0, 0, 1, 5, ...
                 cachesize, true, 0.7, true, 'parts_2');
-  save([cache_dir cls '_parts'], 'model');
+  save([cache_dir name '_parts'], 'model');
 end
 % 
 model.index_pose = index_pose;
-save([cache_dir cls '_final'], 'model');
+save([cache_dir name '_final'], 'model');
 
 cd(curpwd);
 
