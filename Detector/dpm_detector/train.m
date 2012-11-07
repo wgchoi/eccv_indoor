@@ -398,6 +398,9 @@ for i = 1:batchsize:numneg
     j = inds(i+k-1);
     fprintf('%s %s: iter %d/%d: hard negatives: %d/%d (%d)\n', procid(), name, t, negiter, i+k-1, numneg, j);
     im = color(imreadx(neg(j)));
+	if(size(im, 2) > 640)
+		im = imresize(im, 640 / size(im, 2));
+	end
     pyra = featpyramid(im, model);
     [dets, bs, info] = gdetect(pyra, model, -1.002);
     %%% wongun added, limit max number of hard negatives per image

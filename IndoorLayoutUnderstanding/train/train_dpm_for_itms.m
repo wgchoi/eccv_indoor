@@ -40,7 +40,7 @@ try
 catch
   initrand();
   model = mergemodels(models);
-  model = train(name, model, pos, neg(1:maxneg), 0, 0, 1, 5, ...
+  model = train(name, model, pos, neg(1:maxneg), 0, 0, 4, 3, ...
                 cachesize, true, 0.7, false, 'mix');
   save([cache_dir '/' name '_mix'], 'model', 'index_pose');
 end

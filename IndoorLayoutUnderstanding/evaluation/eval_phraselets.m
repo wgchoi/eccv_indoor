@@ -29,8 +29,8 @@ for i = 1:length(data)
     confs{i} = data(i).x.dets(:, end);
 end
 %%
-obj = 'person_sofa';
-objid = 1;
+obj = 'person_chair';
+objid = 3;
 clear dets;
 for i = 1:length(data)
     fprintf('.');
@@ -45,17 +45,18 @@ for i = 1:length(dets)
     bboxes = dets(i).bbox{1};
     top = dets(i).top{1};
     bboxes = bboxes(top, :);
-    bboxes(:, 2) = bboxes(:, 2) + (bboxes(:, 4) - bboxes(:, 2))/3;
-    
+    % bboxes(:, 2) = bboxes(:, 2) + (bboxes(:, 4) - bboxes(:, 2))/3;
     xs2{i}.dets = [objid * ones(size(bboxes, 1), 1), bboxes(:, 5), zeros(size(bboxes, 1), 1), bboxes(:, 1:4) ./ dets(i).resizefactor, bboxes(:, end)];
     confs2{i} = dets(i).bbox{1}(:, end);
 end
 fprintf('\n');
 %%
-subplot(211); [rec, prec, ap]= evalDetection(annos, xs(1:length(xs2)), confs(1:length(xs2)), objid, 1, 0, 1);
-subplot(212); [rec, prec, ap]= evalDetection(annos, xs2, confs2, objid, 1, 0, 1);
+%subplot(211); [rec, prec, ap]= evalDetection(annos, xs(1:length(xs2)), confs(1:length(xs2)), objid, 1, 0, 1);
+subplot(211); [rec, prec, ap]= evalDetection(annos, xs2, confs2, objid, 1, 0, 1);
+title(obj)
 %%
-for i = 301:length(data)
+subplot(212)
+for i = 451:length(data)
     imshow(data(i).x.imfile);
     for j = 1:size(xs2{i}.dets, 1)
         if(xs2{i}.dets(j, :) > -1.0)
