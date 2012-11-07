@@ -25,7 +25,7 @@ cachesize = 10*numel(pos);
 maxneg = min(200, numel(pos));
 
 try 
-	matlabpool open 4
+	matlabpool open 6
 end
 
 % train root filters using warped positives & random negatives
@@ -51,6 +51,11 @@ catch
   initrand();
   model = mergemodels(models);
   model = train(cls, model, pos, neg(1:maxneg), 0, 0, ...
+                3, ...
+                3, ...
+                cachesize, true, 0.7, false, 'mix');
+
+  model = train(cls, model, pos, neg, 0, 0, ...
                 1, ...
                 5, ...
                 cachesize, true, 0.7, false, 'mix');

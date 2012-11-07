@@ -263,6 +263,55 @@ for t = 1:iter
   end
 end
 
+function warped = fastwarppos(model, pos)
+
+% warped = warppos(name, model, pos)
+% Warp positive examples to fit model dimensions.
+% Used for training root filters from positive bounding boxes.
+
+fi = model.symbols(model.rules{model.start}.rhs).filter;
+fsize = model.filters(fi).size;
+pixels = fsize * model.sbin;
+heights = [pos(:).y2]' - [pos(:).y1]' + 1;
+widths = [pos(:).x2]' - [pos(:).x1]' + 1;
+numpos = length(pos);
+warped = cell(numpos);
+cropsize = (fsize+2) * model.sbin;
+parfor i = 1:numpos
+  fprintf('%s: warp: %d/%d\n', model.class, i, numpos);
+  im = imreadx(pos(i));
+%   padx = model.sbin * (pos(i).bbox(3) - pos(i).bbox(1)) / pixels(2);
+%   pady = model.sbin * (pos(i).bbox(4) - pos(i).bbox(2)) / pixels(1);
+  padx = model.sbin * widths(i) / pixels(2);
+  pady = model.sbin * heights(i) / pixels(1);
+  x1 = round(pos(i).x1-padx);
+  x2 = round(pos(i).x2+padx);
+  y1 = round(pos(i).y1-pady);
+  y2 = round(pos(i).y2+pady);
+  
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%% resize for faster computation
+  w = x2 - x1;
+  h = y2 - y1;
+  
+  r1 = w / cropsize(2);
+  r2 = h / cropsize(1);
+  
+  minratio = min(r1, r2);
+  if(minratio > 2.0)
+      fprintf('%d\n', i);
+      minratio = minratio / 2.0;
+      im = imresize(im, 1 / minratio);
+      x1 = floor(x1 / minratio);
+      y1 = floor(y1 / minratio);
+      x2 = floor(x2 / minratio);
+      y2 = floor(y2 / minratio);
+  end
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  window = subarray(im, y1, y2, x1, x2, 1);
+  warped{i} = imresize(window, cropsize, 'bilinear');
+end
+
 % get positive examples by warping positive bounding boxes
 % we create virtual examples by flipping each image left to right
 function num = poswarp(name, t, model, ind, pos, fid)
@@ -270,7 +319,8 @@ function num = poswarp(name, t, model, ind, pos, fid)
 % of the form Q -> F.
 globals;
 numpos = length(pos);
-warped = warppos(model, pos);
+%warped = warppos(model, pos);
+warped = fastwarppos(model, pos);
 fi = model.symbols(model.rules{model.start}.rhs).filter;
 fbl = model.filters(fi).blocklabel;
 obl = model.rules{model.start}.offset.blocklabel;
@@ -321,7 +371,7 @@ for i = 1:batchsize:numpos
   % data for batch
   data = {};
   parfor k = 1:thisbatchsize
-  % for k = 1:thisbatchsize
+%   for k = 1:thisbatchsize
     j = i+k-1;
     fprintf('%s %s: iter %d/%d: latent positive: %d/%d', procid(), name, t, iter, j, numpos);
     bbox = [pos(j).x1 pos(j).y1 pos(j).x2 pos(j).y2];
@@ -333,6 +383,12 @@ for i = 1:batchsize:numpos
     end
     % get example
     im = color(imreadx(pos(j)));
+	wbox = bbox(3)-bbox(1);
+    if(wbox > 400)
+        resizeratio = 400 / wbox;
+        im = imresize(im, resizeratio);
+        bbox = bbox .* resizeratio;
+    end
     [im, bbox] = croppos(im, bbox);
     %%% wongun added
     if(isfield(pos(j), 'mirrored') && pos(j).mirrored)
