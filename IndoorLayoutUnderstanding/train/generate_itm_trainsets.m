@@ -1,11 +1,21 @@
 function [sets] = generate_itm_trainsets(patterns, labels, params, ptns)
 % mine positive sets
 %par
+
+names = {'sofa' 'table' 'chair' 'bed' 'diningtable' 'sidetable' 'person'};
+
 for i = 1:length(ptns)
     disp(['processing ' num2str(i)]);
     %pos = struct('itm_examples', {}, 'clusters', {}, 'viewset', {});
     [pos.itm_examples, pos.clusters, pos.viewset] = generate_positive_itm_trainset(patterns, labels, params, ptns(i));
     sets(i).pos = pos;
+    
+    sets(i).objnames = {};
+    for j = 1:length(ptns(i).parts)
+        sets(i).objnames{j} = names{ptns(i).parts(j).citype};
+    end
+    % not using negative...
+    continue;
     
     [didx, composite] = collect_itm_instances(patterns, [], params, ptns(i));
     [idx, loss] = find_negative_itms(patterns, labels, didx, composite, ptns(i));

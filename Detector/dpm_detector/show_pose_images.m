@@ -17,7 +17,7 @@ for i = 1:ny
                             floor(spos(idx).y1), floor(spos(idx).y2), ...
                             floor(spos(idx).x1), floor(spos(idx).x2), 1);
         
-        if(spos(idx).mirrored)
+        if(isfield(spos(idx), 'mirrored') && spos(idx).mirrored)
             window = flipimage(window);
         end
         fullim(((i-1) * h + 1):(i * h), ((j-1) * w + 1):(j * w), :) = uint8(imresize(window, [h w]));

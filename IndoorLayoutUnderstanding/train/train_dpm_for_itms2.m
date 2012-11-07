@@ -1,4 +1,4 @@
-function [models, index_pose] = train_dpm_for_itms2(trainset, name)
+function [models, index_pose] = train_dpm_for_itms2(trainset, name, allimlists)
 curpwd = pwd();
 cache_dir = fullfile(curpwd, 'cache/dpm2/');
 if ~exist(cache_dir, 'dir')
