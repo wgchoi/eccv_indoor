@@ -14,6 +14,7 @@ if nargin < 3
   note = '';
   augmented = false;
 end
+addpath ~/codes/eccv_indoor/IndoorLayoutUnderstanding/common/
 
 globals; 
 [pos, neg] = pose_data(cls, augmented);
@@ -21,7 +22,11 @@ globals;
 [spos, index_pose] = pose_split(pos, n, subtype);
 
 cachesize = 10*numel(pos);
-maxneg = min(800, numel(pos));
+maxneg = min(200, numel(pos));
+
+try 
+	matlabpool open 4
+end
 
 % train root filters using warped positives & random negatives
 try

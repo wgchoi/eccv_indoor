@@ -9,7 +9,7 @@ datadir = './cache/itmobs/iter3';
 load('./cache/itmobs/iter3/params.mat');
 params = iparams;
 
-option = 7;
+option = 3;
 iter = 5;
 if(option == 1)
 	params.C = 1
@@ -52,6 +52,9 @@ elseif(option == 7)
 	params.model.itmhogs = false;
 end
 
+if(strcmp(params.model.feattype, 'itm_v2'))
+	params.model.w_ior = zeros(7+1, 1);
+end
 cachedir = ['cache/' expname '/iter' num2str(iter)];
 if ~exist(cachedir, 'dir')
 	mkdir(cachedir);
@@ -61,7 +64,9 @@ end
 for i = 1:length(files)                      
     temp = load(fullfile(datadir, files(i).name));
     patterns(i) = temp.pattern;
-    [patterns(i).isolated] = clusterInteractionTemplates(patterns(i).x, params.model);
+	for j = 1:length(patterns(i).isolated)
+		patterns(i).isolated(j).robs = 0;
+	end
     labels(i) = temp.label;
 	if(isempty(params.model.itmptns))
 		labels(i).lcpg = labels(i).pg;

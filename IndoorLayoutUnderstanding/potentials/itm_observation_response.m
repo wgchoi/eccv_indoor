@@ -1,7 +1,7 @@
 function patterns = itm_observation_response(patterns, model)
 assert(model.itmhogs);
 
-parfor i = 1:length(patterns)
+for i = 1:length(patterns)
     pattern = patterns(i);
     
     n = length(pattern.composite);
@@ -10,8 +10,7 @@ parfor i = 1:length(patterns)
     itmidx = zeros(1, n);
 
     ptns = model.itmptns;
-    %par
-    for j = 1:length(itm_examples)
+    parfor j = 1:length(itm_examples)
         itmidx(j) = model.itm_map(pattern.composite(j).ittype);
         assert(itmidx(j) > 0);
 
@@ -37,7 +36,7 @@ parfor i = 1:length(patterns)
 end
 
 for i = 1:length(patterns)
-    patterns(i).iclusters = [patterns(i).isolated; patterns(i).composite];
+	patterns(i).iclusters = [patterns(i).isolated; patterns(i).composite];
 end
 % 
 % for m = 1:length(temp.index_pose)

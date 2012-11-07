@@ -79,10 +79,13 @@ catch
   end
   
   if(augmented)
-        load(' ~/codes/eccv_indoor/IndoorLayoutUnderstanding/cvpr13data/human/datasetlist.mat', 'excludelist');
+        % load('~/codes/eccv_indoor/IndoorLayoutUnderstanding/cvpr13data/human/datasetlist.mat', 'excludelist');
+        load('~/codes/eccv_indoor/IndoorLayoutUnderstanding/cvpr13data/human/datasetlist.mat', 'totalfiles');
+        excludelist = totalfiles;
+        
         annobase = '~/codes/human_interaction/DataAnnotation/MainDataset/';
 
-        objnames = {'sofa' 'table' 'tv' 'chair' 'bed' 'diningtable' 'sidetable'};
+        objnames = {'sofa' 'table' 'tv' 'chair' 'diningtable' 'sidetable'};
         [in, oid] = inlist(objnames, cls);
         assert(in);
 
@@ -93,7 +96,7 @@ catch
             anno = load(annofile);
             
             % no object
-            if(isempty(anno.objs{oid}))
+            if(length(anno.objs) < oid || isempty(anno.objs{oid}))
                 numneg = numneg+1;
                 neg(numneg).im = excludelist{i};
                 neg(numneg).flip = false;
@@ -337,10 +340,14 @@ end
 
 function pos = read_positive_augmented_human(cls)
 
-load(' ~/codes/eccv_indoor/IndoorLayoutUnderstanding/cvpr13data/human/datasetlist.mat', 'excludelist');
+%load('~/codes/eccv_indoor/IndoorLayoutUnderstanding/cvpr13data/human/datasetlist.mat', 'excludelist');
+% contaminated experiment!
+load('~/codes/eccv_indoor/IndoorLayoutUnderstanding/cvpr13data/human/datasetlist.mat', 'totalfiles');
+excludelist = totalfiles;
+
 annobase = '~/codes/human_interaction/DataAnnotation/MainDataset/';
 
-objnames = {'sofa' 'table' 'tv' 'chair' 'bed' 'diningtable' 'sidetable'};
+objnames = {'sofa' 'table' 'tv' 'chair' 'diningtable' 'sidetable'};
 [in, oid] = inlist(objnames, cls);
 assert(in);
 
@@ -351,8 +358,12 @@ for i = 1:length(excludelist)
     annofile = fullfile(fullfile(annobase, dname), [fname '_labels']);
     anno = load(annofile);
     
+	if(length(anno.objs) < oid)
+		continue;
+	end
+
     objs = anno.objs{oid};
-    poses = anno.objs_poses{oid};
+    poses = anno.obj_poses{oid};
     
     for j = 1:length(objs)
         imfile = excludelist{i};
@@ -387,3 +398,5 @@ for i = 1:length(excludelist)
         %%% wongun added %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end
 end
+
+disp(['found ' num2str(count) ' examples from humandataset'])
