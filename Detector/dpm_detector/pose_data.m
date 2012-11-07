@@ -47,14 +47,15 @@ catch
   % positive examples from train+val
   fprintf('Read 3DObject samples\n');
   if(augmented)
+    pos4 = read_positive_augmented_human(cls);
     pos3 = read_pascal_positive(augclass);
-  end  
+  end
   pos = read_positive(cls, index_train);
   pos2 = read_positive2(cls, index_train2);
   
   if(augmented)
-      pos = [pos, pos2, pos3];
-      clear pos2 pos3;
+      pos = [pos, pos2, pos3, pos4];
+      clear pos2 pos3 pos4;
   else
     pos = [pos, pos2];
     clear pos2;
@@ -75,6 +76,29 @@ catch
       neg(numneg).im = [VOCopts.datadir rec.imgname];
       neg(numneg).flip = false;
     end
+  end
+  
+  if(augmented)
+        load(' ~/codes/eccv_indoor/IndoorLayoutUnderstanding/cvpr13data/human/datasetlist.mat', 'excludelist');
+        annobase = '~/codes/human_interaction/DataAnnotation/MainDataset/';
+
+        objnames = {'sofa' 'table' 'tv' 'chair' 'bed' 'diningtable' 'sidetable'};
+        [in, oid] = inlist(objnames, cls);
+        assert(in);
+
+        for i = 1:length(excludelist)
+            [dname, fname] = fileparts(excludelist{i});
+            [~, dname] = fileparts(dname);
+            annofile = fullfile(fullfile(annobase, dname), [fname '_labels']);
+            anno = load(annofile);
+            
+            % no object
+            if(isempty(anno.objs{oid}))
+                numneg = numneg+1;
+                neg(numneg).im = excludelist{i};
+                neg(numneg).flip = false;
+            end
+        end
   end
   
   save([cachedir cls '_train_pose'], 'pos', 'neg');
@@ -309,4 +333,57 @@ for i = 1:N
 %         pos(count).mirrored = true;
 %         %%% wongun added %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     end
+end
+
+function pos = read_positive_augmented_human(cls)
+
+load(' ~/codes/eccv_indoor/IndoorLayoutUnderstanding/cvpr13data/human/datasetlist.mat', 'excludelist');
+annobase = '~/codes/human_interaction/DataAnnotation/MainDataset/';
+
+objnames = {'sofa' 'table' 'tv' 'chair' 'bed' 'diningtable' 'sidetable'};
+[in, oid] = inlist(objnames, cls);
+assert(in);
+
+count = 0;
+for i = 1:length(excludelist)
+    [dname, fname] = fileparts(excludelist{i});
+    [~, dname] = fileparts(dname);
+    annofile = fullfile(fullfile(annobase, dname), [fname '_labels']);
+    anno = load(annofile);
+    
+    objs = anno.objs{oid};
+    poses = anno.objs_poses{oid};
+    
+    for j = 1:length(objs)
+        imfile = excludelist{i};
+        
+        view = poses(j).az * 180 / pi;
+        
+        count = count + 1;
+        pos(count).im = imfile;
+        pos(count).x1 = objs(j).bbs(1);
+        pos(count).y1 = objs(j).bbs(2);
+        pos(count).x2 = objs(j).bbs(1) + objs(j).bbs(3) - 1;
+        pos(count).y2 = objs(j).bbs(2) + objs(j).bbs(4) - 1;
+        pos(count).flip = false;
+        pos(count).trunc = 0;
+        pos(count).azimuth = view;
+        %%% wongun added %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        pos(count).mirrored = false;
+        pos(count).subid = poses(j).subid;
+
+        count = count + 1;
+        pos(count).im = imfile;
+        pos(count).x1 = objs(j).bbs(1);
+        pos(count).y1 = objs(j).bbs(2);
+        pos(count).x2 = objs(j).bbs(1) + objs(j).bbs(3) - 1;
+        pos(count).y2 = objs(j).bbs(2) + objs(j).bbs(4) - 1;
+        pos(count).flip = false;
+        pos(count).trunc = 0;
+        pos(count).azimuth = 360 - view;
+        %%% wongun added
+        pos(count).mirrored = true;
+        pos(count).subid = poses(j).subid;
+        %%% wongun added %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    end
 end

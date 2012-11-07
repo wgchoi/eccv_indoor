@@ -1,9 +1,44 @@
-%% detector statistics in training sets
 clear
 
-% load ./cvpr13data/human/fulltrainfiles.mat
-load ./cvpr13data/fulltrainset.mat
-
+load ./cvpr13data/human/fulltrainfiles.mat
+% load ./cvpr13data/fulltrainset.mat
+%% object statistics
+dlist = {'dancing' 'having_dinner' 'talking' 'washing_dishes' 'watching_tv'};
+temp = zeros(length(patterns), 8);
+for i = 1:length(patterns)
+    fname =  patterns(i).x.imfile;
+    dname = fileparts(fname);
+    [~, dname] = fileparts(dname);
+    
+    objidx = labels(i).pg.childs;
+    oids = patterns(i).x.dets(objidx, 1);
+    for j = 1:length(oids)
+        temp(i, oids(j) + 1) = temp(i, oids(j) + 1) + 1;
+    end
+    
+    [in, idx] = inlist(dlist, dname);
+    assert(in);
+    temp(i, 1) = idx;
+end
+% %% object statistics
+% dlist = {'dancing' 'having_dinner' 'talking' 'washing_dishes' 'watching_tv'};
+% temp = zeros(length(data), 8);
+% for i = 1:length(data)
+%     fname =  data(i).x.imfile;
+%     dname = fileparts(fname);
+%     [~, dname] = fileparts(dname);
+%     
+%     for j = 1:length(data(i).anno.obj_annos)
+%         oid = data(i).anno.obj_annos(j).objtype;
+%         temp(i, oid+1) = temp(i, oid+1) + 1;
+%     end
+%     temp(i, 8) = length(data(i).anno.hmn_annos);
+%     
+%     [in, idx] = inlist(dlist, dname);
+%     assert(in);
+%     temp(i, 1) = idx;
+% end
+%% detector statistics in training sets
 pos_scores = cell(1, 7);
 neg_scores = cell(1, 7);
 
