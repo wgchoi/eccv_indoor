@@ -36,9 +36,7 @@ catch
   for i = 1:numel(index_pose)
     % split data into two groups: left vs. right facing instances
     models{i} = initmodel(cls, spos{index_pose(i)}, note, 'N');
-    models{i} = train(cls, models{i}, spos{index_pose(i)}, neg(1:maxneg), i, 1, ...
-						1, ... % iter
-						5, ... % negiter
+    models{i} = train(cls, models{i}, spos{index_pose(i)}, neg, i, 1, 1, 1, ... % negiter
                       cachesize, true, 0.7, false, ['root_' num2str(i)]);
   end
   save([cachedir cls '_root'], 'models');

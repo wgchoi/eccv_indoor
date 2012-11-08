@@ -21,7 +21,7 @@ cachesize = 24000;
 maxneg = min(200, numel(pos));
 
 try
-    matlabpool open 6
+    matlabpool open 4
 end
 % train root filters using warped positives & random negatives
 try
