@@ -18,8 +18,11 @@ if(isempty(index_pose))
 end
 
 cachesize = 24000;
-maxneg = max(200, min(1500, numel(pos)));
+maxneg = min(200, numel(pos));
 
+try
+    matlabpool open 6
+end
 % train root filters using warped positives & random negatives
 try
   load([cache_dir '/' name '_root']);
@@ -42,8 +45,13 @@ catch
   model = mergemodels(models);
   model = train(name, model, pos, neg(1:maxneg), 0, 0, 4, 3, ...
                 cachesize, true, 0.7, false, 'mix');
+
+  model = train(name, model, pos, neg, 0, 0, 1, 5, ...
+                cachesize, true, 0.7, false, 'mix');
+            
   save([cache_dir '/' name '_mix'], 'model', 'index_pose');
 end
+
 % add parts and update models using hard negatives.
 try 
   load([cache_dir name '_parts']);

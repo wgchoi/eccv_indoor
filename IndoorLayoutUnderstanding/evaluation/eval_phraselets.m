@@ -4,6 +4,7 @@ resbase = '~/codes/human_interaction/cache/data.v2';
 datasets = dir(resbase);
 datasets(1:2) = [];
 detbase = '~/codes/human_interaction/cache/phraselets/';
+detbase = '~/codes/human_interaction/cache/new_detector/';
 %%
 cnt = 1;
 removeidx = [];
@@ -29,8 +30,8 @@ for i = 1:length(data)
     confs{i} = data(i).x.dets(:, end);
 end
 %%
-obj = 'person_chair';
-objid = 3;
+obj = 'sofa';
+objid = 1;
 clear dets;
 for i = 1:length(data)
     fprintf('.');
@@ -51,9 +52,10 @@ for i = 1:length(dets)
 end
 fprintf('\n');
 %%
-%subplot(211); [rec, prec, ap]= evalDetection(annos, xs(1:length(xs2)), confs(1:length(xs2)), objid, 1, 0, 1);
-subplot(211); [rec, prec, ap]= evalDetection(annos, xs2, confs2, objid, 1, 0, 1);
+subplot(211); [rec, prec, ap]= evalDetection(annos, xs(1:length(xs2)), confs(1:length(xs2)), objid, 1, 0, 1);
+subplot(212); [rec, prec, ap]= evalDetection(annos, xs2, confs2, objid, 1, 0, 1);
 title(obj)
+return;
 %%
 subplot(212)
 for i = 451:length(data)

@@ -23,6 +23,8 @@ for i = 1:length(itm_examples)
     clusters(i) = find_interval(itm_examples(i).azimuth / pi * 180, 8);
 end
 
+return;
+
 nparts = size(itm_examples(1).objboxes, 2);
 res = true;
 while(res)
