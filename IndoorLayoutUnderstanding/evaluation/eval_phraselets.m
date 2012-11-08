@@ -5,6 +5,7 @@ datasets = dir(resbase);
 datasets(1:2) = [];
 detbase = '~/codes/human_interaction/cache/phraselets/';
 detbase = '~/codes/human_interaction/cache/new_detector/';
+detbase = '~/codes/human_interaction/cache/detections_pascal';
 %%
 cnt = 1;
 removeidx = [];
@@ -30,8 +31,8 @@ for i = 1:length(data)
     confs{i} = data(i).x.dets(:, end);
 end
 %%
-obj = 'sofa';
-objid = 1;
+obj = 'diningtable';
+objid = 5;
 clear dets;
 for i = 1:length(data)
     fprintf('.');
