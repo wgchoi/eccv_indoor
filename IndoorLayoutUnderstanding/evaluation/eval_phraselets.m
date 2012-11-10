@@ -3,9 +3,6 @@ clear
 resbase = '~/codes/human_interaction/cache/data.v2';
 datasets = dir(resbase);
 datasets(1:2) = [];
-detbase = '~/codes/human_interaction/cache/phraselets/';
-detbase = '~/codes/human_interaction/cache/new_detector/';
-detbase = '~/codes/human_interaction/cache/detections_pascal';
 %%
 cnt = 1;
 removeidx = [];
@@ -31,17 +28,30 @@ for i = 1:length(data)
     confs{i} = data(i).x.dets(:, end);
 end
 %%
-obj = 'diningtable';
-objid = 5;
+detbase = '~/codes/human_interaction/cache/phraselets/';
+detbase = '~/codes/human_interaction/cache/new_detector/';
+detbase = '~/codes/human_interaction/cache/detections_pascal';
+% detbase ='~/codes/human_interaction/cache/nopascal_mix_cont/';
+% detbase ='~/codes/human_interaction/cache/detections_mix_cont/';
+% detbase ='~/codes/human_interaction/cache/dpmmine_mix/';
+detbase='~/codes/human_interaction/cache/detections_parts_cont/';
+
+obj = 'sofa';
+objid = 1;
 clear dets;
 for i = 1:length(data)
     fprintf('.');
     [dataset, datafile] = fileparts(data(i).x.imfile);
     [~, dataset] = fileparts(dataset);
-    dets(i) = load(fullfile(fullfile(fullfile(detbase, dataset), obj), datafile), 'bbox', 'resizefactor', 'top');
+    try
+        dets(i) = load(fullfile(fullfile(fullfile(detbase, dataset), obj), datafile), 'bbox', 'resizefactor', 'top');
+    catch
+        break;
+    end
+    % keyboard;
 end
 fprintf('\n');
-%%
+
 for i = 1:length(dets)
     fprintf('.');
     bboxes = dets(i).bbox{1};
@@ -52,10 +62,10 @@ for i = 1:length(dets)
     confs2{i} = dets(i).bbox{1}(:, end);
 end
 fprintf('\n');
-%%
+
 subplot(211); [rec, prec, ap]= evalDetection(annos, xs(1:length(xs2)), confs(1:length(xs2)), objid, 1, 0, 1);
 subplot(212); [rec, prec, ap]= evalDetection(annos, xs2, confs2, objid, 1, 0, 1);
-title(obj)
+% title(obj)
 return;
 %%
 subplot(212)

@@ -14,7 +14,6 @@ spos = cell(n * subtype, 1);
 index_pose = [];
 
 allset = false(1, N);
-
 allview = zeros(1, n*subtype);
 alltype = zeros(1, n*subtype);
 

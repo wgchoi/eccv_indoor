@@ -1,19 +1,21 @@
 function show2DGraph(pg, x, icluster, fig2d, bnms, conf)
 % imshow(x.imfile);
 if nargin < 4
-    fig2d = 1000;
+    fig2d = -1;
     bnms = false;
     conf = [];
 elseif nargin < 5
     bnms = false;
     conf = [];
 end
-figure(fig2d); 
-clf;
 
 om = objmodels();
 img = imread(x.imfile);
-ShowGTPolyg2(img, x.lpolys(pg.layoutidx, :), fig2d)
+if(fig2d > 0)
+    ShowGTPolyg2(img, x.lpolys(pg.layoutidx, :), fig2d)
+else
+    ShowGTPolyg2(img, x.lpolys(pg.layoutidx, :))
+end
 fontsize = size(img, 1) / 25;
 
 if(bnms)

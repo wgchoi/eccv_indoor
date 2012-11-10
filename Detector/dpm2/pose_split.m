@@ -20,7 +20,7 @@ alltype = zeros(1, n*subtype);
 
 for i = 1:n
     for j = 1:subtype
-        idx = (j - 1) * n + i;
+        idx = (i - 1) * subtype + j;
         
         allview(idx) = i;
         alltype(idx) = j;
@@ -31,30 +31,30 @@ for i = 1:n
     end
 end
 
-pos(allset) = [];
-view(allset) = [];
-type(allset) = [];
-
-for i = 1:length(pos)
-    h = pos(i).y2 - pos(i).y1 + 1;
-    w = pos(i).x2 - pos(i).x1 + 1;
-    
-    ar = h / w;
-    if(isnan(view(i)) && isnan(type(i)))
-        [~, idx] = min(abs(aspects - ar));
-        spos{idx}(end+1) = pos(i);
-    elseif(isnan(view(i)))
-        tidx = find(alltype == type(i));
-        [~, idx] = min(abs(aspects(tidx) - ar));
-        spos{tidx(idx)}(end+1) = pos(i);
-    elseif(isnan(type(i)))
-        vidx = find(allview == view(i));
-        [~, idx] = min(abs(aspects(vidx) - ar));
-        spos{vidx(idx)}(end+1) = pos(i);
-    else
-        keyboard;
-    end
-end
+% pos(allset) = [];
+% view(allset) = [];
+% type(allset) = [];
+% 
+% for i = 1:length(pos)
+%     h = pos(i).y2 - pos(i).y1 + 1;
+%     w = pos(i).x2 - pos(i).x1 + 1;
+%     
+%     ar = h / w;
+%     if(isnan(view(i)) && isnan(type(i)))
+%         [~, idx] = min(abs(aspects - ar));
+%         spos{idx}(end+1) = pos(i);
+%     elseif(isnan(view(i)))
+%         tidx = find(alltype == type(i));
+%         [~, idx] = min(abs(aspects(tidx) - ar));
+%         spos{tidx(idx)}(end+1) = pos(i);
+%     elseif(isnan(type(i)))
+%         vidx = find(allview == view(i));
+%         [~, idx] = min(abs(aspects(vidx) - ar));
+%         spos{vidx(idx)}(end+1) = pos(i);
+%     else
+%         keyboard;
+%     end
+% end
 
 for idx = 1:length(spos)
     if numel(spos{idx}) >= 10

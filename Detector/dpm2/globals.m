@@ -16,7 +16,7 @@ else
 end
 
 % directory for caching models, intermediate data, and results
-cachedir = ['data/' VOCyear '_contaminated2/'];
+cachedir = ['data/' VOCyear '/'];
 
 if exist(cachedir) == 0
   unix(['mkdir -p ' cachedir]);

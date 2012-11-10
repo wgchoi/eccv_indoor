@@ -229,7 +229,7 @@ for i = 1:N
         pos(count).azimuth = view(j,1);
         %%% wongun added %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         pos(count).mirrored = false;
-        pos(count).subid = nan;
+        pos(count).subid = 1;
         count = count + 1;
         pos(count).im = file_img;
         pos(count).x1 = bbox(j,1);
@@ -241,7 +241,7 @@ for i = 1:N
         pos(count).azimuth = 360 - view(j,1);
         %%% wongun added
         pos(count).mirrored = true;
-        pos(count).subid = nan;
+        pos(count).subid = 1;
         %%% wongun added %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end
 end
@@ -371,6 +371,10 @@ for i = 1:length(excludelist)
         imfile = excludelist{i};
         
         view = poses(j).az * 180 / pi;
+        %view = (object.azimuth) * 180 / pi;
+        if view < 0
+            view = view + 360;
+        end    
         
         count = count + 1;
         pos(count).im = imfile;
