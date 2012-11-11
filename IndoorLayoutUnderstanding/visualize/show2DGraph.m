@@ -19,13 +19,11 @@ end
 fontsize = size(img, 1) / 25;
 
 if(bnms)
-    assert(0);
-    
+    % assert(0);
     objidx = getObjIndices(pg, icluster);
     assert(length(conf) == size(x.dets, 1));
     
-    
-    classes = 1:6;
+    classes = 1:7;
     dets = x.dets(objidx, :);
     conf = conf(objidx);
     
@@ -43,7 +41,15 @@ if(bnms)
     
     for i = 1:length(allpick)
         oid = icluster(allpick(i)).ittype;
-        drawObject(x, allpick(i), oid, om, fig2d, fontsize);
+        if(isfield(x, 'hobjs'))
+            id1 = icluster(allpick(i)).chindices;
+            id2 = icluster(allpick(i)).subidx;
+
+            drawObject2(x, id1, id2, oid, om, fig2d, fontsize);
+        else
+            drawObject(x, allpick(i), oid, om, fig2d, fontsize);
+        end
+        % drawObject(x, allpick(i), oid, om, fig2d, fontsize);
     end
     
     for i = 1:length(pg.childs)
@@ -72,6 +78,8 @@ else
             else
                 drawObject(x, idx, oid, om, fig2d, fontsize);
             end
+            
+            rectangle('position', bbox2rect(x.dets(idx, 4:7)), 'linewidth', 2, 'edgecolor', 'w');
         else
             childs = icluster(idx).chindices;
             bbs = zeros(length(childs), 4);
@@ -88,8 +96,10 @@ else
                 end
             end
             drawITMLink(bbs);
+            
+            % rectangle('position', bbox2rect(x.dets(idx, 4:7)), 'linewidth', 2, 'edgecolor', 'w');
         end
-        rectangle('position', bbox2rect(x.dets(idx, 4:7)), 'linewidth', 2, 'edgecolor', 'w');
+        
     %     [poly, rt] = get2DCubeProjection(x.K, x.R, x.cubes{idx});
     %     draw2DCube(poly, rt, fig2d, om(x.dets(idx, 1)).name, col(oid));
     end

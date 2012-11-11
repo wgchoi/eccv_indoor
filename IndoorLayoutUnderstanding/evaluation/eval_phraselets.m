@@ -35,6 +35,7 @@ detbase = '~/codes/human_interaction/cache/detections_pascal';
 % detbase ='~/codes/human_interaction/cache/detections_mix_cont/';
 % detbase ='~/codes/human_interaction/cache/dpmmine_mix/';
 detbase='~/codes/human_interaction/cache/detections_parts_cont/';
+detbase='~/codes/human_interaction/cache/human_detections';
 
 obj = 'sofa';
 objid = 1;
