@@ -6,7 +6,7 @@ if(length(pg.childs) < 2)
 end
 model = params.model;
 assert(isfield(model, 'itmptns'));
-assert(strcmp(model.feattype, 'itm_v0') || strcmp(model.feattype, 'itm_v1') || strcmp(model.feattype, 'itm_v2'));
+assert(strcmp(model.feattype, 'itm_v0') || strcmp(model.feattype, 'itm_v1') || strcmp(model.feattype, 'itm_v2') || strcmp(model.feattype, 'itm_v3'));
 
 %%% assume that the composite candidates are given.
 if(1)
@@ -37,6 +37,9 @@ end
 update = true;
 while(update)
     pg.lkhood = dot(getweights(model), features(pg, x, iclusters, model));
+    % not allowing obj-sharing.. need to fix when it comes to allowing
+    % sharing!
+    
     objs = [];
     for i = 1:length(pg.childs)
         % only consider remaining objs
@@ -54,8 +57,7 @@ while(update)
             continue;
         end
         
-        % not allowing obj-sharing.. need to fix when it comes to allowing
-        % sharing!
+        
         temp = pg;
         temp.childs = setdiff(temp.childs, iset);
         temp.childs(end+1) = comp_idx(i);

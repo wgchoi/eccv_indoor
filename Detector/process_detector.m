@@ -5,7 +5,7 @@ end
 addPaths;
 
 %load ./Models/dpm_mine/sofa_final.mat
-load ./Models/pascal_parts_cont/sofa_model_parts_2_1_4.mat
+load ./Models/only_human/sofa_final.mat
 process_onedir( imdir, ...
                 fullfile(resdir, 'sofa/'), ...
                 {model}, {'sofa'}, exts, -1.2);

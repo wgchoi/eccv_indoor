@@ -8,7 +8,7 @@ imdir = [resbase dataset '/resized/'];
 if ~exist(imdir,'dir')
     mkdir(imdir);
 end
-workspcdir=[resbase dataset '/layout/']; % '../tempworkspace/'; % directory to save intermediate results
+workspcdir=[resbase dataset '/layout/'] % '../tempworkspace/'; % directory to save intermediate results
 if ~exist(workspcdir,'dir')
     mkdir(workspcdir);
 end
