@@ -160,16 +160,14 @@ for i = 1:length(pg.childs)
             end
         end
         % 
-%         if(isfield(x, 'itms'))
-%             xs = [bboxes(:, 1); bboxes(:, 3)];
-%             ys = [bboxes(:, 2); bboxes(:, 4)];
-%             itmfeat = getITMfeat(model.itmptns(itmid), x.itms, [min(xs), min(ys), max(xs), max(ys)], locs, model);
-%         else
-%             itmfeat = getITMfeat(model.itmptns(itmid), [], [], locs, model);
-%         end
-
-        itmfeat = getITMfeat(model.itmptns(itmid), iclusters(i1).robs, locs, model);
-        
+        if(isfield(x, 'itms'))
+            xs = [bboxes(:, 1); bboxes(:, 3)];
+            ys = [bboxes(:, 2); bboxes(:, 4)];
+            itmfeat = getITMfeat2(model.itmptns(itmid), x.itms, [min(xs), min(ys), max(xs), max(ys)], locs, model);
+        else
+            itmfeat = getITMfeat2(model.itmptns(itmid), [], [], locs, model);
+        end
+        %itmfeat = getITMfeat(model.itmptns(itmid), iclusters(i1).robs, locs, model);
         phi(temp:temp+model.itmfeatlen(itmid)-1) = itmfeat;
     end
 end

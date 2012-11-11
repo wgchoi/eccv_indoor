@@ -3,6 +3,7 @@ clear
 database = 'cache/itmobs/iter3';
 files = dir(fullfile(database, 'train*'));
 
+disp(['reading data']);
 for i = 1:length(files)
     temp = load(fullfile(database, files(i).name));
     
@@ -16,6 +17,7 @@ for i = 1:length(files)
 end
 
 load('/home/wgchoi/codes/eccv_indoor/IndoorLayoutUnderstanding/cache/itmobs/iter3/params.mat')
+
 params = iparams;
 params.model.itmptns
 params.pmove = [0 1.0 0 0 0 0 0 0];
@@ -24,24 +26,32 @@ params.quicklearn = true;
 params.max_ssvm_iter = 6 + 3;
 
 
-params2 = appendITMtoParams(params, params.model.itmptns);
-matlabpool open 8;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+params.model.feattype = 'itm_v3';
+params.model.w_ior = zeros(8, 1);
+params.model.w_iso = zeros(24, 1);
+paramfile = 'cache/itmobs/reproduced_v3';
+resfile = 'cache/itmobs/reproduced_testres_v3';
+patterns = append_ITM_detections(patterns, params.model.itmptns, 'cache/itmdets', 'cache/dpm_parts');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+params2 = appendITMtoParams(params, params.model.itmptns);
+try
+	matlabpool open 8;
+end
+disp(['run training experiment for ' paramfile]);
 [paramsout, info] = train_ssvm_uci2(patterns, lables, annos, params2, 0); 
 
 
 loadfile = 1;
-paramfile = 'cache/itmobs/reproduced';
 save(paramfile, 'paramsout', 'info');
 %%
 assert(exist('paramfile', 'var') > 0);
 assert(exist('loadfile', 'var') > 0);
 
 disp(['run testing experiment for ' paramfile]);
-try
-    matlabpool open
-end
-
 if(loadfile)
     % clear
     addPaths
@@ -64,6 +74,9 @@ if(loadfile)
 end
 %% testing
 load(paramfile); % './cache/itm_noobs_test/iter3/params.mat')
+if(strcmp(paramsout.model.feattype, 'itm_v3'))
+    data = append_ITM_detections(data, paramsout.model.itmptns, 'cache/itmdets', 'cache/dpm_parts');
+end
 %%
 % res = struct('spg', cell(length(data), 1), 'maxidx', [], 'h', []);
 paramsout.numsamples = 1000;
@@ -128,5 +141,5 @@ end
 summary = evalAllResults(xs, annos, conf2, conf1, res);
 
 resdir = fileparts(paramfile);
-save(fullfile(resdir, 'testres'), '-v7.3', 'res', 'conf1', 'conf2', 'summary'); 
+save(resfile, '-v7.3', 'res', 'conf1', 'conf2', 'summary'); 
 

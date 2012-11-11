@@ -57,7 +57,7 @@ ibase = ibase + model.nscene*(model.nobjs+1);
 % intearction templates!
 for i = 1:length(model.itmptns)
     % w(ibase:ibase+model.itmfeatlen(i)-1) = getITMweights(model.itmptns(i));
-    model.itmptns(i) = setITMweights(model.itmptns(i), w(ibase:ibase+model.itmfeatlen(i)-1));
+    model.itmptns(i) = setITMweights2(model.itmptns(i), w(ibase:ibase+model.itmfeatlen(i)-1));
     ibase = ibase + model.itmfeatlen(i);
 end
 % object-object interaction
