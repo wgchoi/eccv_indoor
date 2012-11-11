@@ -1,13 +1,13 @@
-annos = {};
-xs = {};
-confs = {};
-xs2 = {};
-
-for i = 1:length(data)
-	annos{i} = data(i).anno;
-	xs{i} = data(i).x;
-	confs{i} = data(i).x.dets(:, end);
-end
+% annos = {};
+% xs = {};
+% confs = {};
+% xs2 = {};
+% 
+% for i = 1:length(data)
+% 	annos{i} = data(i).anno;
+% 	xs{i} = data(i).x;
+% 	confs{i} = data(i).x.dets(:, end);
+% end
 %
 erridx = [];
 poseletbase = '~/codes/human_interaction/cache/poselet/converted/';
@@ -40,16 +40,16 @@ for i = 1:length(data)
 	xs2{i} = x;
 	confs2{i} = x.dets(:, end);
 end
-
-annos(erridx) = [];
-xs(erridx) = [];
-confs(erridx) = [];
-xs2(erridx) = [];
-confs2(erridx) = [];
-
-figure(1);
-[rec, prec, ap]= evalDetection(annos, xs, confs, 7,1, 0, 1);
-drawnow
-figure(2);
-[rec, prec, ap]= evalDetection(annos, xs2, confs2, 7,1, 0, 1);
-drawnow
+% 
+% annos(erridx) = [];
+% xs(erridx) = [];
+% confs(erridx) = [];
+% xs2(erridx) = [];
+% confs2(erridx) = [];
+% 
+% figure(1);
+% [rec, prec, ap]= evalDetection(annos, xs, confs, 7,1, 0, 1);
+% drawnow
+% figure(2);
+% [rec, prec, ap]= evalDetection(annos, xs2, confs2, 7,1, 0, 1);
+% drawnow

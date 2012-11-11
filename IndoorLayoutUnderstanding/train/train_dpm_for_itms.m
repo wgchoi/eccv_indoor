@@ -56,30 +56,17 @@ end
 try 
   load([cache_dir name '_parts']);
 catch
-  initrand();
-  train_part1 = true;
-  for i = 8:-1:2
-	  if(train_part1)
-		  for j = 10:-1:5
-			  try
-				load([cachedir name '_model_parts_1_' num2str(i) '_' num2str(j)]);
-				train_part1 = false;
-				break;
-			  catch
-			  end
-		  end
-	  end
-  end
-
-  if(train_part1)
+  try 
+    load([cache_dir name '_parts_1']);
+  catch
+	  initrand();
 	  for i = 1:numel(index_pose)
 		model = model_addparts(model, model.start, i, i, 8, [6 6]);
 	  end
 	  model = train(name, model, pos, neg(1:maxneg), 0, 0, 8, 10, ...
 					cachesize, true, 0.7, false, 'parts_1');
+	  save([cache_dir name '_parts_1'], 'model');
   end
-  % just curious...
-  save([cachedir name '_parts'], 'i');
 
   model = train(name, model, pos, neg, 0, 0, 1, 5, ...
                 cachesize, true, 0.7, true, 'parts_2');
@@ -153,7 +140,7 @@ catch
   end
   
   ids = textread(sprintf(VOCopts.imgsetpath, 'trainval'), '%s');
-  for i = 1:length(ids);
+  for i = 1:min(1000, length(ids))
     if(mod(i, 50) == 0)
         fprintf('%s: parsing negatives: %d/%d\n', name, i, length(ids));
     end

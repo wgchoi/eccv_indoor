@@ -8,7 +8,7 @@ if ~exist(resdir, 'dir')
 end
 
 try
-    matlabpool open 4
+%    matlabpool open 4
 end
 for i = 1:length(exts)
     files = dir(fullfile(imdir, ['*.' exts{i}]));
@@ -19,6 +19,6 @@ for i = 1:length(exts)
         detect_objs(imfile, models, names, threshold, 640, fullfile(resdir, files(j).name(1:idx-1)));
     end
 end
-matlabpool close;
+% matlabpool close;
 
 end

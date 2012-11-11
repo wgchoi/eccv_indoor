@@ -35,6 +35,8 @@ for i = 1:length(data)
     confs{i} = data(i).x.dets(:, end);
 end
 %%
+clear dets;
+
 obj = 'diningtable';
 objid = 5;
 for i = 1:length(data)
@@ -48,7 +50,5 @@ for i = 1:length(dets)
     xs2{i}.dets = [objid * ones(size(dets(i).ds, 1), 1) ones(size(dets(i).ds, 1), 1) zeros(size(dets(i).ds, 1), 1) dets(i).ds];
     confs2{i} = dets(i).ds(:, end);
 end
-%%
 subplot(211); [rec, prec, ap]= evalDetection(annos, xs(1:length(xs2)), confs(1:length(xs2)), objid, 1, 0, 1);
-%%
 subplot(212); [rec, prec, ap]= evalDetection(annos, xs2, confs2, objid, 1, 0, 1);

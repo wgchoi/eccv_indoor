@@ -9,8 +9,9 @@ idx= [1 2; 2 4; 4 3; 3 1; ...
     1 5; 3 7 ];
 
 % idx = [1 2; 2 6; 6 5; 5 1] - only bottom
-
-figure(fignum);
+if fignum > 0
+    figure(fignum);
+end
 hold on;
 for i = 1:size(idx, 1)
     plot([poly(1, idx(i, 1)) poly(1, idx(i, 2))], [poly(2, idx(i, 1)) poly(2, idx(i, 2))], [col '.-'], 'linewidth', 4);

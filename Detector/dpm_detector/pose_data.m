@@ -46,18 +46,17 @@ try
 catch
   % positive examples from train+val
   fprintf('Read 3DObject samples\n');
-  if(augmented)
-    pos4 = read_positive_augmented_human(cls);
-    % pos3 = read_pascal_positive(augclass);
-  end
-  pos = read_positive(cls, index_train);
-  pos2 = read_positive2(cls, index_train2);
+%   if(augmented)
+%     pos4 = read_positive_augmented_human(cls);
+%     pos3 = read_pascal_positive(augclass);
+%   end
+%   pos = read_positive(cls, index_train);
+%   pos2 = read_positive2(cls, index_train2);
   
   if(augmented)
-    % pos = [pos, pos2, pos3, pos4];
-    % clear pos2 pos3 pos4;
-    pos = [pos, pos2, pos4];
-    clear pos2 pos4;
+      pos = read_positive_augmented_human(cls);
+%       pos = [pos, pos2, pos3, pos4];
+%       clear pos2 pos3 pos4;
   else
     pos = [pos, pos2];
     clear pos2;
@@ -67,7 +66,7 @@ catch
   ids = textread(sprintf(VOCopts.imgsetpath, 'train'), '%s');
   neg = [];
   numneg = 0;
-  for i = 1:length(ids);
+  for i = 1:min(1000, length(ids));
     if(mod(i, 50) == 0)
         fprintf('%s: parsing negatives: %d/%d\n', cls, i, length(ids));
     end
@@ -371,7 +370,9 @@ for i = 1:length(excludelist)
         imfile = excludelist{i};
         
         view = poses(j).az * 180 / pi;
-        
+        if view < 0
+            view = view + 360;
+        end
         count = count + 1;
         pos(count).im = imfile;
         pos(count).x1 = objs(j).bbs(1);
