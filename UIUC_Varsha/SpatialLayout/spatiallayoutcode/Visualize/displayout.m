@@ -66,7 +66,7 @@ mask_color(:,:,1) = mask_r;
 mask_color(:,:,2) = mask_g;
 mask_color(:,:,3) = mask_b;
 
-tempimg = double(img)*0.5 + mask_color*0.5;
+tempimg = double(img)*0.8 + mask_color*0.2;
 % figure;
 % imshow(uint8(tempimg),[]);
 

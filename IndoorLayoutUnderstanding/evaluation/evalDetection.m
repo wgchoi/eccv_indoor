@@ -1,6 +1,9 @@
-function [rec, prec, ap]= evalDetection(annos, xs, confs, cls, draw, overall)
+function [rec, prec, ap]= evalDetection(annos, xs, confs, cls, draw, overall, usenms)
 if(nargin < 6)
+	usenms = true;
     overall = false;
+elseif(nargin < 7)
+	usenms = true;
 end
 fprintf('%d: pr: evaluating detections\n', cls);
 % extract ground truth objects
@@ -12,11 +15,17 @@ for i = 1:length(annos)
             gt(i).BB(:, end + 1) = [annos{i}.obj_annos(j).x1; annos{i}.obj_annos(j).y1; annos{i}.obj_annos(j).x2; annos{i}.obj_annos(j).y2; annos{i}.obj_annos(j).azimuth];
         end
     else
-        for j = 1:length(annos{i}.obj_annos)
-            if(annos{i}.obj_annos(j).objtype == cls)
-                gt(i).BB(:, end + 1) = [annos{i}.obj_annos(j).x1; annos{i}.obj_annos(j).y1; annos{i}.obj_annos(j).x2; annos{i}.obj_annos(j).y2; annos{i}.obj_annos(j).azimuth];
-            end
-        end
+		if(cls == 7)
+			for j = 1:length(annos{i}.hmn_annos)
+				gt(i).BB(:, end + 1) = [annos{i}.hmn_annos(j).x1; annos{i}.hmn_annos(j).y1; annos{i}.hmn_annos(j).x2; annos{i}.hmn_annos(j).y2; annos{i}.hmn_annos(j).azimuth];
+			end
+		else
+			for j = 1:length(annos{i}.obj_annos)
+				if(annos{i}.obj_annos(j).objtype == cls)
+					gt(i).BB(:, end + 1) = [annos{i}.obj_annos(j).x1; annos{i}.obj_annos(j).y1; annos{i}.obj_annos(j).x2; annos{i}.obj_annos(j).y2; annos{i}.obj_annos(j).azimuth];
+				end
+			end
+		end
     end
     gt(i).diff = false(size(gt(i).BB, 2), 1); 
     gt(i).det = false(size(gt(i).BB, 2), 1);
@@ -27,7 +36,6 @@ ndet = 0;
 ids = zeros(1, 100000);
 confidence = zeros(1, 100000);
 BB = zeros(4, 100000);
-
 
 for i = 1:length(xs)
     if(overall)
@@ -46,13 +54,16 @@ for i = 1:length(xs)
         boxes = [xs{i}.dets(clsidx, 4:7), xs{i}.dets(clsidx, 3), confs{i}(clsidx)];
         pick = nms(boxes, 0.5);
     end
-    boxes = boxes(pick, :);
+
+	if(usenms)
+	    boxes = boxes(pick, :);
+	end
     
-    confidence(ndet+1:ndet+length(pick)) = boxes(:, end);
-    BB(:, ndet+1:ndet+length(pick)) = boxes(:, 1:4)';
-    ids(ndet+1:ndet+length(pick)) = i;
+    confidence(ndet+1:ndet+size(boxes, 1)) = boxes(:, end);
+    BB(:, ndet+1:ndet+size(boxes, 1)) = boxes(:, 1:4)';
+    ids(ndet+1:ndet+size(boxes, 1)) = i;
     
-    ndet = ndet + length(pick);
+    ndet = ndet + size(boxes, 1);
 end
 
 confidence(ndet+1:end) = [];
@@ -127,6 +138,7 @@ if draw
     xlabel 'recall'
     ylabel 'precision'
     title(sprintf('class: %d, AP = %.3f', cls, ap));
+	axis([0 1 0 1]);
 end
 
 function ap = VOCap(rec,prec)

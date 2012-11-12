@@ -33,10 +33,13 @@ w = getITMweights(rule);
 for i = 1:size(sets, 2)
     idx = ridx(i);
     
-    if(any(any(isnan(x.locs(cidx(sets(:, idx)), :)))))
-        continue;
+    if(~isfield(x, 'hobjs'))
+        if(any(any(isnan(x.locs(cidx(sets(:, idx)), :)))))
+            continue;
+        end
     end
-    [ifeat, cloc, theta, dloc, dpose] = computeITMfeature(x, rule, cidx(sets(:, idx)), params, true);
+    
+    [ifeat, cloc, theta, azimuth, dloc, dpose] = computeITMfeature(x, rule, cidx(sets(:, idx)), 14 * ones(1, length(sets(:, idx))), params, true);
     
     if(isempty(dloc))
         % non-valid
@@ -45,11 +48,12 @@ for i = 1:size(sets, 2)
     
     tempnode.chindices = cidx(sets(:, idx));
     tempnode.angle = theta;
+    tempnode.azimuth = azimuth;
     tempnode.loc = cloc; 
     tempnode.feats = ifeat;
     tempnode.dloc = dloc;
     tempnode.dpose = dpose;
-    
+   
     numclusters = numclusters + 1;
     composite(numclusters) = tempnode;
     

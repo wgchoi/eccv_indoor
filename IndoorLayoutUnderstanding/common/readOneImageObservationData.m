@@ -1,11 +1,17 @@
-function [x, anno] = readOneImageObservationData(imfile, detfiles, boxlayout, vpdata, annofile)
+function [x, anno] = readOneImageObservationData(imfile, detfiles, boxlayout, vpdata, annofile, useoldver)
+
 if(nargin < 5)
     btrainset = false;
     anno = [];
+    useoldver = 0;
 else
+    if(nargin < 6)
+        useoldver = 0;
+    end
+    
     anno = load(annofile);
     try
-        anno = sync_objmodel(anno);
+        anno = sync_objmodel(anno, imfile);
     catch
     end
     btrainset = true;
@@ -28,60 +34,90 @@ rfactor = size(img, 1) ./ vpdata.dim(1);
 x.vp = vpdata.vp .* rfactor;
 % x.vp = order_vp(vpdata.vp .* rfactor);
 [ x.K, x.R ]=calibrate_cam(x.vp, size(img, 1), size(img, 2));
-%%%% images were rescaled for faster computation
 
+% new estimate yaw and pitch from the central ray
+cray3 = (x.K * x.R) \ [size(img, 1)/2; size(img, 2)/2; 1];
+x.yaw = atan2(-cray3(1), -cray3(3));
+x.pitch = atan2(-cray3(2), -cray3(3));
+
+%%%% images were rescaled for faster computation
 x.lpolys = boxlayout.polyg(boxlayout.reestimated(:, 2), :);
+
+errpoly = false(size(x.lpolys, 1), 1);
 for i = 1:size(x.lpolys, 1)
     for j = 1:size(x.lpolys, 2)
         x.lpolys{i, j} = x.lpolys{i, j} * rfactor;
     end
-    [x.faces{i}, x.corners{i}] = getRoomFaces(x.lpolys(i, :), size(img, 1), size(img, 2), x.K, x.R);
+    try
+        [x.faces{i}, x.corners{i}] = getRoomFaces(x.lpolys(i, :), size(img, 1), size(img, 2), x.K, x.R);
+    catch em
+        errpoly(i) = true;
+    end
     x.lfpts{i} = lpoly2fourpoints(x.lpolys(i, :), x.imsz);
 end
 x.lconf = boxlayout.reestimated(:, 1);
 
+x.lpolys(errpoly, :) = [];
+x.faces(errpoly) = [];
+x.corners(errpoly) = [];
+x.lfpts(errpoly) = [];
+x.lconf(errpoly) = [];
+
 x.dets = zeros(0, 8);
-x.locs = zeros(0, 4);
-x.cubes = cell(0, 1);
-x.projs = struct('rt', cell(0,1), 'poly', cell(0,1));
+if(btrainset)
+    for i = 1:length(x.lconf)
+        x.lloss(i) = layout_loss(anno.gtPolyg, x.lpolys(i, :));
+        x.lerr(i) = getPixerr(anno.gtPolyg, x.lpolys(i, :));
+    end
+end
+
+ocnt = 0;
+if(useoldver)
+    x.locs = zeros(0, 4);
+    x.cubes = cell(0, 1);
+    x.projs = struct('rt', cell(0,1), 'poly', cell(0,1));
+end
 
 for i = 1:length(detfiles)
     if(isempty(detfiles{i}))
         continue;
     end
-    
     data = load(detfiles{i});
 	dets = parseDets(data, i);
     
-    locs = zeros(size(dets, 1), 4);
-    cubes = cell(size(dets, 1), 1);
-    projs = struct('rt', cell(size(dets, 1), 1), 'poly', []);
-    
-    fprintf('estimating 3D info of detections, took '); tic();
-    for j = 1:size(dets, 1)
-        [loc, angle, cube] = get_iproject(x.K, x.R, bbox2rect(dets(j, 4:7)), dets(j, 1:3));
+    if(~useoldver)
+        [hobjs, invalid_idx] = generate_object_hypotheses(x.imfile, x.K, x.R, x.yaw, objmodels(), dets);
+        hobjs(invalid_idx) = []; dets(invalid_idx, :) = [];
         
-        locs(j, :) = [loc', angle];
-        cubes{j} = cube;
-        [projs(j).poly, projs(j).rt] = get2DCubeProjection(x.K, x.R, cube);
+        x.hobjs(ocnt+1:ocnt+length(hobjs)) = hobjs;
+        
+        ocnt = ocnt + length(hobjs);
+    else
+        locs = zeros(size(dets, 1), 4);
+        cubes = cell(size(dets, 1), 1);
+        projs = struct('rt', cell(size(dets, 1), 1), 'poly', []);
+        for j = 1:size(dets, 1)
+            [loc, angle, cube] = get_iproject(x.K, x.R, bbox2rect(dets(j, 4:7)), dets(j, 1:3));
+
+            locs(j, :) = [loc', angle];
+            cubes{j} = cube;
+            [projs(j).poly, projs(j).rt] = get2DCubeProjection(x.K, x.R, cube);
+        end
+
+        nanidx = find(any(isnan(locs), 2));
+        if(~isempty(nanidx))
+            dets(nanidx, :) = [];
+            locs(nanidx, :) = [];
+            cubes(nanidx, :) = [];
+            projs(nanidx, :) = [];
+        end
+        
+        x.locs = [x.locs; locs];
+        x.cubes = [x.cubes; cubes]; 
+        x.projs = [x.projs; projs];
     end
     
-    nanidx = find(any(isnan(locs), 2));
-    if(~isempty(nanidx))
-%         imshow(imfile);
-%         for j = 1:length(nanidx)
-%             rectangle('position', bbox2rect(dets(nanidx(j), 4:7)));
-%         end
-%         pause;
-        dets(nanidx, :) = [];
-        locs(nanidx, :) = [];
-        cubes(nanidx, :) = [];
-        projs(nanidx, :) = [];
-    end
-
-    toc();
-	x.dets = [x.dets; dets];    x.locs = [x.locs; locs];
-    x.cubes = [x.cubes; cubes]; x.projs = [x.projs; projs];
+	x.dets = [x.dets; dets];    
 end
 
 if(btrainset)
@@ -116,34 +152,8 @@ if(btrainset)
             x.cubes = [x.cubes; cubes]; x.projs = [x.projs; projs];
         end
     end
-    
-    for i = 1:length(x.lconf)
-        x.lloss(i) = layout_loss(anno.gtPolyg, x.lpolys(i, :));
-        x.lerr(i) = getPixerr(anno.gtPolyg, x.lpolys(i, :));
-    end
 end
-% tic;
-% x.intvol = sparse(size(x.cubes, 1), size(x.cubes, 1));
-% for i = 1:size(x.cubes, 1)
-%     for j = i+1:size(x.cubes, 1)
-%         x.intvol(i, j) = cuboidIntersectionsVolume(x.cubes{i}, x.cubes{j});
-%         x.intvol(j, i) = x.intvol(i, j);
-%     end
-% end
-% toc;
-tic
 x = precomputeOverlapArea(x);
-fprintf('overlap computation '); toc;
-% tic;
-% x.orarea = sparse(size(x.dets, 1), size(x.dets, 1));
-% for i = 1:size(x.dets, 1)
-%     for j = i+1:size(x.dets, 1)
-%         [~, inter, aarea, barea] = boxoverlap(x.dets(i, 4:7), x.dets(j, 4:7));
-%         x.orarea(i, j) = inter / aarea;
-%         x.orarea(j, i) = inter / barea;
-%     end
-% end
-% toc;
 end
 
 % [obj type, subtype, pose, x, y, w, h, confidence]

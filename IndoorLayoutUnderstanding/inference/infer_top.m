@@ -9,10 +9,27 @@ if(strncmp(params.model.feattype, 'itm_v', 5))
     composites(:) = [];
     for j = 1:length(params.model.itmptns)
         % get valid candidates
-        [temp, x] = findITMCandidates(x, isolated, params, params.model.itmptns(j));
+        % [temp, x] = findITMCandidates(x, isolated, params, params.model.itmptns(j));
+        [temp, x] = findITMCandidates(x, isolated, params, params.model.itmptns(j), 1:length(isolated), 14 * ones(1, length(isolated)), 0, 1.0);
         composites = [composites; temp;];
     end
     iclusters = [isolated; composites];
+    
+    if(isfield(params.model, 'itmhogs') && params.model.itmhogs)
+        %%% append hog observations
+        pattern.x = x;
+        pattern.iclusters = iclusters;
+        pattern.isolated = isolated;
+        pattern.composite = composites;
+
+        pattern = itm_observation_response(pattern, params.model);
+
+        iclusters = pattern.iclusters;
+        isolated = pattern.isolated;
+        composites = pattern.composite;
+
+        clear pattern;
+    end
 end
         
 assert(length(iclusters) < 10000);
@@ -25,7 +42,14 @@ maxpg.lkhood = -inf;
 if(params.pmove(6) > 0)
     x = preprocessClusterOverlap(x, iclusters);
 end
-for i = 1:params.model.nscene
+
+if(isfield(params, 'ignorescene') && params.ignorescene)
+    sidx = y.scenetype;
+else
+    sidx = 1:params.model.nscene;
+end
+
+for i = sidx
     pg = y;
     pg.scenetype = i;
     

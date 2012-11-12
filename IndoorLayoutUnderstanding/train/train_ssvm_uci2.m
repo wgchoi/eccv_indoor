@@ -3,7 +3,9 @@ function [params, info] = train_ssvm_uci2(patterns, labels, annos, params, VERBO
 for i = 1:length(labels)
     labels(i).feat = features(labels(i).lcpg, patterns(i).x, patterns(i).iclusters, params.model);
     labels(i).loss = lossall2(annos(i), patterns(i).x, patterns(i).iclusters, labels(i).lcpg, params);
+	% temp(:, i) = labels(i).feat;
 end
+%save('cache/gtfeats', 'temp');
 
 %%%%%%%%%%%% dimension
 params.model.w = getweights(params.model);
@@ -93,7 +95,8 @@ while (iter <= max_iter && trigger)
 
             for ii = 1:numel(check_labels)
                 label_ii = check_labels(ii);
-                if (margin(did) - params.model.w' * Constraints(:, label_ii) > score)
+				if (Margins(label_ii) - params.model.w' * Constraints(:, label_ii) >= score - abs(score) * 1e-4)
+                % if (margin(did) - params.model.w' * Constraints(:, label_ii) > score)
                     isMVC = 0;
                     break;
                 end
@@ -124,7 +127,7 @@ while (iter <= max_iter && trigger)
                 end
 
                 if(VERBOSE > 0)
-                    disp(['new constraint ' num2str(id) 'th added : score ' num2str(score) ' all cost ' num2str(cost) ' LB : ' num2str(low_bound)]);
+                    disp(['new constraint ' num2str(id + did - 1) 'th added : score ' num2str(score) ' all cost ' num2str(cost) ' LB : ' num2str(low_bound)]);
                 else
                     fprintf('+');
                     if(mod(id + did - 1, 100) == 0)
@@ -146,6 +149,7 @@ while (iter <= max_iter && trigger)
             % [cost low_bound]
             %end
             [w, cache]= lsvmopt(Constraints(:,1:n),Margins(1:n), IDS(1:n) ,C, 0.0001,[]);
+            % [w, cache]= lsvmopt(Constraints(:,1:n),Margins(1:n), IDS(1:n) ,C, 0.01,[]);
             % Prune working set
             if 0 % don't use this!!
                 I = find(cache.sv > 0);
@@ -175,6 +179,7 @@ while (iter <= max_iter && trigger)
         end
     end
     fprintf('done. '); toc;
+    disp(['w_ior : ' num2str(params.model.w_ior')]);
     
     iter = iter + 1;
     ls = 0;
@@ -187,10 +192,6 @@ while (iter <= max_iter && trigger)
     info.cost(end + 1) = cost;
     info.err(end + 1) = sum(ls);
     info.params(end + 1) = params;
-    
-%     if(info.cost(end) - info.cost(end - 1) < 1)
-%         break;
-%     end
 end
 % matlabpool close;
 
@@ -222,7 +223,14 @@ function [yhat dphi margin] = find_MVC2(x, y, anno, params)
 % 3rd output: the margin you want to enforce for this constraint.
 
 maxpg = y.pg;
-for i = 1:params.model.nscene
+
+if(isfield(params, 'ignorescene') && params.ignorescene) 
+	sidx = maxpg.scenetype;
+else
+	sidx = 1:params.model.nscene;
+end
+
+for i = sidx % 1:params.model.nscene
     pg = y.pg;
     pg.scenetype = i;
     

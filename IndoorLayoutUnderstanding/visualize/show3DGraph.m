@@ -18,7 +18,13 @@ for i = 1:length(pg.childs)
      idx = pg.childs(i);
      if(iclusters(idx).isterminal)
         oid = iclusters(idx).ittype;
-        if isfield(pg, 'objscale')
+        if(isfield(x, 'hobjs'))
+            id1 = iclusters(idx).chindices;
+            id2 = iclusters(idx).subidx;
+            
+            draw3Dcube(pg.objscale(cnt) * x.hobjs(id1).cubes(:, :, id2), figid, col(oid));
+            cnt = cnt + 1;
+        elseif isfield(pg, 'objscale')
             draw3Dcube(pg.objscale(cnt) * x.cubes{idx}, figid, col(oid));
             cnt = cnt + 1;
         else
@@ -29,7 +35,14 @@ for i = 1:length(pg.childs)
         locs = zeros(length(childs), 3);
         for j = 1:length(childs)
             oid = iclusters(childs(j)).ittype;
-            if isfield(pg, 'objscale')
+            if(isfield(x, 'hobjs'))
+                id1 = iclusters(childs(j)).chindices;
+                id2 = iclusters(childs(j)).subidx;
+                
+                draw3Dcube(pg.objscale(cnt) * x.hobjs(id1).cubes(:, :, id2), figid, col(oid));
+                locs(j, :) = pg.objscale(cnt) * x.hobjs(id1).locs(:, id2);
+                cnt = cnt + 1;
+            elseif isfield(pg, 'objscale')
                 draw3Dcube(pg.objscale(cnt) * x.cubes{childs(j)}, figid, col(oid));
                 locs(j, :) = pg.objscale(cnt) * x.locs(childs(j), 1:3);
                 cnt = cnt + 1;

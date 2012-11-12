@@ -15,10 +15,109 @@ elseif(strcmp(model.feattype, 'itm_v0'))
     w = getweights_itm0(model);    
 elseif(strcmp(model.feattype, 'itm_v1'))
     w = getweights_itm1(model);    
+elseif(strcmp(model.feattype, 'itm_v2'))
+    w = getweights_itm2(model);        
+elseif(strcmp(model.feattype, 'itm_v3'))
+    w = getweights_itm3(model);        
 end
 
 end
 
+function w = getweights_itm3(model)
+featlen =   1 + ... % scene classification 
+            1 + ... % layout confidence : no bias required, selection problem    
+            2 * model.nobjs + ... % object confidence : (weight + bias) per type
+            model.nobjs + 1 + ...  % object-wall inclusion + floor area prior
+            ( (model.nobjs+1) * model.nscene ) + ... % semantic constext
+            sum(model.itmfeatlen) + ... % intearction templates!
+            2 + ... % object-object interaction : 2D bboverlap, 2D polyoverlap
+            model.nobjs + ...         % projection-deformation cost
+            1;              % floor distance
+
+
+w = zeros(featlen, 1);
+ibase = 1;
+% scene classification 
+w(ibase) = model.w_os;
+ibase = ibase + 1;
+% layout confidence 
+w(ibase) = model.w_or;
+ibase = ibase + 1;
+% object confidence
+w(ibase:ibase+2*model.nobjs-1) = model.w_oo;
+ibase = ibase+2*model.nobjs;
+% object-wall inclusion 
+w(ibase:ibase + (model.nobjs + 1) - 1) = model.w_ior;
+ibase = ibase + model.nobjs + 1;
+% semantic constext
+w(ibase:ibase+model.nscene*(model.nobjs+1)-1) = model.w_iso;
+ibase = ibase + model.nscene*(model.nobjs+1);
+% intearction templates!
+for i = 1:length(model.itmptns)
+    w(ibase:ibase+model.itmfeatlen(i)-1) = getITMweights(model.itmptns(i));
+    ibase = ibase + model.itmfeatlen(i);
+end
+% object-object interaction
+w(ibase:ibase+1) = model.w_ioo;
+ibase = ibase + 2;
+% projection-deformation cost
+w(ibase:ibase+model.nobjs-1) = model.w_iod;
+ibase = ibase + model.nobjs;
+% floor distance
+w(ibase) = model.w_iof;
+ibase = ibase + 1;
+
+assert(featlen == ibase - 1);
+
+end
+
+function w = getweights_itm2(model)
+featlen =   1 + ... % scene classification 
+            1 + ... % layout confidence : no bias required, selection problem    
+            2 * model.nobjs + ... % object confidence : (weight + bias) per type
+            model.nobjs + 1 + ...  % object-wall inclusion + floor area prior
+            ( model.nobjs * model.nscene ) + ... % semantic constext
+            sum(model.itmfeatlen) + ... % intearction templates!
+            2 + ... % object-object interaction : 2D bboverlap, 2D polyoverlap
+            model.nobjs + ...         % projection-deformation cost
+            1;              % floor distance
+
+
+w = zeros(featlen, 1);
+ibase = 1;
+% scene classification 
+w(ibase) = model.w_os;
+ibase = ibase + 1;
+% layout confidence 
+w(ibase) = model.w_or;
+ibase = ibase + 1;
+% object confidence
+w(ibase:ibase+2*model.nobjs-1) = model.w_oo;
+ibase = ibase+2*model.nobjs;
+% object-wall inclusion 
+w(ibase:ibase + (model.nobjs + 1) - 1) = model.w_ior;
+ibase = ibase + model.nobjs + 1;
+% semantic constext
+w(ibase:ibase+model.nscene*model.nobjs-1) = model.w_iso;
+ibase = ibase + model.nscene*model.nobjs;
+% intearction templates!
+for i = 1:length(model.itmptns)
+    w(ibase:ibase+model.itmfeatlen(i)-1) = getITMweights(model.itmptns(i));
+    ibase = ibase + model.itmfeatlen(i);
+end
+% object-object interaction
+w(ibase:ibase+1) = model.w_ioo;
+ibase = ibase + 2;
+% projection-deformation cost
+w(ibase:ibase+model.nobjs-1) = model.w_iod;
+ibase = ibase + model.nobjs;
+% floor distance
+w(ibase) = model.w_iof;
+ibase = ibase + 1;
+
+assert(featlen == ibase - 1);
+
+end
 
 function w = getweights_itm1(model)
 featlen =   1 + ... % scene classification 

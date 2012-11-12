@@ -12,8 +12,18 @@ end
 objidx = getObjIndices(pg, iclusters);
 bottoms = zeros(1, length(objidx));
 for i = 1:length(objidx)
-    cube = x.cubes{objidx(i)};
-    bottoms(i) = -min(cube(2, :));
+    if(isfield(x, 'hobjs'))
+        % x.hobjs(idx).cubes(:, :, pg.subidx(i))
+        oid = iclusters(objidx(i)).chindices;
+        sid = iclusters(objidx(i)).subidx;
+        assert(length(oid) == 1);
+        
+        cube =  x.hobjs(oid).cubes(:,:,sid);
+        bottoms(i) = -min(cube(2, :));
+    else
+        cube = x.cubes{objidx(i)};
+        bottoms(i) = -min(cube(2, :));
+    end
 end
 
 if(quickcomp)

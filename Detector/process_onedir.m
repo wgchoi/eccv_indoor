@@ -1,4 +1,4 @@
-function process_onedir(imdir, resdir, models, names, exts)
+function process_onedir(imdir, resdir, models, names, exts, threshold)
 if ~exist(imdir, 'dir')
     return;
 end
@@ -7,7 +7,6 @@ if ~exist(resdir, 'dir')
     mkdir(resdir);
 end
 
-threshold = -2;
 try
     matlabpool open 4
 end

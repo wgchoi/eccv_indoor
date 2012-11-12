@@ -1,15 +1,26 @@
-function [composite, x] = findITMCandidates(x, isolated, params, rule, cidx)
+function [composite, x] = findITMCandidates(x, isolated, params, rule, cidx, sidx, threshold, angcut)
 if(nargin < 5)
     % candidate childs
     % in case of training, gives gt detections.
     cidx = 1:length(isolated);
-    x = precomputeDistances(x);
-    
+    sidx = 14 * ones(1, length(isolated));
+    if(~isfield(x, 'dists') || size(x.dists, 1) ~= size(x.dets, 1))
+        x = precomputeDistances(x);
+    end
     threshold = 0;
     maxnum = 1000;
-else
+    
+    angcut = 1.6;
+elseif(nargin < 7)
     threshold = -1;
     maxnum = inf;
+    angcut = 1.6;
+elseif (nargin < 8)
+    maxnum = inf;
+    angcut = 1.6;
+else
+    % testing scenario....
+    maxnum = 1000;
 end
 
 %%%% due to inconsistent reference to detections...
@@ -27,11 +38,21 @@ end
 
 %%% find all possible sets of combinations.
 if(isfield(x, 'dists'))
-    sets = recFindSets2(indices, x.dists, x.angdiff, rule.parts);
+    sets = recFindSets2(indices, x.dists, x.angdiff, rule.parts, angcut);
 else
     sets = recFindSets(indices);
 end
 tempnode = graphnodes(1);
+
+if(~isempty(sets))
+%     for i = 1:size(sets, 2)
+%         for j = i+1:size(sets, 2)
+%             if(all(sets(:, i) == sets(:, j)))
+%                 keyboard;
+%             end
+%         end
+%     end
+end
 
 tempnode.isterminal = 0;
 tempnode.ittype = rule.type;
@@ -41,11 +62,28 @@ for i = 1:min(size(sets, 2), maxnum)
 %     objlocs(end + 1, :) = x.locs(iidx, 1:3) .* pg.objscale(i);
 %     objcubes{end + 1} = x.cubes{iidx} .* pg.objscale(i);
 %     objpose(end + 1) = x.locs(iidx, 4) ;
-    if(any(any(isnan(x.locs(cidx(sets(:, i)), :)))))
+    if(isfield(x, 'locs') && any(any(isnan(x.locs(cidx(sets(:, i)), :)))))
         continue;
     end
     
-    [ifeat, cloc, theta, dloc, dpose] = computeITMfeature(x, rule, cidx(sets(:, i)), params, true);
+    if(isfield(rule.parts(1), 'subtype'))
+        matched = true;
+        
+        for j = 1:length(rule.parts)
+            if(rule.parts(j).subtype > 0)
+                if(x.dets(cidx(sets(j, i)), 2) ~= rule.parts(j).subtype)
+                    matched = false;
+                    break;
+                end
+            end
+        end
+        
+        if(~matched)
+            continue;
+        end
+    end
+    
+    [ifeat, cloc, theta, azimuth, dloc, dpose] = computeITMfeature(x, rule, cidx(sets(:, i)), sidx(sets(:, i)), params, true);
     
     if(isempty(dloc))
         % non-valid
@@ -54,10 +92,17 @@ for i = 1:min(size(sets, 2), maxnum)
     
     tempnode.chindices = cidx(sets(:, i));
     tempnode.angle = theta;
+    tempnode.azimuth = azimuth;
     tempnode.loc = cloc; 
+    
     tempnode.feats = ifeat;
     tempnode.dloc = dloc;
     tempnode.dpose = dpose;
+    
+    
+    % assert(0); % make sure it is correct!!!!!
+%     camangle = atan2(-locs(1, 3), -locs(1, 1)); 
+%     tempnode.azimuth = camangle - theta;
     
     if(threshold < dot(w, ifeat))
         numclusters = numclusters + 1;
@@ -105,13 +150,17 @@ sets(:, cnt+1:end) = [];
 end
 
 
-function [ sets ] = recFindSets2(indices, dists, angdiff, parts)
+function [ sets ] = recFindSets2(indices, dists, angdiff, parts, angcut)
+if nargin < 5
+    angcut = 1.6;
+end
+
 if(isempty(indices))
     sets = zeros(0, 1);
     return;
 end
 
-subsets = recFindSets2(indices(2:end), dists, angdiff, parts(2:end));
+subsets = recFindSets2(indices(2:end), dists, angdiff, parts(2:end), angcut);
 sets = zeros(length(indices), length(indices{1}) * size(subsets, 2));
 
 md = zeros(length(parts)-1, 1);
@@ -131,9 +180,9 @@ for i = 1:length(indices{1})
             % about 1 meter
             temp(:, dists(newidx, temp(k, :)) < md(k) - 1) = [];
             temp(:, dists(newidx, temp(k, :)) > md(k) + 1) = [];
-            % abour 60 degree
-            temp(:, angdiff(newidx, temp(k, :)) < ma(k) - 1) = [];
-            temp(:, angdiff(newidx, temp(k, :)) > ma(k) + 1) = [];
+            % about 90 degree
+            temp(:, angdiff(newidx, temp(k, :)) < ma(k) - angcut) = [];
+            temp(:, angdiff(newidx, temp(k, :)) > ma(k) + angcut) = [];
         end
         temp(:, any(temp == newidx, 1)) = [];
     end

@@ -1,10 +1,10 @@
 function ShowGTPolyg(img,gtPolyg,fignum)
 pfc={'r','g','b','k','w'};
 %  pfc={'r','r','r','r','r'};
-
 names = {'floor', 'center', 'right', 'left', 'ceiling'};
-
-figure(fignum);
+if nargin == 3
+    figure(fignum);
+end
 imshow(img,[]);hold on;
 % imagesc(img);hold on;
 for f=1: numel(gtPolyg)

@@ -5,13 +5,13 @@ if(1)
     addPaths
     addVarshaPaths
     % 
-    try
-        matlabpool open
-    catch em
-        disp(em);
-    end
+%     try
+%         matlabpool open
+%     catch em
+%         disp(em);
+%     end
 
-    params = initparam(3, 6);
+    params = initparam(3, 7);
     params.quicklearn = true;
 
     dataroot = 'filtereddata'; 
@@ -24,8 +24,8 @@ if(1)
     testidx = setdiff(1:length(datafiles), expinfo.trainsplit);
     parfor i = 1:length(testidx) % min(200, length(datafiles))
         data(i) = load(fullfile(datadir, datafiles(testidx(i)).name));
-        data(i).x = sceneClassify(data(i).x);
-        data(i).anno.scenetype = data(i).gpg.scenetype;
+%         data(i).x = sceneClassify(data(i).x);
+%         data(i).anno.scenetype = data(i).gpg.scenetype;
         disp(['reading ' num2str(i) 'th done'])
     end
 end

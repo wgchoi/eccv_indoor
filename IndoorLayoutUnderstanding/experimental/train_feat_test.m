@@ -184,7 +184,7 @@ parfor i = 1:length(data)
     pg = data(i).gpg;
     maxval = -inf;
     
-    for j = 1:length(data(i).x.lloss)
+    for j = 1:min(length(data(i).x.lloss), 50)
         pg.layoutidx = j;
         phi = feat_test(pg, data(i).x, data(i).iclusters, model);
         
@@ -214,7 +214,7 @@ maxval = dot(yphi, params.w) + yloss;
 maxfeat = yphi;
 maxloss = yloss;
 
-for i = 1:length(x.lloss)
+for i = 1:min(length(x.lloss), 50)
     pg.layoutidx = i;
     phi = feat_test(pg, x, iclusters, params.model);
     if(dot(phi, params.w) + x.lloss(i) > maxval)

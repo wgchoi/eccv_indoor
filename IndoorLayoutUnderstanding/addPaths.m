@@ -9,4 +9,5 @@ addpath('evaluation');
 addpath('scripts');
 addpath('potentials');
 addpath(genpath('3rdParty'));
+addpath ../3rdParty/ssvmqp_uci/;
 % addpath('detector');
