@@ -66,3 +66,47 @@ for i = idx
     
     pause(1);
 end
+%%
+om = objmodels();
+for i = 1:length(itmres.summary.objdet)
+    plot(itmres.summary.baseline_objdet(i).rec, itmres.summary.baseline_objdet(i).prec, 'r--', 'linewidth', 2);
+    hold on;
+    plot(noitm.summary.objdet(i).rec, noitm.summary.objdet(i).prec, 'k-.', 'linewidth', 2);
+    plot(itmres.summary.objdet(i).rec, itmres.summary.objdet(i).prec, 'b', 'linewidth', 2);
+    hold off;
+    h = title(om(i).name);
+    set(h, 'fontsize', 15);
+    grid on;
+    axis([0 1 0 1]);
+    h = gca;
+    set(h, 'fontsize', 15);
+    
+    h = xlabel('recall');
+    set(h, 'fontsize', 15);
+    h = ylabel('precision');
+    set(h, 'fontsize', 15);
+    
+    h = legend({['DPM AP = ' num2str(itmres.summary.baseline_objdet(i).ap, '%.03f')], ...
+            ['NO-3DGP AP = ' num2str(noitm.summary.objdet(i).ap, '%.03f')], ...
+            ['3DGP AP = ' num2str(itmres.summary.objdet(i).ap, '%.03f')]}, ...
+            'Location', 'SouthWest');
+    set(h, 'fontsize', 15);
+    
+    savefig(fullfile(figbase, om(i).name), 'pdf')
+    savefig(fullfile(figbase, om(i).name), 'png')
+    pause(1)
+end
+%%
+base_err  = zeros(5, length(data));
+nogp_err  = zeros(5, length(data));
+gp_err  = zeros(5, length(data));
+for i = 1:length(data)
+    gpoly = data(i).anno.gtPolyg;
+    baseline_poly = data(i).x.lpolys(1, :);
+    base_err(:, i) = getWallerr_interun(gpoly,baseline_poly);
+    
+    nogp_poly = data(i).x.lpolys(noitm.res{i}.spg(2).layoutidx, :);
+    nogp_err(:, i) = getWallerr_interun(gpoly,nogp_poly);
+    gp_poly = data(i).x.lpolys(itmres.res{i}.spg(2).layoutidx, :);
+    gp_err(:, i) = getWallerr_interun(gpoly,gp_poly);
+end
