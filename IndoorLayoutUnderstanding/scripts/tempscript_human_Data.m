@@ -135,14 +135,14 @@
 %     data(i) = load(fullfile(datadir, files(i).name));
 % end
 %% regenerate training data
-resdir = 'cvpr13data/human/train';
+% resdir = 'cvpr13data/human/newtrain';
 try
     matlabpool open 8
 end
 
-mkdir(resdir);
+%mkdir(resdir);
 
-params = initparam(3, 7);
+params = initparam(5, 7);
 csize = 32;
 
 totalobjs = zeros(1, 7);
@@ -152,6 +152,8 @@ for idx = 1:csize:length(data)
     setsize = min(length(data) - idx + 1, csize);
     
     for i = 1:setsize
+        data(idx+i-1).x.dets(:, :) = [];
+        data(idx+i-1).x.hobjs(:) = [];
         tdata(i) = data(idx+i-1);
     end    
     
@@ -181,14 +183,15 @@ for idx = 1:csize:length(data)
     missingobjs = missingobjs + sum(mobjs, 1);
     
     for i = 1:setsize
-        temp = tdata(i);
-        save(fullfile(resdir, ['data' num2str(idx+i-1, '%03d')]), '-struct', 'temp');
+        data(idx+i-1) = tdata(i);
+        % save(fullfile(resdir, ['data' num2str(idx+i-1, '%03d')]), '-struct', 'temp');
     end
 end
 matlabpool close
 
 %%
-datadir = 'cvpr13data/human/train';
+clear
+datadir = 'cvpr13data/human/newtrain';
 files = dir(fullfile(datadir, 'data*.mat'));
 for i = 1:length(files)
     data(i) = load(fullfile(datadir, files(i).name));

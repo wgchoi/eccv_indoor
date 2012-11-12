@@ -4,20 +4,21 @@ if nargin < 3
 end
 addPaths;
 
-%load ./Models/dpm_mine/sofa_final.mat
-load ./Models/only_human/sofa_final.mat
+load ./Models/dpm_mine/sofa_final.mat
+% load ./Models/only_human/sofa_final.mat
 process_onedir( imdir, ...
                 fullfile(resdir, 'sofa/'), ...
                 {model}, {'sofa'}, exts, -1.2);
-return;
+% return;
 
-load ./Models/dpm_mine_mix/table_mix.mat
+load ./Models/dpm_mine/table_final.mat
+% load ./Models/dpm_mine_mix/table_mix.mat
 process_onedir( imdir, ...
                 fullfile(resdir, 'table/'), ...
                 {model}, {'table'}, exts, -1.2)
             
-% load ./Models/dpm_mine/chair_final.mat
-load ./Models/dpm_mine_mix/chair_mix.mat
+load ./Models/dpm_mine/chair_final.mat
+% load ./Models/dpm_mine_mix/chair_mix.mat
 process_onedir( imdir, ...
                 fullfile(resdir, 'chair/'), ...
                 {model}, {'chair'}, exts, -1.2)
@@ -27,8 +28,8 @@ process_onedir( imdir, ...
 %                 fullfile(resdir, 'bed/'), ...
 %                 {model}, {'bed'}, exts)
             
-% load ./Models/dpm_mine/diningtable_final.mat
-load ./Models/dpm_mine_mix/diningtable_mix.mat
+load ./Models/dpm_mine/diningtable_final.mat
+% load ./Models/dpm_mine_mix/diningtable_mix.mat
 process_onedir( imdir, ...
                 fullfile(resdir, 'diningtable/'), ...
                 {model}, {'diningtable'}, exts, -1.2)
