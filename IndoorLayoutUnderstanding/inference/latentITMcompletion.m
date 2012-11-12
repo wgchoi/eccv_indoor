@@ -61,7 +61,12 @@ while(update)
         temp = pg;
         temp.childs = setdiff(temp.childs, iset);
         temp.childs(end+1) = comp_idx(i);
-        temp = findConsistent3DObjects(temp, x, iclusters); 
+        temp = findConsistent3DObjects(temp, x, iclusters, true); 
+        if(isfield(params, 'ignorefarobj') && params.ignorefarobj)
+            if(~latentITMCheckDist2Human(temp, x, iclusters, comp_idx(i)))
+                continue;
+            end
+        end
         temp.lkhood = dot(getweights(params.model), features(temp, x, iclusters, params.model)); 
         
         if(maxpg.lkhood < temp.lkhood)

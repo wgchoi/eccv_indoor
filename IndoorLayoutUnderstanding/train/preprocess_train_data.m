@@ -59,7 +59,11 @@ for i = 1:length(data)
             end
         end
         % GT(GT(:, end) > 2, :) = [];
+        try
         annos(i).oloss = computeloss(Det, GT);
+        catch
+            annos(i).oloss = zeros(0, 2);
+        end
         
         numtp(i) = sum(annos(i).oloss(:, 2));
         nump(i) = size(GT, 1);

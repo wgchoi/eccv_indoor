@@ -2,6 +2,7 @@ function preprocess_human_data(imbase, resbase, annobase, dataset)
 
 addPaths
 addVarshaPaths
+addpath ./experimental/
 
 params = initparam(3, 7);
 
@@ -40,7 +41,7 @@ for idx = 1:csize:length(imfiles)
     vpdata2 = vpdata(idx:idx+setsize-1);
     models = params.model;
     
-    % for i = 1:setsize 
+%     for i = 1:setsize 
     parfor i = 1:setsize 
         try
             annofile = [imfiles2(i).name(1:find(imfiles2(i).name == '.', 1, 'last')-1) '_labels.mat'];
@@ -49,7 +50,9 @@ for idx = 1:csize:length(imfiles)
                                                     boxlayout2{i}, vpdata2{i}, fullfile(annodir, annofile), 0);
             
             hmnfile = [imfiles2(i).name(1:find(imfiles2(i).name == '.', 1, 'last')-1) '.mat'];
-            data(i).x = readHuamnObservationData(data(i).x.imfile, fullfile(hmndir, hmnfile), data(i).x, params.posletmodel);
+            data(i).x = readHuamnObservationData(data(i).x.imfile, fullfile(hmndir, hmnfile), data(i).x); % , params.posletmodel);
+            
+            data(i).x = precomputeOverlapArea(data(i).x);
             % get human data as well..
             data(i).iclusters = clusterInteractionTemplates(data(i).x, models);
             data(i).gpg = get_GT_human_parsegraph(data(i).x, data(i).iclusters, data(i).anno, models);

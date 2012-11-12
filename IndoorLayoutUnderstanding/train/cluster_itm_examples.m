@@ -1,4 +1,4 @@
-function [itm_examples, clusters, viewset] = cluster_itm_examples(itm_examples)
+function [itm_examples, clusters, viewset] = cluster_itm_examples(itm_examples, params)
 
 distmap = inf(length(itm_examples), length(itm_examples));
 for i = 1:length(itm_examples)
@@ -18,9 +18,33 @@ for i = 1:length(viewset)
     viewset{i} = i;
 end
 
+if(isfield(params.model, 'humancentric') && params.model.humancentric)
+    for j = 2:length(itm_examples)
+        assert(all(itm_examples(j).objtypes == itm_examples(j-1).objtypes))
+    end
+    refobj = -1;
+    om = objmodels();
+    for i = 1:length(itm_examples(1).objtypes)
+        oid = itm_examples(1).objtypes(i);
+        if(om(oid).ori_sensitive)
+            refobj = i;
+            break;
+        end
+    end
+end
+
 clusters = 1:length(itm_examples);
 for i = 1:length(itm_examples)
-    clusters(i) = find_interval(itm_examples(i).azimuth / pi * 180, 8);
+    if(isfield(params.model, 'humancentric') && params.model.humancentric)
+        if(refobj > 0)
+            az = itm_examples(i).objazs(refobj);
+        else
+            az = itm_examples(i).azimuth;
+        end
+    else
+        az = itm_examples(i).azimuth ;
+    end
+    clusters(i) = find_interval(az / pi * 180, 8);
 end
 
 return;
