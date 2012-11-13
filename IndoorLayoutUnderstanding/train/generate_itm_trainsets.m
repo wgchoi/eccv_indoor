@@ -57,7 +57,7 @@ function [itm_examples, clusters, viewset] = generate_positive_itm_trainset(patt
 
 [didx, composite] = collect_itm_instances(patterns, labels, params, ptn);
 [itm_examples] = get_itm_examples(patterns, labels, didx, composite);
-[itm_examples, clusters, viewset] = cluster_itm_examples(itm_examples);
+[itm_examples, clusters, viewset] = cluster_itm_examples(itm_examples, params);
 disp([num2str(length(itm_examples)) ' positives exists']);
 % data-mining from PASCAL
 pascal_examples = find_itm_from_pascal(itm_examples, ptn);

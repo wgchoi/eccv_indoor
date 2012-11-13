@@ -153,7 +153,7 @@ if(btrainset)
         end
     end
 end
-x = precomputeOverlapArea(x);
+% x = precomputeOverlapArea(x);
 end
 
 % [obj type, subtype, pose, x, y, w, h, confidence]

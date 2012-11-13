@@ -42,7 +42,7 @@ disp(['run testing experiment for ' paramfile]);
 try
     matlabpool open
 end
-
+%%
 if(loadfile)
     % clear
     addPaths
@@ -50,7 +50,7 @@ if(loadfile)
     addpath ../3rdParty/ssvmqp_uci/
     addpath experimental/
 
-    resdir = 'cvpr13data/room/test';
+    resdir = 'cvpr13data/test';
     cnt = 1; 
     files = dir(fullfile(resdir, '*.mat'));
     trainfiles = [];

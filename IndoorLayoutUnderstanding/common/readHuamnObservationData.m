@@ -1,11 +1,21 @@
 function x=readHuamnObservationData(imfile, detfile, x)
-data = load(detfile);
-hdets = parseDets(data);
 
+poselet = load(detfile);
+hdets = get_human_iprojections_2(poselet);
 [hhmns, invalid_idx] = generate_object_hypotheses(x.imfile, x.K, x.R, x.yaw, objmodels(), hdets, 1);
-hhmns(invalid_idx) = [];  hdets(invalid_idx, :) = [];
+hdets(invalid_idx, :) = [];
+hhmns(invalid_idx) = [];
+
+if(0)
+    data = load(detfile);
+    hdets = parseDets(data);
+    [hhmns, invalid_idx] = generate_object_hypotheses(x.imfile, x.K, x.R, x.yaw, objmodels(), hdets, 1);
+    hhmns(invalid_idx) = [];  hdets(invalid_idx, :) = [];
+end
+
 x.hobjs(end+1:end+length(hhmns)) = hhmns;
 x.dets = [x.dets; hdets];
+
 % keyboard;
 end
 

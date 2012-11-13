@@ -1,10 +1,41 @@
 %%
 clear
 datadir = 'cvpr13data/human/temptrain_all';
+datadir = 'cvpr13data/human/finalsets/train/';
+datadir = 'cvpr13data/human/finalsets/test/';
+%%
 files = dir(fullfile(datadir, 'data*.mat'));
+cnt = 1;
 for i = 1:length(files)
-    data(i) = load(fullfile(datadir, files(i).name));
+    data(cnt) = load(fullfile(datadir, files(i).name));
+    cnt=cnt+1;
 end
+% for i = 1:20:820 % length(files)
+%     data(i) = load(fullfile(datadir, files(i).name));
+% end
+
+% addPaths
+% addVarshaPaths
+% addpath ../3rdParty/ssvmqp_uci/
+% addpath experimental/
+% 
+% resbase = '~/codes/human_interaction/cache/additional/data.v2';
+% datasets = dir(resbase);
+% datasets(1:2) = [];
+% 
+% cnt = length(data)+1; 
+% for d = 1:length(datasets)
+%     resdir = fullfile(resbase, datasets(d).name);
+%     files = dir(fullfile(resdir, '*.mat'));
+%     for i = 1:length(files)
+%         data(cnt) = load(fullfile(resdir, files(i).name));
+%         if(isempty(data(cnt).x))
+%             i
+%         else
+%             cnt = cnt + 1;
+%         end
+%     end
+% end
 
 %%
 for i = 1:length(data)
@@ -103,7 +134,7 @@ for i = 1:length(annos)
         keep(i) = false;
     end
 end
-%%
+%% remove other objects for experiment
 patterns = patterns(keep);
 annos= annos(keep);
 labels= labels(keep);
@@ -127,9 +158,11 @@ params.ignorescene = true;
 params.model.feattype = 'itm_v3';
 params.model.w_iso = zeros(5*(7+1), 1);
 params.model.w_ior = zeros(8, 1);
-if(0)
+if(1)
     itms = load('cache/human_itm_fixed.mat');
     params = appendITMtoParams(params, itms.ps);
+    params.ignorefarobj = true;
+    params.model.humancentric = true;
 end
 %%
 paramfile = 'cache/simulitm_v3_handpick/iter5/params.mat';
@@ -229,6 +262,44 @@ for idx = 1:csize:length(data)
     fprintf(' => done\n')
 end
 summary = evalAllResults(xs, annos, conf2, conf1, res);
-
+%%
 resdir = fileparts(paramfile);
 save(fullfile(resdir, 'testres'), '-v7.3', 'res', 'conf1', 'conf2', 'summary'); 
+%% train/test splits...
+for i = 1:length(data)
+    sceneidx(i) = data(i).anno.scenetype;
+end
+%% split testing
+% trainset = [];
+% testset = [];
+% for i = 1:5
+%     dataidx = find(sceneidx == i);
+%     rnums=randperm(length(dataidx));
+%     trainset = [trainset; dataidx(rnums(1:100))'];
+% end
+% testset = setdiff(1:length(data), trainset);
+% mean(summary.layout.reest(testset))
+% mean(summary.layout.baseline(testset))
+% mean(summary.layout.baseline(testset)) - mean(summary.layout.reest(testset))
+%% testfile
+% for i = 1:length(tdata)
+%     idx = find(tdata(i).x.dets(:, 1) < 7);
+%     gtadded = find(tdata(i).x.dets(idx, end) == -1.25);
+%     tdata(i).x.dets(idx(gtadded), :) = [];
+%     tdata(i).x.hobjs(idx(gtadded)) = [];
+%     
+%     idx = find(tdata(i).x.dets(:, 1) == 7);
+%     gtadded = find(tdata(i).x.dets(idx, end) == -1.5);
+%     disp([num2str(i) ':' num2str(length(gtadded))]);
+%     tdata(i).x.dets(idx(gtadded), :) = [];
+%     tdata(i).x.hobjs(idx(gtadded)) = [];
+%     
+%     assert(length(tdata(i).x.hobjs) == size(tdata(i).x.dets, 1));
+% end
+% %%
+% parfor i = 1:length(tdata)
+%     disp(i);
+%     tdata(i).x = precomputeOverlapArea(tdata(i).x);
+%     tdata(i).iclusters = clusterInteractionTemplates(tdata(i).x, params.model);
+%     tdata(i).gpg = get_GT_human_parsegraph(tdata(i).x, tdata(i).iclusters, tdata(i).anno, params.model);
+% end

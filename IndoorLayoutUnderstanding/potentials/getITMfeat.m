@@ -13,9 +13,14 @@ ifeat = zeros(ptn.numparts * 3 + 8 * 2, 1);
 partslocs = locs(:, [1 3]);
 partspose = locs(:, 4);
 
-cloc = mean(partslocs, 1);
-theta = atan2(partslocs(2, 2) - partslocs(1, 2), partslocs(2, 1) - partslocs(1, 1));
-
+%%% we can modify here to reference on a certain object
+if(isfield(ptn, 'refpart') && ptn.refpart > 0)
+    cloc = partslocs(ptn.refpart , :);
+    theta = partspose(ptn.refpart);
+else
+    cloc = mean(partslocs, 1);
+    theta = atan2(partslocs(2, 2) - partslocs(1, 2), partslocs(2, 1) - partslocs(1, 1));
+end
 R = rotationMat(theta);
 
 dloc = ( partslocs - repmat(cloc, size(partslocs, 1), 1) ) * R;
@@ -39,6 +44,11 @@ end
 camangle = atan2(-locs(1, 3), -locs(1, 1)); 
 azimuth = camangle - theta;
 
+if(isfield(model, 'itmoneviewpoint') && model.itmoneviewpoint)
+    % not-viewdependent bias
+    ifeat(ibase + 1) = 1;
+    return;
+end
 %% we need to add observation feature here!!!
 if(isfield(model, 'itmhogs') && model.itmhogs)
     % need implementation!
