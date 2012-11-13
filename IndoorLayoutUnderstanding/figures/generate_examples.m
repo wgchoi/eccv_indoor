@@ -97,6 +97,23 @@ for i = 1:length(itmres.summary.objdet)
     pause(1)
 end
 %%
+fprintf('Sofa & Table & Chair & Bed & Dining Table & Side Table & \n');
+
+for i = 1:length(noitm.summary.baseline_objdet)
+    fprintf('%.01f \\%% & ', noitm.summary.baseline_objdet(i).ap * 100);
+end
+fprintf('\n');
+
+for i = 1:length(noitm.summary.objdet)
+    fprintf('%.01f \\%% & ', noitm.summary.objdet(i).ap * 100);
+end
+fprintf('\n');
+
+for i = 1:length(itmres.summary.objdet)
+    fprintf('%.01f \\%% & ', itmres.summary.objdet(i).ap * 100);
+end
+fprintf('\n');
+%%
 base_err  = zeros(5, length(data));
 nogp_err  = zeros(5, length(data));
 gp_err  = zeros(5, length(data));
@@ -110,3 +127,31 @@ for i = 1:length(data)
     gp_poly = data(i).x.lpolys(itmres.res{i}.spg(2).layoutidx, :);
     gp_err(:, i) = getWallerr_interun(gpoly,gp_poly);
 end
+%%
+base_err(:, isnan(base_err(end, :))) = [];
+gp_err(:, isnan(gp_err(end, :))) = [];
+nogp_err(:, isnan(nogp_err(end, :))) = [];
+%%
+fprintf('Pixel Accuracy & Floor & Center & Right & Left & Ceiling & \n');
+
+vals = 1 - mean(base_err, 2)';
+fprintf('%.01f \\%% & ', (1-itmres.summary.layout.baseline_mean) * 100);
+for i = 1:length(vals)
+    fprintf('%.01f \\%% & ', vals(i) * 100);
+end
+fprintf('\n');
+
+
+vals = 1 - mean(gp_err, 2)';
+fprintf('%.01f \\%% & ', (1-noitm.summary.layout.reest_mean) * 100);
+for i = 1:length(vals)
+    fprintf('%.01f \\%% & ', vals(i) * 100);
+end
+fprintf('\n');
+
+vals = 1 - mean(nogp_err, 2)';
+fprintf('%.01f \\%% & ', (1-itmres.summary.layout.reest_mean) * 100);
+for i = 1:length(vals)
+    fprintf('%.01f \\%% & ', vals(i) * 100);
+end
+fprintf('\n');

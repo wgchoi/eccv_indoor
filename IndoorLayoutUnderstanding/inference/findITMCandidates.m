@@ -70,6 +70,7 @@ for i = 1:min(size(sets, 2), maxnum)
         matched = true;
         
         for j = 1:length(rule.parts)
+            % for human
             if(rule.parts(j).subtype > 0)
                 if(x.dets(cidx(sets(j, i)), 2) ~= rule.parts(j).subtype)
                     matched = false;
