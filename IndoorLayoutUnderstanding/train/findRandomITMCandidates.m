@@ -39,6 +39,22 @@ for i = 1:size(sets, 2)
         end
     end
     
+    if(isfield(rule.parts(1), 'subtype'))
+        matched = true;
+        for j = 1:length(rule.parts)
+            % for human
+            if(rule.parts(j).subtype > 0)
+                if(x.dets(cidx(sets(j, idx)), 2) ~= rule.parts(j).subtype)
+                    matched = false;
+                    break;
+                end
+            end
+        end
+        if(~matched)
+            continue;
+        end
+    end
+    
     [ifeat, cloc, theta, azimuth, dloc, dpose] = computeITMfeature(x, rule, cidx(sets(:, idx)), 14 * ones(1, length(sets(:, idx))), params, true);
     
     if(isempty(dloc))

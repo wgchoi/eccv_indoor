@@ -18,7 +18,7 @@ for i=1:numel(gtPolyg)
     end
 end
 
-walliuerr = nan(5, 1);
+walliuerr = zeros(5, 1);
 
 % For ground and ceiling
 for i = [1 5]
