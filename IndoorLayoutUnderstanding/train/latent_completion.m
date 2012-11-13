@@ -43,6 +43,9 @@ parfor i = 1:length(patterns)
     catch em
         i
         em
+		em.message
+		em.stack(1)
+		em.stack(end)
         assert(0);
     end
     if(VERBOSE > 2)

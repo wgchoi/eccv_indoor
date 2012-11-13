@@ -129,7 +129,7 @@ for t = 1:iter
       end
       if t > 1 && pos_loss(t,2) > pos_loss(t,1)
         fprintf('warning: pos loss went up\n');
-        keyboard;
+        % keyboard;
       end
       % stop if relabeling doesn't reduce the positive loss by much
       if (t > 1) && (pos_loss(t,2)/pos_loss(t,1) > 0.999)
@@ -203,7 +203,7 @@ for t = 1:iter
     status = unix(cmd);
     if status ~= 0
       fprintf('command `%s` failed\n', cmd);
-      keyboard;
+       % keyboard;
     end
         
     fprintf('parsing model\n');

@@ -49,15 +49,23 @@ if(1)
     params.ignorefarobj = true;
     params.model.humancentric = true;
     params.model.itmoneviewpoint = true;
+	params.use_itm_det = false;
 end
 %%
 [patterns, labels, annos] = preprocess_train_data(data, params, 2);
 clear data
-return;
 
+if(isfield(params, 'use_itm_det') && params.use_itm_det)
+	patterns = append_ITM_detections(patterns, params.model.itmptns, 'cache/itmdets_human', 'cache/dpm_parts_human');
+end
+expname = 'human_itm_oneview_refobj_picked6_22';
+iter = 1;
 %%
-[params, info] = trainLITM_ssvm_iter(patterns, labels, annos, params, 1, 'human_itm_allview_refobj_picked6_22', false);
-paramfile = 'cache/human_itm_oneview/iter5/params.mat';
+try
+	matlabpool open 8
+end
+[params, info] = trainLITM_ssvm_iter(patterns, labels, annos, params, 1, expname, false);
+paramfile = ['cache/' expname '/iter' num2str(iter) '/params.mat'];
 %%
 clear patterns annos labels
 datadir = 'cvpr13data/human/finalsets/test/';
@@ -96,83 +104,14 @@ for i = 1:length(data)
         keep(i) = false;
     end
 end
-%%
-for kkk = 1:2
-    paramfile = ['cache/human_itm_oneview/iter' num2str(kkk) '/params.mat'];
-    load(paramfile);
-    % res = struct('spg', cell(length(data), 1), 'maxidx', [], 'h', []);
-    paramsout.numsamples = 1000;
-    paramsout.pmove = [0 0.4 0 0.3 0.3 0 0 0];
-    paramsout.accconst = 3;
 
-    res = cell(1, length(data));
-    annos = cell(1, length(data));
-    xs = cell(1, length(data));
-    conf1 = cell(1, length(data));
-    conf2 = cell(1, length(data));
-
-    erroridx = false(1, length(data));
-    csize = 32;
-
-    paramsout.model
-
-    tdata = data(1);
-    for idx = 1:csize:length(data)
-        setsize = min(length(data) - idx + 1, csize);
-        fprintf(['processing ' num2str(idx) ' - ' num2str(idx + setsize)]);
-
-        tdata(:) = [];
-        for i = 1:setsize
-            tdata(i) = data(idx+i-1);
-        end    
-        tempres = cell(1, setsize);
-        tconf1 = cell(1, setsize);
-        tconf2 = cell(1, setsize);
-
-        terroridx = false(1, setsize);
-        %par
-        for i = 1:setsize
-            try
-                params=paramsout;
-                pg = findConsistent3DObjects(tdata(i).gpg, tdata(i).x, tdata(i).iclusters, true);
-                pg.layoutidx = 1; % initialization
-
-
-                [tdata(i).iclusters] = clusterInteractionTemplates(tdata(i).x, params.model);
-                [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params, pg);
-                if(any(tempres{i}.spg(2).childs > length(tdata(i).iclusters)))
-                    disp('itm found!');
-                end
-
-                params.objconftype = 'odd';
-                [tconf1{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
-                params.objconftype = 'orgdet';
-                [tconf2{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
-
-                fprintf('+');
-            catch
-                fprintf('-');
-                terroridx(i) = true;
-            end
-        end
-        erroridx(idx:idx+setsize-1) = terroridx;
-
-        for i = 1:setsize
-            res{idx+i-1} = tempres{i};
-            annos{idx+i-1} = tdata(i).anno;
-            xs{idx+i-1} = tdata(i).x;
-            conf1{idx+i-1} = tconf1{i};
-            conf2{idx+i-1} = tconf2{i};
-        end
-        fprintf(' => done\n')
-    end
-    summary = evalAllResults(xs, annos, conf2, conf1, res);
-
-    resdir = fileparts(paramfile);
-    save(fullfile(resdir, 'testres'), 'summary', 'res', 'conf1', 'conf2');
+if(isfield(params, 'use_itm_det') && params.use_itm_det)
+	data = append_ITM_detections(data, params.model.itmptns, 'cache/itmdets_human', 'cache/dpm_parts_human');
 end
-for kkk = 1
-    paramfile = ['cache/human_itm_oneview_refobj/iter' num2str(kkk) '/params.mat'];
+%%
+for kkk = iter
+    paramfile = ['cache/' expname '/iter' num2str(kkk) '/params.mat'];
+
     load(paramfile);
     % res = struct('spg', cell(length(data), 1), 'maxidx', [], 'h', []);
     paramsout.numsamples = 1000;
