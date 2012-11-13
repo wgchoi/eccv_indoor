@@ -21,6 +21,7 @@ addpath('libsvm-3.11/matlab/');
 PATHdictionary = 'model/dictionary_400_human.mat';
 PATHtrainingdata = 'model/training_data_human.mat';
 PATHsvmmodel = 'model/libsvm_model_human.mat';
+PATHcvmodel = 'model/libsvm_model_train_human.mat';
 
 %% Set parameters
 params.maxImageSize = 1000;
@@ -108,16 +109,42 @@ for l = 1:params.pyramidLevels-1
 end
 pyramid = [pyramid pyramid_cell{params.pyramidLevels}(:)' .* 2^(1-params.pyramidLevels)];
 
+%% Check if input image is in the training set
+load(PATHcvmodel)
+[~,img_name,] = fileparts(PATHimage);
+flag = 0;
+for ind = 1:length(TrFileNames)
+    [~,tr_name,~] = fileparts(TrFileNames{ind});
+    if strcmp(img_name,tr_name)
+        flag = 1;
+        break;
+    end
+end
+
 %% Compute histogram intersection kernel
 load(PATHtrainingdata);
-Ktest = hist_isect(pyramid, DATAtrain);
+if ~flag
+    Ktest = hist_isect(pyramid, DATAtrain);
+else
+    fold = fold_indices(ind);
+    INDcvtrain = find(fold_indices ~= fold);
+    INDcvval = ind;
+    K_cv_val = Ktrain(INDcvval,INDcvtrain);
+end
 
 %% Run classification
-load(PATHsvmmodel);
-LABELtest = 0;
-SIZEtest = 1;
-Ktest_svm = [(1:SIZEtest)', Ktest];
-[predict_label, ~, prob_estimates] = svmpredict_ywchao(LABELtest, Ktest_svm, model,'-b 1');
+if ~flag
+    load(PATHsvmmodel);
+    LABELtest = 0;
+    SIZEtest = 1;
+    Ktest_svm = [(1:SIZEtest)', Ktest];
+    [predict_label, ~, prob_estimates] = svmpredict_ywchao(LABELtest, Ktest_svm, model,'-b 1');
+else
+    cvval_label = 0;
+    SIZEcvval = 1;
+    K_cv_val_svm = [(1:SIZEcvval)', K_cv_val];
+    [predict_label, ~, prob_estimates] = svmpredict_ywchao(cvval_label, K_cv_val_svm, model_cv{fold},'-b 1');
+end
 
 end
 
