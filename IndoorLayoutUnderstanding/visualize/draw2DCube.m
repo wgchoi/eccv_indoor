@@ -16,11 +16,10 @@ hold on;
 for i = 1:size(idx, 1)
     plot([poly(1, idx(i, 1)) poly(1, idx(i, 2))], [poly(2, idx(i, 1)) poly(2, idx(i, 2))], [col '.-'], 'linewidth', 4);
 end
-plot([poly(1, 5) poly(1, 6)], [poly(2, 5) poly(2, 6)], 'w-.', 'linewidth', 2);
+%plot([poly(1, 5) poly(1, 6)], [poly(2, 5) poly(2, 6)], 'w-.', 'linewidth', 2);
+%plot(poly(1,1), poly(2,1), 'r.', 'MarkerSize', 40);
 
-plot(poly(1,1), poly(2,1), 'r.', 'MarkerSize', 40);
-
-rectangle('position', rect, 'edgecolor', 'c', 'linewidth', 2);
+%rectangle('position', rect, 'edgecolor', 'c', 'linewidth', 2);
 
 if(nargin == 5)
     text(rect(1), rect(2), name, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);

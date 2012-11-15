@@ -15,7 +15,7 @@ linePairs = [1, 2, 3, 4; ...
             3, 5, 2, 0; ...
             4, 5, 2, 0];
        
-        
+linecolors = 'gbkgggbk';
         
 % figid = 20;        
 figure(figid);
@@ -78,7 +78,7 @@ for i = 1:size(linePairs, 1)
             pe = pp + N * cam_height * 3;
         end
         % find the point of intersection
-        plot3([pi(1) pe(1)], [pi(2) pe(2)], [pi(3) pe(3)], 'r--', 'LineWidth', 3);
+        plot3([pi(1) pe(1)], [pi(2) pe(2)], [pi(3) pe(3)], [linecolors(i) '-'], 'LineWidth', 5);
     else
         steps = -5:0.1:5 * cam_height;
 
@@ -109,13 +109,13 @@ if( sum(isnan(Faces(1, :))) == 0)
         [pi(i, :), check] = plane_line_intersect(np, vp, pl0, pl1);
     end
     h=patch(pi(:, 1), pi(:, 2), pi(:, 3), 'c');
-    set(h,'edgecolor','k');
+    % set(h,'edgecolor','k');
 end
 
 % visualize camera
 p1 = [0; 0; 0];
 p2 = R' * [0; 0; .3 * cam_height];
-arrow3d(p1', p2', 15, 'cylinder', [0.7,0.3]);
+arrow3d(p1', p2', 30, 'cylinder', [0.7,0.3]);
 hold off;
 %
 view([170 -60]); grid on;

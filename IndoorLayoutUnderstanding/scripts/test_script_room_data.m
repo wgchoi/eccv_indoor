@@ -76,6 +76,7 @@ annos = cell(1, length(data));
 xs = cell(1, length(data));
 conf1 = cell(1, length(data));
 conf2 = cell(1, length(data));
+conf3 = cell(1, length(data));
 
 erroridx = false(1, length(data));
 csize = 32;
@@ -92,11 +93,16 @@ for idx = 1:csize:length(data)
     tempres = cell(1, setsize);
     tconf1 = cell(1, setsize);
     tconf2 = cell(1, setsize);
+    tconf3 = cell(1, setsize);
     
     terroridx = false(1, setsize);
     parfor i = 1:setsize
         try
             params = paramsout;
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            params.quicklearn = 100; % tempcode!!!!!
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
             pg = findConsistent3DObjects(tdata(i).gpg, tdata(i).x, tdata(i).iclusters, true);
             pg.layoutidx = 1; % initialization
             
@@ -108,7 +114,13 @@ for idx = 1:csize:length(data)
             [tconf1{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
             params.objconftype = 'orgdet';
             [tconf2{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
-
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            params.objconftype = 'odd2';
+            [tconf3{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
+            tempres{i}.clusters = [];
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
             fprintf('+');
         catch
             fprintf('-');
@@ -123,10 +135,13 @@ for idx = 1:csize:length(data)
         xs{idx+i-1} = tdata(i).x;
         conf1{idx+i-1} = tconf1{i};
         conf2{idx+i-1} = tconf2{i};
+        conf3{idx+i-1} = tconf3{i};
     end
     fprintf(' => done\n')
 end
 summary = evalAllResults(xs, annos, conf2, conf1, res);
+
+keyboard;
 
 resdir = fileparts(paramfile);
 save(fullfile(resdir, 'testres'), '-v7.3', 'res', 'conf1', 'conf2', 'summary'); 
