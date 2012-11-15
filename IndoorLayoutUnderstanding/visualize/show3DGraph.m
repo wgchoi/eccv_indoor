@@ -62,8 +62,8 @@ end
 function draw3DITMLink(locs)
 ct = mean(locs, 1);
 for i = 1:size(locs, 1)
-    line([ct(1) locs(i, 1)], [ct(2) locs(i, 2)], [ct(3) locs(i, 3)], 'LineWidth',8, 'Color', 'w', 'linestyle', '-.');
-    line([ct(1) locs(i, 1)], [ct(2) locs(i, 2)], [ct(3) locs(i, 3)], 'LineWidth',4, 'Color', 'r', 'linestyle', '-.');
+    line([ct(1) locs(i, 1)], [ct(2) locs(i, 2)], [ct(3) locs(i, 3)], 'LineWidth',8, 'Color', 'k', 'linestyle', '-.');
+    line([ct(1) locs(i, 1)], [ct(2) locs(i, 2)], [ct(3) locs(i, 3)], 'LineWidth',4, 'Color', 'w', 'linestyle', '-.');
 end
 
 end

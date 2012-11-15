@@ -16,10 +16,37 @@ for i = 1:length(files)
         cnt = cnt + 1;
     end
 end
+%%
 noitm = load('./finalresults/room/res_noitm.mat');
 itmres = load('./finalresults/room/res_itm.mat');
 
 [~, idx] = sort(itmres.summary.layout.reest - itmres.summary.layout.baseline);
+%%
+temp = data(352);
+temp.x.dets(:) = [];
+temp.x.hobjs(:) = [];
+
+%temp.anno.obj_annos(6).azimuth = pi/4;
+params = initparam(3,7);
+[gtx] = get_ground_truth_observations(temp.x, temp.anno);
+temp.x.dets = gtx.dets;
+temp.x.hobjs = gtx.hobjs;
+temp.iclusters = clusterInteractionTemplates(temp.x, params.model);
+temp.gpg = getGTparsegraph(temp.x, temp.iclusters, temp.anno, params.model);
+
+temp.gpg.scenetype = 3;
+close all
+show2DGraph(temp.gpg, temp.x, temp.iclusters, 1);
+show3DGraph(temp.gpg, temp.x, temp.iclusters, 2);
+view(0, -179)
+axis off
+%%
+load('finalresults/room/params_itm.mat')
+
+for i = 1:length(paramsout.model.itmptns)
+    visualizeITM(do_rectify_itmptn(paramsout.model.itmptns(i)));
+    savefig(fullfile('figures/room/', ['gpmodel' num2str(i, '%03d')]), 'pdf');
+end
 %%
 addpath ~/codes/plottingTools/savefig/;
 figbase = 'figures/room/';
@@ -28,7 +55,7 @@ mkdir(fullfile(figbase, 'baseline'));
 mkdir(fullfile(figbase, 'full'));
 mkdir(fullfile(figbase, 'partial'));
 
-fontsize = 15;
+fontsize = 25;
 
 count = 0;
 for i = idx
@@ -40,25 +67,29 @@ for i = idx
     pg.childs = [];
     pg.layoutidx = 1;
     [~, pg.scenetype] = max(data(i).x.sconf);
+    
+    info = imfinfo(data(i).x.imfile);
+    pg.scenetype = -1;
     show2DGraph(pg, data(i).x, itmres.res{i}.clusters);
-    str = ['Layout Accuracy: ' num2str(1-data(i).x.lerr(1), '%.02f')];
-    text(10, 20, str, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
+    str = [' Layout Accuracy: ' num2str(1-data(i).x.lerr(1), '%.02f') ' '];
+    text(10, info.Height - 20, str, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
     
     saveas(gcf, fullfile(fullfile(figbase, 'baseline'), ['ranked' num2str(count, '%03d')]), 'fig');
     saveas(gcf, fullfile(fullfile(figbase, 'baseline'), ['a_ranked' num2str(count, '%03d')]), 'png');
     savefig(fullfile(fullfile(figbase, 'baseline'), ['ranked' num2str(count, '%03d')]), 'pdf');
-            
-    show2DGraph( itmres.res{i}.spg(2), data(i).x, itmres.res{i}.clusters, -1, true, itmres.conf2{i});
-    str = ['Layout Accuracy: ' num2str(1- data(i).x.lerr(itmres.res{i}.spg(2).layoutidx), '%.02f')];
-    text(10, 20, str, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
+
+    a=getNMSgraph(itmres.res{i}.spg(2), data(i).x, itmres.res{i}.clusters, itmres.conf2{i});
+    show2DGraph(a, data(i).x, itmres.res{i}.clusters);
+    str = [' Layout Accuracy: ' num2str(1- data(i).x.lerr(itmres.res{i}.spg(2).layoutidx), '%.02f') ' '];
+    text(10, info.Height - 20, str, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
     
     saveas(gcf, fullfile(fullfile(figbase, 'full'), ['ranked' num2str(count, '%03d')]), 'fig');
     saveas(gcf, fullfile(fullfile(figbase, 'full'), ['a_ranked' num2str(count, '%03d')]), 'png');
     savefig(fullfile(fullfile(figbase, 'full'), ['ranked' num2str(count, '%03d')]), 'pdf');
     
     show2DGraph(noitm.res{i}.spg(2), data(i).x, noitm.res{i}.clusters, -1, true, noitm.conf2{i});
-    str = ['Layout Accuracy: ' num2str(1-data(i).x.lerr(noitm.res{i}.spg(2).layoutidx), '%.02f')];
-    text(10, 20, str, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
+    str = [' Layout Accuracy: ' num2str(1-data(i).x.lerr(noitm.res{i}.spg(2).layoutidx), '%.02f') ' '];
+    text(10, info.Height - 20, str, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
     
     saveas(gcf, fullfile(fullfile(figbase, 'partial'), ['ranked' num2str(count, '%03d')]), 'fig');
     saveas(gcf, fullfile(fullfile(figbase, 'partial'), ['a_ranked' num2str(count, '%03d')]), 'png');
@@ -67,33 +98,52 @@ for i = idx
     pause(1);
 end
 %%
+i = 44; % idx(370);
+mkdir(fullfile(figbase, '3D'));
+a=getNMSgraph(itmres.res{i}.spg(2), data(i).x, itmres.res{i}.clusters, itmres.conf2{i});
+a.scenetype = -1;
+show2DGraph( a, data(i).x, itmres.res{i}.clusters, 1);
+savefig(fullfile(fullfile(figbase, '3D'), ['image' num2str(i, '%03d')]), 'pdf');
+show3DGraph( a, data(i).x, itmres.res{i}.clusters, 2);
+view(0, -179)
+axis off
+savefig(fullfile(fullfile(figbase, '3D'), ['top' num2str(i, '%03d')]), 'pdf');
+%%
 om = objmodels();
 for i = 1:length(itmres.summary.objdet)
     plot(itmres.summary.baseline_objdet(i).rec, itmres.summary.baseline_objdet(i).prec, 'r--', 'linewidth', 2);
     hold on;
-    plot(noitm.summary.objdet(i).rec, noitm.summary.objdet(i).prec, 'k-.', 'linewidth', 2);
-    plot(itmres.summary.objdet(i).rec, itmres.summary.objdet(i).prec, 'b', 'linewidth', 2);
+    plot(noitm.summary.objdet(i).rec, noitm.summary.objdet(i).prec, 'g-.', 'linewidth', 2);
+    plot(itmres.summary.objdet(i).rec, itmres.summary.objdet(i).prec, 'k', 'linewidth', 2);
+    plot(itmres.summary2.objdet(i).rec, itmres.summary2.objdet(i).prec, 'b-.', 'linewidth', 2);
     hold off;
     h = title(om(i).name);
-    set(h, 'fontsize', 15);
+    set(h, 'fontsize', 30);
     grid on;
     axis([0 1 0 1]);
     h = gca;
-    set(h, 'fontsize', 15);
+    set(h, 'fontsize', 18);
     
     h = xlabel('recall');
-    set(h, 'fontsize', 15);
+    set(h, 'fontsize', 30);
     h = ylabel('precision');
-    set(h, 'fontsize', 15);
+    set(h, 'fontsize', 30);
     
-    h = legend({['DPM AP = ' num2str(itmres.summary.baseline_objdet(i).ap, '%.03f')], ...
-            ['NO-3DGP AP = ' num2str(noitm.summary.objdet(i).ap, '%.03f')], ...
-            ['3DGP AP = ' num2str(itmres.summary.objdet(i).ap, '%.03f')]}, ...
-            'Location', 'SouthWest');
-    set(h, 'fontsize', 15);
+%     h = legend({['DPM AP = ' num2str(itmres.summary.baseline_objdet(i).ap, '%.02f')], ...
+%             ['NO-3DGP AP = ' num2str(noitm.summary.objdet(i).ap, '%.02f')], ...
+%             ['3DGP-M1 AP = ' num2str(itmres.summary.objdet(i).ap, '%.02f')], ...
+%             ['3DGP-M2 AP = ' num2str(itmres.summary2.objdet(i).ap, '%.02f')]}, ...
+%             'Location', 'SouthWest', 'fontsize', 15);
+    h = legend({'DPM', ...
+            'NO-3DGP     ', ...
+            '3DGP-M1     ', ...
+            '3DGP-M2     .'}, ...
+            'Location', 'SouthWest', 'fontsize', 20);
+    % set(h, 'fontsize', 18);
     
-    savefig(fullfile(figbase, om(i).name), 'pdf')
-    savefig(fullfile(figbase, om(i).name), 'png')
+    savefig(fullfile(figbase, [om(i).name '_2']), 'pdf')
+    % saveas(gcf, fullfile(figbase, [om(i).name '_3']), 'pdf')
+    savefig(fullfile(figbase, [om(i).name '_2']), 'png')
     pause(1)
 end
 %%
