@@ -11,19 +11,19 @@ load('./cvpr13data/room/fulltrainset.mat');
 %	patterns(i).x.lloss = 5 .* patterns(i).x.lloss;
 %end
 
-%expname = 'noitm_itmv2_5lloss';
-%niter = 15;
-%params = initparam(3, 7);
-%params.model.feattype = 'itm_v2';
-%params.model.w_ior = zeros(7+1, 1);
-
-load ./cache/itmobs_iter2_params.mat
-
-expname = 'itmobs_itmv2';
-niter = 15;
-params = appendITMtoParams(paramsout, paramsout.model.itmptns);
+expname = 'noitm_itmv2_nogeo';
+niter = 5;
+params = initparam(3, 7);
 params.model.feattype = 'itm_v2';
 params.model.w_ior = zeros(7+1, 1);
+params.model.ignore_geometry = 1;
+% load ./cache/itmobs_iter2_params.mat
+
+%expname = 'itmobs_itmv2';
+%niter = 15;
+%params = appendITMtoParams(paramsout, paramsout.model.itmptns);
+%params.model.feattype = 'itm_v2';
+%params.model.w_ior = zeros(7+1, 1);
 
 disp(['train: '  expname ]);
 [params, info] = trainLITM_ssvm_iter(patterns, labels, annos, params, niter, expname, true);

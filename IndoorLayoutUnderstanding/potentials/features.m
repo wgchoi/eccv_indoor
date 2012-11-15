@@ -254,30 +254,37 @@ for i = 1:length(objidx)
 end
 ibase = ibase + 2 * model.nobjs;
 %% object-wall interaction - no inclusion
-for i = 1:length(cubes)
-    [dists, cubediag] = objct2wall_dists(x.faces{pg.layoutidx}, cubes{i}, pg.camheight);
-    fval = sum(normcdf(dists, 0, cubediag / 4));
-%     for j = 1:length(dists)
-%         fval = fval + normcdf(dists(j), 0, cubediag / 4);
-%     end
-    i1 = objidx(i);
-    if(iclusters(i1).isterminal)
-        idx = ibase + iclusters(i1).ittype - 1;
-        phi(idx) = phi(idx) + fval;
-    else
-        assert(false, 'not right');
-    end
+if(isfield(model, 'ignore_geometry') && model.ignore_geometry)
+	% nothing
+else
+	for i = 1:length(cubes)
+		[dists, cubediag] = objct2wall_dists(x.faces{pg.layoutidx}, cubes{i}, pg.camheight);
+		fval = sum(normcdf(dists, 0, cubediag / 4));
+	%     for j = 1:length(dists)
+	%         fval = fval + normcdf(dists(j), 0, cubediag / 4);
+	%     end
+		i1 = objidx(i);
+		if(iclusters(i1).isterminal)
+			idx = ibase + iclusters(i1).ittype - 1;
+			phi(idx) = phi(idx) + fval;
+		else
+			assert(false, 'not right');
+		end
+	end
 end
 ibase = ibase + model.nobjs;
 
-if(isempty(x.lpolys{pg.layoutidx, 1}))
-    xfloor = [0];
-    yfloor = [0];
+if(isfield(model, 'ignore_geometry') && model.ignore_geometry)
+	% nothing
 else
-    [xfloor, yfloor] = poly2cw(x.lpolys{pg.layoutidx, 1}(:, 1), x.lpolys{pg.layoutidx, 1}(:, 2));
+	if(isempty(x.lpolys{pg.layoutidx, 1}))
+		xfloor = [0];
+		yfloor = [0];
+	else
+		[xfloor, yfloor] = poly2cw(x.lpolys{pg.layoutidx, 1}(:, 1), x.lpolys{pg.layoutidx, 1}(:, 2));
+	end
+	phi(ibase) = polyarea(xfloor, yfloor) / prod(x.imsz);
 end
-phi(ibase) = polyarea(xfloor, yfloor) / prod(x.imsz);
-
 ibase = ibase + 1;
 
 % if((any(isnan(phi)) || any(isinf(phi))))
@@ -298,6 +305,10 @@ for i = 1:length(objidx)
 end
 ibase = ibase + model.nobjs * model.nscene;
 %% interaction templates!
+if(isfield(model, 'ignore_geometry') && model.ignore_geometry)
+	% nothing
+	return;
+end
 for i = 1:length(pg.childs)
     i1 = pg.childs(i);
     if(~iclusters(i1).isterminal)
