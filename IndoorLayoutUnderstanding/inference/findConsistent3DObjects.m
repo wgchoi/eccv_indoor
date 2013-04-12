@@ -9,11 +9,11 @@ if(isempty(pg.childs))
     pg.objscale = [];
     return;
 end
+
 objidx = getObjIndices(pg, iclusters);
 bottoms = zeros(1, length(objidx));
 for i = 1:length(objidx)
     if(isfield(x, 'hobjs'))
-        % x.hobjs(idx).cubes(:, :, pg.subidx(i))
         oid = iclusters(objidx(i)).chindices;
         sid = iclusters(objidx(i)).subidx;
         assert(length(oid) == 1);
@@ -40,8 +40,5 @@ end
 
 pg.camheight = camh;
 pg.objscale = alpha; 
-% for i = 1:length(objidx)
-%     pg.objscale(i) = alpha(i) .* x.cubes{objidx(i)};
-% end
 
 end

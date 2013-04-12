@@ -78,12 +78,12 @@ for i = sidx
 end
 
 % testing...
-if(params.quicklearn == 100)
-    spg = [maxipg; maxpg]; 
-    maxidx = 2;
-    allclusters = iclusters;
-    return;
-end
+% if(params.quicklearn == 100)
+%     spg = [maxipg; maxpg]; 
+%     maxidx = 2;
+%     allclusters = iclusters;
+%     return;
+% end
 
 if(strncmp(params.model.feattype, 'itm_v', 5))
     pgi = maxipg;

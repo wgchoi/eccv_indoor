@@ -29,14 +29,6 @@ model(idx).ori_sensitive = 0;
 model(idx).submodel_sensitive = 0;
 model(idx).sharable = 1;
 
-% idx = idx + 1;
-% model(idx).name = 'TV';
-% model(idx).type = {'Flat' 'CRT'};
-% model(idx).width = [0.8, 0.5];
-% model(idx).height = [0.4, 0.5];
-% model(idx).depth = [0.2, 0.3];
-% model(idx).grounded = 0;
-% model(idx).ori_sensitive = 1;
 idx = idx + 1;
 model(idx).name = 'Chair';
 model(idx).type = {'Regular'};
@@ -79,18 +71,6 @@ model(idx).depth = [0.4 0.35];
 model(idx).grounded = 1;
 model(idx).ori_sensitive = 1;
 model(idx).submodel_sensitive = 0;
-model(idx).sharable = 0;
-
-% human !
-idx = idx + 1;
-model(idx).name = 'Human';
-model(idx).type = {'Standing' 'Sitting'};
-model(idx).width = [0.5 0.5];
-model(idx).height = [1.7 1.2];
-model(idx).depth = [0.3 0.3];
-model(idx).grounded = 1;
-model(idx).ori_sensitive = 0;
-model(idx).submodel_sensitive = 1;
 model(idx).sharable = 0;
 
 end
