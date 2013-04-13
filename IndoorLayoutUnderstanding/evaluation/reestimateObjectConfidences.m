@@ -1,3 +1,11 @@
+% estimate one object confidence
+% baseline detector : return the original confidence
+% 3DGP1 : return the logodd ratio - try to add/remove object from the
+%  optimal solution. return the difference in energy value.
+% 3DGP2 : return the logodd ratio2 - try to add/remove object from the
+%  optimal solution. If one object can be added by adding a 3DGP (other
+%  constituent objects are already in the graph) and it gives higher energy
+%  improvement, then return the difference. 
 function [conf] = reestimateObjectConfidences(spg, maxidx, x, iclusters, params)
 if(isfield(params, 'quicklearn'))
     quickrun = params.quicklearn;
@@ -26,7 +34,7 @@ elseif(strcmp(params.objconftype, 'odd'))
         pg2 = pg;
         if(inset(i))
             if(sum(pg.childs == i) == 0)
-                % ITM
+                % 3D-GP
                 for j = 1:length(pg.childs)
                     if(any(iclusters(pg.childs(j)).chindices == i))
                         temp = setdiff(iclusters(pg.childs(j)).chindices, i);
@@ -77,7 +85,7 @@ elseif(strcmp(params.objconftype, 'odd2'))
         pg2 = pg;
         if(inset(i))
             if(sum(pg.childs == i) == 0)
-                % ITM
+                % 3D-GP
                 for j = 1:length(pg.childs)
                     if(any(iclusters(pg.childs(j)).chindices == i))
                         temp = setdiff(iclusters(pg.childs(j)).chindices, i);
@@ -115,6 +123,8 @@ elseif(strcmp(params.objconftype, 'odd2'))
         end
     end
     
+    % check if adding one object as a part of 3DGP gives 
+    % higher confidence than adding it alone
     for i = size(x.dets, 1)+1:length(iclusters)
         pg2 = pg;
         ic = iclusters(i);
@@ -124,6 +134,7 @@ elseif(strcmp(params.objconftype, 'odd2'))
                 incluster(end+1) = j;
             end
         end
+        
         if(length(incluster) == length(ic.chindices) - 1)
             tidx = setdiff(ic.chindices, pg2.childs(incluster));
             if(inset(tidx))

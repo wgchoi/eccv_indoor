@@ -42,6 +42,7 @@ params2 = temp.paramsout;
 params2.numsamples = 1000;
 params2.pmove = [0 0.4 0 0.3 0.3 0 0 0];
 params2.accconst = 3;
+params2.retainAll3DGP = 1;
 
 % initialize buffer
 res = cell(1, length(datafiles));
@@ -54,7 +55,7 @@ conf3 = cell(1, length(datafiles)); % 3DGP with Marginalization 2
 
 erroridx = false(1, length(datafiles));
 csize = 32;
-% matlabpool open;
+matlabpool open;
 for idx = 1:csize:length(datafiles)
     setsize = min(length(datafiles) - idx + 1, csize);
     fprintf(['processing ' num2str(idx) ' - ' num2str(idx + setsize)]);
@@ -71,30 +72,32 @@ for idx = 1:csize:length(datafiles)
     tconf3 = cell(1, setsize);
     
     terroridx = false(1, setsize);
-    % parfor i = 1:setsize
-    for i = 1:setsize
+    parfor i = 1:setsize
+%      for i = 1:setsize
         try
-            params = params2;
             pg0 = parsegraph(); 
             
             pg0.layoutidx = 1; % initialization
             pg0.scenetype = 1;
             
-            [tdata(i).iclusters] = clusterInteractionTemplates(tdata(i).x, params2.model);
+            params = params2;
+            [tdata(i).iclusters] = clusterInteractionTemplates(tdata(i).x, params.model);
             %%%%% baseline  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params1, pg0);
+            params = params1;
+            [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params, pg0);
             
-            params1.objconftype = 'orgdet';
-            [tconf0{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params1);
-            params1.objconftype = 'odd';
-            [tconf1{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params1);
+            params.objconftype = 'orgdet';
+            [tconf0{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
+            params.objconftype = 'odd';
+            [tconf1{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
             %%%%% 3DGP      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params2, pg0);
+            params = params2;
+            [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params, pg0);
             
-            params2.objconftype = 'odd';
-            [tconf2{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params2);
-            params2.objconftype = 'odd2';
-            [tconf3{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params2);
+            params.objconftype = 'odd';
+            [tconf2{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
+            params.objconftype = 'odd2';
+            [tconf3{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
             tempres{i}.clusters = [];
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             fprintf('+');
@@ -116,6 +119,7 @@ for idx = 1:csize:length(datafiles)
     end
     fprintf(' => done\n')
 end
+matlabpool close
 %% draw curves
 om = objmodels();
 for i = 1:length(om)

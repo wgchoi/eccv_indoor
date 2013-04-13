@@ -77,13 +77,12 @@ for i = sidx
     end
 end
 
-% testing...
-% if(params.quicklearn == 100)
-%     spg = [maxipg; maxpg]; 
-%     maxidx = 2;
-%     allclusters = iclusters;
-%     return;
-% end
+if(isfield(params, 'retainAll3DGP') && params.retainAll3DGP)
+    spg = [maxipg; maxpg]; 
+    maxidx = 2;
+    allclusters = iclusters;
+    return;
+end
 
 if(strncmp(params.model.feattype, 'itm_v', 5))
     pgi = maxipg;

@@ -1,5 +1,5 @@
 function show2DGraph(pg, x, icluster, fig2d, bnms, conf)
-% imshow(x.imfile);
+
 if nargin < 4
     fig2d = -1;
     bnms = false;
@@ -19,7 +19,6 @@ end
 fontsize = size(img, 1) / 25;
 
 if(bnms)
-    % assert(0);
     objidx = getObjIndices(pg, icluster);
     assert(length(conf) == size(x.dets, 1));
     
@@ -78,8 +77,6 @@ else
             else
                 drawObject(x, idx, oid, om, fig2d, fontsize);
             end
-            
-            %rectangle('position', bbox2rect(x.dets(idx, 4:7)), 'linewidth', 2, 'edgecolor', 'w');
         else
             childs = icluster(idx).chindices;
             bbs = zeros(length(childs), 4);
@@ -96,12 +93,7 @@ else
                 end
             end
             drawITMLink(bbs);
-            
-            % rectangle('position', bbox2rect(x.dets(idx, 4:7)), 'linewidth', 2, 'edgecolor', 'w');
         end
-        
-    %     [poly, rt] = get2DCubeProjection(x.K, x.R, x.cubes{idx});
-    %     draw2DCube(poly, rt, fig2d, om(x.dets(idx, 1)).name, col(oid));
     end
 end
 if(pg.scenetype > 0)
@@ -122,7 +114,6 @@ for i = 1:size(bbs, 1)
     line([ct(1) objct(i, 1)], [ct(2) objct(i, 2)], 'LineWidth',4, 'Color', 'w', 'linestyle', '-.');
     rectangle('position', [objct(i, 1) - 10, objct(i, 2) - 10, 20, 20], 'Curvature', .8, 'facecolor', 'w', 'edgecolor', 'k', 'linewidth', 4);
 end
-% rectangle('position', bbox2rect(bbox), 'linewidth', 4, 'linestyle', '-.', 'edgecolor', 'w');
 rectangle('position', [ct(1) - 10, ct(2) - 10, 20, 20], 'Curvature', .8, 'facecolor', 'c', 'edgecolor', 'k', 'linewidth', 4);
 
 end
@@ -142,12 +133,6 @@ end
 
 function [bbox] = drawObject2(x, idx, subidx, oid, om, fig2d, fontsize)
 col = 'rgbykmcrgbykmcrgbykmcrgbykmc';
-poses = {'F' 'LF', 'L', 'LB' 'B' 'RB' 'R' 'RF'};
-pidx = mod(x.dets(idx, 3) * 4 / pi, 8) + 1;
-% rectangle('position', bbox2rect(x.hobjs(idx).bbs(:, subidx)), 'linewidth', 2, 'edgecolor', 'm');
-% [poly, rt] = get2DCubeProjection(x.K, x.R, x.cubes{idx});
 draw2DCube(x.hobjs(idx).polys(:, :, subidx), bbox2rect(x.hobjs(idx).bbs(:, subidx)), fig2d, om(x.dets(idx, 1)).name, col(oid), fontsize);
-% text(x.hobjs(idx).bbs(1, subidx)+10, x.hobjs(idx).bbs(4, subidx) - 10, ...
-%      poses{pidx}, 'backgroundcolor', 'w', 'edgecolor', 'k', 'linewidth', 2, 'fontsize', fontsize);
 bbox = x.hobjs(idx).bbs(:, subidx);
 end
