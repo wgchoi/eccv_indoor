@@ -73,35 +73,30 @@ for idx = 1:csize:length(datafiles)
     terroridx = false(1, setsize);
     % parfor i = 1:setsize
     for i = 1:setsize
-        try
-            params = params2;
-            pg0 = parsegraph(); 
-            
-            pg0.layoutidx = 1; % initialization
-            pg0.scenetype = 1;
-            
-            [tdata(i).iclusters] = clusterInteractionTemplates(tdata(i).x, params2.model);
-            %%%%% baseline  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params1, pg0);
-            
-            params1.objconftype = 'orgdet';
-            [tconf0{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params1);
-            params1.objconftype = 'odd';
-            [tconf1{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params1);
-            %%%%% 3DGP      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params2, pg0);
-            
-            params2.objconftype = 'odd';
-            [tconf2{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params2);
-            params2.objconftype = 'odd2';
-            [tconf3{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params2);
-            tempres{i}.clusters = [];
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            fprintf('+');
-        catch
-            fprintf('-');
-            terroridx(i) = true;
-        end
+        params = params2;
+        pg0 = parsegraph(); 
+
+        pg0.layoutidx = 1; % initialization
+        pg0.scenetype = 1;
+
+        [tdata(i).iclusters] = clusterInteractionTemplates(tdata(i).x, params2.model);
+        %%%%% baseline  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params1, pg0);
+
+        params1.objconftype = 'orgdet';
+        [tconf0{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params1);
+        params1.objconftype = 'odd';
+        [tconf1{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params1);
+        %%%%% 3DGP      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params2, pg0);
+
+        params2.objconftype = 'odd';
+        [tconf2{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params2);
+        params2.objconftype = 'odd2';
+        [tconf3{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params2);
+        tempres{i}.clusters = [];
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        fprintf('+');
     end
     erroridx(idx:idx+setsize-1) = terroridx;
     
