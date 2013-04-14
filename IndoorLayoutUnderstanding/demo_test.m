@@ -9,6 +9,8 @@ if(~exist('./dataset', 'dir'))
     system('rm cvpr13IndoorData.tar.gz; cd ..');
 end
 
+imgbase = './dataset/cvpr13data/images/';
+
 preprocess_dir = 'cache/test';
 if(~exist(preprocess_dir, 'dir'))
     r = input('Download preprocessed data? (y/n)', 's');
@@ -20,6 +22,11 @@ if(~exist(preprocess_dir, 'dir'))
     else
         % preprocess data
         % detector
+        basedir = './dataset/cvpr13data/images/';
+        dirnames = dir([basedir '*room']);
+        for i = 1:length(dirnames)
+            preprocess_detector(fullfile(basedir, dirnames(i).name), fullfile('cache/detections/', dirnames(i).name), {'jpg'});
+        end
         % layout estimator
         % scene classifier
         assert(0);
@@ -27,7 +34,8 @@ if(~exist(preprocess_dir, 'dir'))
 end
 %% load pre-processed data
 datafiles = dir(fullfile(preprocess_dir, '*.mat'));
-%% run 3DGP model
+
+%% run 3DGP model for all test set
 % load trained baseline model
 paramfile = 'model/params_baseline'; % without 3DGP
 temp = load(paramfile);
@@ -35,6 +43,7 @@ params1 = temp.paramsout;
 params1.numsamples = 1000;
 params1.pmove = [0 0.4 0 0.3 0.3 0 0 0];
 params1.accconst = 3;
+
 % load trained 3DGP model
 paramfile = 'model/params_3dgp';
 temp = load(paramfile);
@@ -55,6 +64,7 @@ conf3 = cell(1, length(datafiles)); % 3DGP with Marginalization 2
 
 erroridx = false(1, length(datafiles));
 csize = 32;
+
 matlabpool open;
 for idx = 1:csize:length(datafiles)
     setsize = min(length(datafiles) - idx + 1, csize);
@@ -73,38 +83,29 @@ for idx = 1:csize:length(datafiles)
     
     terroridx = false(1, setsize);
     parfor i = 1:setsize
-%      for i = 1:setsize
-        try
-            pg0 = parsegraph(); 
-            
-            pg0.layoutidx = 1; % initialization
-            pg0.scenetype = 1;
-            
-            params = params2;
-            [tdata(i).iclusters] = clusterInteractionTemplates(tdata(i).x, params.model);
-            %%%%% baseline  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            params = params1;
-            [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params, pg0);
-            
-            params.objconftype = 'orgdet';
-            [tconf0{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
-            params.objconftype = 'odd';
-            [tconf1{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
-            %%%%% 3DGP      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            params = params2;
-            [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params, pg0);
-            
-            params.objconftype = 'odd';
-            [tconf2{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
-            params.objconftype = 'odd2';
-            [tconf3{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
-            tempres{i}.clusters = [];
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            fprintf('+');
-        catch
-            fprintf('-');
-            terroridx(i) = true;
-        end
+        pg0 = parsegraph(); 
+
+        pg0.layoutidx = 1; % initialization
+        pg0.scenetype = 1;
+
+        params = params2;
+        [tdata(i).iclusters] = clusterInteractionTemplates(tdata(i).x, params.model);
+        %%%%% baseline  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        params = params1;
+        [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params, pg0);
+        params.objconftype = 'orgdet';
+        [tconf0{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
+        params.objconftype = 'odd';
+        [tconf1{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
+        %%%%% 3DGP      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        params = params2;
+        [tempres{i}.spg, tempres{i}.maxidx, tempres{i}.h, tempres{i}.clusters] = infer_top(tdata(i).x, tdata(i).iclusters, params, pg0);
+        params.objconftype = 'odd'; % M1 in the paper
+        [tconf2{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
+        params.objconftype = 'odd2'; % M2 in the paper
+        [tconf3{i}] = reestimateObjectConfidences(tempres{i}.spg, tempres{i}.maxidx, tdata(i).x, tempres{i}.clusters, params);
+        tempres{i}.clusters = [];
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end
     erroridx(idx:idx+setsize-1) = terroridx;
     
@@ -120,7 +121,7 @@ for idx = 1:csize:length(datafiles)
     fprintf(' => done\n')
 end
 matlabpool close
-%% draw curves
+%% draw detection evaluation curves
 om = objmodels();
 for i = 1:length(om)
     figure;
@@ -152,4 +153,30 @@ for i = 1:length(om)
             ['3DGP-M1 AP=' num2str(ap2, '%.03f')], ...
             ['3DGP-M2 AP=' num2str(ap3, '%.03f')]}, ...
             'Location', 'SouthWest', 'fontsize', 20);
+end
+%% test and visualize
+datalist = [352,99,162,179,345];
+
+params = params2;
+params.objconftype = 'odd'; % M1 in the paper
+
+pg0 = parsegraph(); 
+pg0.layoutidx = 1; % initialization
+pg0.scenetype = 1;
+
+for dataidx = datalist
+    data = load(fullfile(preprocess_dir, datafiles(dataidx).name));
+    [~, b] = strtok(data.x.imfile, '/');
+    [~, b] = strtok(b, '/');
+    data.x.imfile = fullfile(imgbase, b);
+    
+    [iclusters] = clusterInteractionTemplates(data.x, params.model);
+    [spg, maxidx, h, clusters] = infer_top(data.x, iclusters, params, pg0);
+
+    [oconf] = reestimateObjectConfidences(spg, maxidx, data.x, clusters, params);
+    nmspg = getNMSgraph(spg(maxidx), data.x, clusters, oconf);
+    
+    show2DGraph(nmspg, data.x, clusters, 1);
+    show3DGraph(nmspg, data.x, clusters, 2); 
+    pause
 end
