@@ -73,4 +73,15 @@ model(idx).ori_sensitive = 1;
 model(idx).submodel_sensitive = 0;
 model(idx).sharable = 0;
 
+idx = idx + 1;
+model(idx).name = 'Person';
+model(idx).type = {};
+model(idx).width = [];
+model(idx).height = [];
+model(idx).depth = [];
+model(idx).grounded = 1;
+model(idx).ori_sensitive = 1;
+model(idx).submodel_sensitive = 1;
+model(idx).sharable = 0;
+
 end

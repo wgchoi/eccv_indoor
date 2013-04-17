@@ -21,15 +21,31 @@ if(~exist(preprocess_dir, 'dir'))
         system('rm cvpr13IndoorPreprocessed.tar.gz; cd ..');
     else
         % preprocess data
-        % detector
         basedir = './dataset/cvpr13data/images/';
-        dirnames = dir([basedir '*room']);
-        for i = 1:length(dirnames)
-            preprocess_detector(fullfile(basedir, dirnames(i).name), fullfile('cache/detections/', dirnames(i).name), {'jpg'});
+        annodir = './dataset/cvpr13data/annotations/';
+        
+        load('dataset/cvpr13data/datasplit.mat');
+        for i = 1:length(trainfiles)
+            [~, path] = strtok(trainfiles{i}, '/');
+            trainfiles{i} = path(2:end);
         end
+        for i = 1:length(testfiles)
+            [~, path] = strtok(testfiles{i}, '/');
+            testfiles{i} = path(2:end);
+        end
+        preprocess_detector(basedir, 'cache/detections/', testfiles);
+        
         % layout estimator
+        curdir = pwd();
+        cd 3rdParty/SpatialLayout/spatiallayoutcode/
+        preprocess_layout(fullfile(curdir, basedir), fullfile(curdir, 'cache/layouts/'), testfiles, 'test');
+        cd(curdir);
+        
         % scene classifier
-        assert(0);
+        preprocess_sceneclass(basedir, 'cache/scene', 'test', testfiles);
+        
+        % build dataset compatible to 3DGP code (estimate 3D model, collect all necessary info, etc)
+        preprocess_data(basedir, 'cache/', annodir, 'test', testfiles);
     end
 end
 %% load pre-processed data
@@ -123,8 +139,9 @@ end
 matlabpool close
 %% draw detection evaluation curves
 om = objmodels();
-for i = 1:length(om)
-    figure;
+for i = 1:length(om)-1
+    subplot(2,3,i);
+    
     [rec, prec, ap0]= evalDetection(annos, xs, conf0, i, 0, 0, 1);
     plot(rec, prec, 'r--', 'linewidth', 2);
     hold on;
@@ -153,9 +170,10 @@ for i = 1:length(om)
             ['3DGP-M1 AP=' num2str(ap2, '%.03f')], ...
             ['3DGP-M2 AP=' num2str(ap3, '%.03f')]}, ...
             'Location', 'SouthWest', 'fontsize', 20);
+    drawnow
 end
 %% test and visualize
-datalist = [352,99,162,179,345];
+datalist = 99;
 
 params = params2;
 params.objconftype = 'odd'; % M1 in the paper
@@ -166,9 +184,12 @@ pg0.scenetype = 1;
 
 for dataidx = datalist
     data = load(fullfile(preprocess_dir, datafiles(dataidx).name));
-    [~, b] = strtok(data.x.imfile, '/');
-    [~, b] = strtok(b, '/');
-    data.x.imfile = fullfile(imgbase, b);
+    % necessary if downloaded the preprocessed data     
+    if(~exist(data.x.imfile, 'file'))
+        [~, fname] = strtok(data.x.imfile, '/');
+        [~, fname] = strtok(fname, '/');
+        data.x.imfile = fullfile(imgbase, fname);
+    end
     
     [iclusters] = clusterInteractionTemplates(data.x, params.model);
     [spg, maxidx, h, clusters] = infer_top(data.x, iclusters, params, pg0);

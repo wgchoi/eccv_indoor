@@ -1,50 +1,44 @@
-function preprocess_detector(imdir, resdir, exts)
+function preprocess_detector(basedir, resdir, files) 
 
-if nargin < 3
-    exts = {'jpg'};
+if ~exist(basedir, 'dir')
+    return;
 end
-
-if(~exist(resdir, 'dir'))
-    mkdir(resdir);
-end
-
-addpath ./3rdParty/dpm_detector
 
 load ./model/dpm/sofa_final.mat
-detect_onedir( imdir, ...
-                fullfile(resdir, 'sofa/'), ...
-                {model}, {'sofa'}, exts, -1.2);
+detect_all( basedir, ...
+                fullfile(resdir, 'sofa/'), files, ...
+                {model}, {'sofa'}, -1.2);
 
 load ./model/dpm/table_final.mat
-detect_onedir( imdir, ...
-                fullfile(resdir, 'table/'), ...
-                {model}, {'table'}, exts, -1.2)
+detect_all( basedir, ...
+                fullfile(resdir, 'table/'), files, ...
+                {model}, {'table'}, -1.2)
             
 load ./model/dpm/chair_final.mat
-detect_onedir( imdir, ...
-                fullfile(resdir, 'chair/'), ...
-                {model}, {'chair'}, exts, -1.2)
+detect_all( basedir, ...
+                fullfile(resdir, 'chair/'), files, ...
+                {model}, {'chair'}, -1.2)
             
 load ./model/dpm/bed_final.mat
-detect_onedir( imdir, ...
-                fullfile(resdir, 'bed/'), ...
-                {model}, {'bed'}, exts, -1.2)
+detect_all( basedir, ...
+                fullfile(resdir, 'bed/'), files, ...
+                {model}, {'bed'}, -1.2)
             
 load ./model/dpm/diningtable_final.mat
-detect_onedir( imdir, ...
-                fullfile(resdir, 'diningtable/'), ...
-                {model}, {'diningtable'}, exts, -1.2)
+detect_all( basedir, ...
+                fullfile(resdir, 'diningtable/'), files, ...
+                {model}, {'diningtable'}, -1.2)
             
 load ./model/dpm/sidetable_final.mat
-detect_onedir( imdir, ...
-                fullfile(resdir, 'sidetable/'), ...
-                {model}, {'sidetable'}, exts, -1.2)
+detect_all( basedir, ...
+                fullfile(resdir, 'sidetable/'), files, ...
+                {model}, {'sidetable'},  -1.2)
             
 end
 
-function detect_onedir(imdir, resdir, models, names, exts, threshold)
+function detect_all(basedir, resdir, files, models, names, threshold)
 
-if ~exist(imdir, 'dir')
+if ~exist(basedir, 'dir')
     return;
 end
 
@@ -52,15 +46,15 @@ if ~exist(resdir, 'dir')
     mkdir(resdir);
 end
 
-matlabpool open 4
-for i = 1:length(exts)
-    files = dir(fullfile(imdir, ['*.' exts{i}]));
-    parfor j = 1:length(files)
-        imfile = fullfile(imdir, files(j).name);
-        idx = find(files(j).name == '.', 1, 'last');
-		disp(['process ' files(j).name]);
-        detect_objs(imfile, models, names, threshold, 640, fullfile(resdir, files(j).name(1:idx-1)));
-    end
+try
+    matlabpool open 4
+end
+
+parfor j = 1:length(files)
+    imfile = fullfile(basedir, files{j});
+    idx = find(files{j} == '.', 1, 'last');
+    disp(['process ' files{j}]);
+    detect_objs(imfile, models, names, threshold, 640, fullfile(resdir, files{j}(1:idx-1)));
 end
 matlabpool close;
 
@@ -73,6 +67,18 @@ if nargin < 3
 elseif nargin < 4
     resfile = [];
 end
+
+if(exist([resfile '.mat'], 'file'))
+    load(resfile, 'names', 'dets', 'boxes', 'top', 'bbox', 'resizefactor');
+    return;
+end
+
+path = fileparts(resfile);
+if(~exist(path, 'dir'))
+    mkdir(path)
+end
+
+addpath ./3rdParty/dpm_detector
 
 % we assume color images
 im = imread(imfile);
@@ -108,5 +114,7 @@ end
 if(~isempty(resfile))
     save(resfile, 'names', 'dets', 'boxes', 'top', 'bbox', 'resizefactor');
 end
+
+rmpath ./3rdParty/dpm_detector
 
 end

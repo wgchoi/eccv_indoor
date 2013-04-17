@@ -153,13 +153,18 @@ if(btrainset)
         end
     end
 end
-% x = precomputeOverlapArea(x);
+x = precomputeOverlapArea(x);
 end
 
 % [obj type, subtype, pose, x, y, w, h, confidence]
 function dets = parseDets(data, idx, th)
 if nargin < 3
     th = -1.25;
+end
+
+if(isempty(data.bbox{1}))
+    dets = zeros(0, 8);
+    return;
 end
 
 bbox = data.bbox{1};

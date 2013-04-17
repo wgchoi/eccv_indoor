@@ -8,8 +8,11 @@ addpath('train');
 addpath('evaluation');
 addpath('scripts');
 addpath('potentials');
-addpath(genpath('3rdParty'));
-addpath ../3rdParty/ssvmqp_uci/;
-addpath experimental;
-addVarshaPaths
-% addpath('detector');
+addpath('preprocess');
+
+addpath ./3rdParty/PlaneIntersection/;
+addpath ./3rdParty/LinePlaneIntersection/;
+addpath ./3rdParty/PolygonIntersection/;
+addpath ./3rdParty/ArrowViz;
+
+addpath ./3rdParty/ssvmqp_uci/;
